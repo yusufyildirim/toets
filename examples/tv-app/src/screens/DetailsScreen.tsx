@@ -47,6 +47,14 @@ function Details({ item }: { item: ItemDetails }) {
         ]}
       />
       <View style={styles.scrim} />
+      <View
+        style={[
+          styles.art,
+          { backgroundImage: `linear-gradient(135deg, ${item.colors[0]}, ${item.colors[1]})` },
+        ]}
+      >
+        <Text style={styles.artTitle}>{item.title}</Text>
+      </View>
       <View style={styles.content}>
         <Text testID="details_title" style={styles.title}>
           {item.title}
@@ -89,13 +97,26 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFill,
     backgroundImage: `linear-gradient(90deg, ${colors.background} 30%, transparent)`,
   },
+  art: {
+    position: 'absolute',
+    right: CONTENT_INSET * 2,
+    top: '50%',
+    width: px(640),
+    height: px(360),
+    marginTop: px(-180),
+    borderRadius: px(24),
+    justifyContent: 'flex-end',
+    padding: px(32),
+    boxShadow: '0 24px 64px rgba(0, 0, 0, 0.5)',
+  },
+  artTitle: { color: colors.text, fontSize: px(48), fontWeight: '800' },
   content: {
     flex: 1,
     justifyContent: 'center',
     paddingHorizontal: CONTENT_INSET * 2,
-    maxWidth: px(1300),
+    maxWidth: px(1100),
   },
-  title: { color: colors.text, fontSize: px(96), fontWeight: '800' },
+  title: { color: colors.text, fontSize: px(80), fontWeight: '800' },
   meta: { color: colors.textMuted, fontSize: px(32), marginTop: px(12) },
   description: { color: colors.text, fontSize: px(32), lineHeight: px(46), marginTop: px(32) },
   actions: { flexDirection: 'row', gap: px(24), marginTop: px(56) },

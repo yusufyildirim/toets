@@ -10,6 +10,7 @@ export default tseslint.config(
       'examples/**/android/**',
       'examples/**/ios/**',
       '**/.expo/**',
+      'examples/**/build/**',
     ],
   },
   js.configs.recommended,

@@ -120,7 +120,7 @@ function Player({ item }: { item: ItemDetails }) {
           {item.title}
         </Text>
         {error ? (
-          <Text testID="player_error" style={styles.error}>
+          <Text testID="player_playback_error" style={styles.error}>
             {error.message}
           </Text>
         ) : null}
@@ -199,7 +199,8 @@ function formatTime(seconds: number): string {
 const styles = StyleSheet.create({
   screen: { backgroundColor: '#000' },
   container: { flex: 1 },
-  video: { ...StyleSheet.absoluteFill },
+  // Explicit size: on web this style lands on a raw <video>, where left/right do not stretch it.
+  video: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
   overlay: {
     position: 'absolute',
     left: 0,

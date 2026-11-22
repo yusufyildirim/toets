@@ -4,3 +4,4 @@ CHANGELOG.md
 examples/**/android
 examples/**/ios
 .expo
+examples/**/build

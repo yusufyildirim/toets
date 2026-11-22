@@ -8,5 +8,5 @@
     "allowImportingTsExtensions": true,
     "types": ["node"]
   },
-  "include": ["index.ts", "src", "server", "*.config.mts"]
+  "include": ["index.ts", "app.config.ts", "src", "server", "scripts", "*.config.mts"]
 }

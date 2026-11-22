@@ -7,3 +7,5 @@
 /build
 .expo
 *.tsbuildinfo
+/modules/*/android/build
+/modules/*/android/.cxx

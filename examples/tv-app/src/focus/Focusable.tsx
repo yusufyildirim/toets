@@ -8,6 +8,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 
+import { hideFocusRing } from './focusRing';
 import { useFocusScope } from './FocusScope';
 import { usePreferredFocus } from './usePreferredFocus';
 
@@ -24,7 +25,7 @@ export interface FocusableProps extends Omit<
 }
 
 /** A remote-focusable, pressable element that takes part in its screen's focus scope. */
-export function Focusable({ testID, focusKey = testID, onFocus, ...props }: FocusableProps) {
+export function Focusable({ testID, focusKey = testID, onFocus, style, ...props }: FocusableProps) {
   const scope = useFocusScope();
   const ref = useRef<ComponentRef<typeof View>>(null);
   const preferred = scope.active && scope.requestedKey === focusKey;
@@ -37,6 +38,7 @@ export function Focusable({ testID, focusKey = testID, onFocus, ...props }: Focu
       testID={testID}
       focusable
       hasTVPreferredFocus={preferred}
+      style={(state) => [hideFocusRing, typeof style === 'function' ? style(state) : style]}
       onFocus={(event) => {
         scope.onFocused(focusKey);
         onFocus?.(event);
