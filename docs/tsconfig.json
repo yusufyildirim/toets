@@ -1,0 +1,11 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": {
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "erasableSyntaxOnly": true,
+    "types": ["node"]
+  },
+  "include": [".vitepress/*.ts", "reference/*.ts", "scripts/**/*.ts", "*.config.ts"],
+  "exclude": ["scripts/examples/contract"]
+}
