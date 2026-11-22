@@ -1,4 +1,5 @@
 import { defineConfig } from 'tsdown';
+import { allowedImports } from '../../tsdown.shared.ts';
 
 export default defineConfig({
   // One build so all entries share chunks: `ProtocolError` and friends must be the same
@@ -14,6 +15,7 @@ export default defineConfig({
   target: 'es2015',
   platform: 'node',
   dts: true,
+  deps: { onlyImport: allowedImports(import.meta.dirname) },
   clean: true,
   fixedExtension: false,
 });
