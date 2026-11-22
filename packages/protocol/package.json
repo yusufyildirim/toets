@@ -10,6 +10,16 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./host": {
+      "source": "./src/server/index.ts",
+      "types": "./dist/server/index.d.ts",
+      "default": "./dist/server/index.js"
+    },
+    "./conformance": {
+      "source": "./src/conformance/index.ts",
+      "types": "./dist/conformance/index.d.ts",
+      "default": "./dist/conformance/index.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -23,5 +33,14 @@
   },
   "engines": {
     "node": ">=24"
+  },
+  "dependencies": {
+    "ws": "^8.23.0"
+  },
+  "devDependencies": {
+    "@types/ws": "^8.18.2"
+  },
+  "bin": {
+    "dpad-conformance": "./dist/conformance/cli.js"
   }
 }
