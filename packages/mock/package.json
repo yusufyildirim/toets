@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "description": "dpad network mocking: MSW handlers served by a host-side mock server with upstream proxying.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/mock"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/mock#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {

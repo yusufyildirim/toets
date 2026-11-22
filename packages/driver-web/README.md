@@ -12,4 +12,4 @@ Docs (shipped in [`docs/`](./docs)):
 - [Capabilities](./docs/capabilities.md)
 - [TV traps](./docs/tv-traps.md)
 
-Project overview: [dpad](../../README.md).
+Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).

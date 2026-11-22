@@ -2,6 +2,10 @@
   "name": "dpad-monorepo",
   "private": true,
   "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git"
+  },
   "packageManager": "pnpm@10.30.3",
   "engines": {
     "node": ">=24"

@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "description": "dpad driver for web TV apps in Chromium, built on Playwright.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/driver-web"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/driver-web#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {

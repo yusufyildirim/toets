@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "description": "dpad in-app SDK protocol: types, spec, host server and conformance suite.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/protocol#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {

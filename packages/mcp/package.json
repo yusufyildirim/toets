@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "description": "dpad MCP server: drive TV apps and read dpad docs from agents with the same primitives tests use.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/mcp"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/mcp#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "bin": {
     "dpad-mcp": "./dist/cli.js"

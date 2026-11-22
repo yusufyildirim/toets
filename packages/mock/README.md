@@ -10,4 +10,4 @@ Docs (shipped in [`docs/`](./docs)):
 - [App integration](./docs/app-integration.md): routing app traffic to `mockUrl` (fetch, axios), platform setup
 - [TV traps](./docs/tv-traps.md): media, images, third-party SDKs, cookies
 
-Project overview: [dpad](../../README.md).
+Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).

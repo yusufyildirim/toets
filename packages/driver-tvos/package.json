@@ -3,6 +3,13 @@
   "version": "0.0.0",
   "description": "dpad driver for tvOS simulators, built on Appium XCUITest.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/driver-tvos"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/driver-tvos#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {

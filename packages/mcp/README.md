@@ -7,4 +7,4 @@ pnpm add -D @dpad-tv/mcp
 claude mcp add --scope project dpad -- npx dpad-mcp
 ```
 
-Docs: [setup](./docs/setup.md), [tools](./docs/tools.md), [workflow](./docs/workflow.md). Project overview: [dpad](../../README.md).
+Docs: [setup](./docs/setup.md), [tools](./docs/tools.md), [workflow](./docs/workflow.md). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
