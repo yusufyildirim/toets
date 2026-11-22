@@ -16,8 +16,21 @@ export interface DeviceLease {
   readonly platform: Platform;
   /** Android serial (e.g. `emulator-5554`) or simulator UDID. */
   readonly address: string;
+  /**
+   * Provider data. `meta.environment` (string map) holds variables the device must be driven
+   * with, e.g. a lease broker's `ANDROID_ADB_SERVER_PORT` or `SIMLOCK_IOS_DEVICE_SET`.
+   */
   readonly meta: Readonly<Record<string, unknown>>;
   release(): Promise<void>;
+}
+
+/** The string entries of `lease.meta.environment`; empty without a lease or environment. */
+export function leaseEnvironment(lease: DeviceLease | undefined): Readonly<Record<string, string>> {
+  const env = lease?.meta.environment;
+  if (!env || typeof env !== 'object') return {};
+  const out: Record<string, string> = {};
+  for (const [name, value] of Object.entries(env)) if (typeof value === 'string') out[name] = value;
+  return out;
 }
 
 export interface DeviceAcquireOptions {

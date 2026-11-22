@@ -77,6 +77,8 @@ export interface AppTargetConfig {
 
 export interface DriverCreateContext {
   readonly app: AppTargetConfig;
+  /** Directory relative paths in `app` (APKs, app bundles) resolve against. Default: the cwd. */
+  readonly configDir?: string;
   /** Present for device-backed platforms. */
   readonly device?: DeviceLease;
   readonly workerIndex: number;

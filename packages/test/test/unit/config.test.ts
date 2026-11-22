@@ -28,16 +28,50 @@ describe('platforms', () => {
     const project = platforms.tvOS({
       name: 'apple-tv-4k',
       driver: './my-driver.js',
-      device: { model: 'Apple TV 4K' },
+      model: 'Apple TV 4K',
+      osVersion: '18',
       devices: { mode: 'external', addresses: ['UDID-1'] },
     });
     expect(project.name).toBe('apple-tv-4k');
     expect(dpadOf(project)).toMatchObject({
       platform: 'tvos',
       driver: './my-driver.js',
-      device: { model: 'Apple TV 4K' },
+      device: { model: 'Apple TV 4K', osVersion: '18' },
       devices: { mode: 'external', addresses: ['UDID-1'] },
     });
+  });
+
+  it('passes every key that is neither Playwright nor dpad to the driver', () => {
+    const project = platforms.androidTV({
+      name: 'fire-tv',
+      retries: 2,
+      timeout: 60_000,
+      model: 'tv_1080p',
+      remote: 'fire-tv',
+      logcat: 'all',
+      managed: { headless: false },
+      app: { activity: '.Main' },
+      dpad: { sdk: true },
+    });
+    expect(project).toMatchObject({ name: 'fire-tv', retries: 2, timeout: 60_000 });
+    expect(project).not.toHaveProperty('remote');
+    expect(dpadOf(project)).toMatchObject({
+      driverOptions: { remote: 'fire-tv', logcat: 'all', managed: { headless: false } },
+      device: { model: 'tv_1080p' },
+      app: { activity: '.Main' },
+      options: { sdk: true },
+    });
+    expect(Object.keys(dpadOf(project).driverOptions)).toEqual(['remote', 'logcat', 'managed']);
+  });
+
+  it('types a custom driver through its options type', () => {
+    interface MyOptions {
+      readonly speed: number;
+    }
+    const project = platforms.web<MyOptions>({ driver: './my-driver.js', speed: 2 });
+    expect(dpadOf(project).driverOptions).toEqual({ speed: 2 });
+    // @ts-expect-error unknown driver option
+    platforms.web({ notAnOption: true });
   });
 });
 

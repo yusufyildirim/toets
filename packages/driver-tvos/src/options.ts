@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import type { AppTargetConfig } from '@dpad-tv/core';
 import type { TvosManagedDeviceOptions } from './devices.js';
 import { TvosErrorCode, tvosError } from './errors.js';
@@ -9,7 +10,7 @@ import { TvosErrorCode, tvosError } from './errors.js';
 export interface TvosAppConfig {
   /** `CFBundleIdentifier` of the app, e.g. `com.example.tv`. */
   readonly bundleId: string;
-  /** Path to a simulator `.app` build. Installed on start; omit to test an installed app. */
+  /** Simulator `.app` build, relative to the config file. Installed on start; omit to test an installed app. */
   readonly app?: string;
   /** Extra launch arguments, passed before dpad's `-__dpad <payload>`. */
   readonly launchArguments?: readonly string[];
@@ -66,7 +67,10 @@ export interface TvosDriverOptions {
   readonly managed?: TvosManagedDeviceOptions;
 }
 
-export function resolveAppConfig(app: AppTargetConfig): TvosAppConfig {
+export function resolveAppConfig(
+  app: AppTargetConfig,
+  configDir: string = process.cwd(),
+): TvosAppConfig {
   const { bundleId, app: appPath, launchArguments, launchEnvironment } = app;
   const fail = (what: string) =>
     tvosError(TvosErrorCode.CONFIG, `Invalid tvOS app config: ${what}.`, {
@@ -91,7 +95,7 @@ export function resolveAppConfig(app: AppTargetConfig): TvosAppConfig {
   }
   return {
     bundleId,
-    ...(appPath === undefined ? {} : { app: appPath }),
+    ...(appPath === undefined ? {} : { app: resolve(configDir, appPath) }),
     ...(launchArguments === undefined ? {} : { launchArguments: launchArguments as string[] }),
     ...(launchEnvironment === undefined
       ? {}

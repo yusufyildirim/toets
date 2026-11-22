@@ -30,7 +30,11 @@ export default defineConfig({
     androidTV: { apk: './build/app-debug.apk', package: 'com.example.tv' },
     tvOS: { app: './build/Example.app', bundleId: 'com.example.tv' },
   },
-  projects: [platforms.web(), platforms.androidTV({ api: 34 }), platforms.tvOS({ runtime: '18' })],
+  projects: [
+    platforms.web(),
+    platforms.androidTV({ osVersion: '34' }),
+    platforms.tvOS({ osVersion: '18' }),
+  ],
 });
 ```
 

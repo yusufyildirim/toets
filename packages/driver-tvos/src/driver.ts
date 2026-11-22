@@ -83,7 +83,7 @@ export class TvosDriver implements Driver {
     private readonly ctx: DriverCreateContext,
     deps: Partial<TvosDriverDeps> = {},
   ) {
-    this.app = resolveAppConfig(ctx.app);
+    this.app = resolveAppConfig(ctx.app, ctx.configDir);
     this.deps = { ...DEFAULT_DEPS, ...deps };
   }
 

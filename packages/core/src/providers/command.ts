@@ -5,7 +5,8 @@ import { DpadError, docsLink } from '../errors.js';
 export interface CommandDevicesOptions {
   /**
    * Shell command that leases one device and prints JSON on its last stdout line:
-   * `{ "address": "emulator-5554", "id"?: "lease-1", "meta"?: { ... } }`.
+   * `{ "address": "emulator-5554", "id"?: "lease-1", "meta"?: { ... }, "environment"?: { ... } }`.
+   * `environment` (variables the device must be driven with) lands in `meta.environment`.
    * Receives `DPAD_PLATFORM`, `DPAD_WORKER_INDEX`, `DPAD_PARALLEL_INDEX`, `DPAD_DEVICE_SPEC` (JSON).
    */
   readonly acquire: string;
@@ -55,7 +56,8 @@ function parseLease(stdout: string): {
   } catch {
     value = undefined;
   }
-  const v = value as { address?: unknown; id?: unknown; meta?: unknown } | undefined;
+  const v = value as
+    { address?: unknown; id?: unknown; meta?: unknown; environment?: unknown } | undefined;
   if (!v || typeof v.address !== 'string' || !v.address) {
     throw new DpadError(
       'DEVICE_COMMAND_OUTPUT',
@@ -66,11 +68,24 @@ function parseLease(stdout: string): {
       },
     );
   }
+  const meta = v.meta && typeof v.meta === 'object' ? (v.meta as Record<string, unknown>) : {};
+  const environment = isStringMap(v.environment) ? v.environment : undefined;
   return {
     address: v.address,
     ...(typeof v.id === 'string' ? { id: v.id } : {}),
-    ...(v.meta && typeof v.meta === 'object' ? { meta: v.meta as Record<string, unknown> } : {}),
+    meta: environment
+      ? { ...meta, environment: { ...(meta.environment as object | undefined), ...environment } }
+      : meta,
   };
+}
+
+function isStringMap(value: unknown): value is Record<string, string> {
+  return (
+    !!value &&
+    typeof value === 'object' &&
+    !Array.isArray(value) &&
+    Object.values(value).every((v) => typeof v === 'string')
+  );
 }
 
 const commandError = (what: string, command: string, cause: unknown): DpadError => {

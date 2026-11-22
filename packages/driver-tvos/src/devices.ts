@@ -1,4 +1,9 @@
-import type { DeviceLease, DeviceProvider, DeviceSpec } from '@dpad-tv/core';
+import {
+  leaseEnvironment,
+  type DeviceLease,
+  type DeviceProvider,
+  type DeviceSpec,
+} from '@dpad-tv/core';
 import { defaultRunner, type CommandRunner } from './command.js';
 import { TvosErrorCode, tvosError } from './errors.js';
 import {
@@ -149,12 +154,7 @@ export function deviceSetFromLease(lease: DeviceLease | undefined): string | und
   if (!lease) return undefined;
   const direct = lease.meta.deviceSet;
   if (typeof direct === 'string' && direct) return direct;
-  const env = lease.meta.environment;
-  if (env && typeof env === 'object') {
-    const fromEnv = (env as Record<string, unknown>).SIMLOCK_IOS_DEVICE_SET;
-    if (typeof fromEnv === 'string' && fromEnv) return fromEnv;
-  }
-  return undefined;
+  return leaseEnvironment(lease).SIMLOCK_IOS_DEVICE_SET || undefined;
 }
 
 async function boot(simctl: Simctl, udid: string, timeoutMs = DEFAULT_BOOT_TIMEOUT_MS) {

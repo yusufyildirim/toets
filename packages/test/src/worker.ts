@@ -167,6 +167,7 @@ export class DpadWorker {
 
       const driver = await module.createDriver(config.driverOptions, {
         app: config.app,
+        configDir: ctx.configDir,
         ...(lease ? { device: lease } : {}),
         workerIndex: ctx.workerIndex,
         artifactsDir: ctx.artifactsDir,

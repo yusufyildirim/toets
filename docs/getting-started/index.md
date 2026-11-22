@@ -47,8 +47,8 @@ export default defineConfig({
   },
   projects: [
     platforms.web(),
-    platforms.androidTV({ avd: 'tv_1080p', api: 34 }),
-    platforms.tvOS({ runtime: '18' }),
+    platforms.androidTV({ model: 'tv_1080p', osVersion: '34' }),
+    platforms.tvOS({ osVersion: '18' }),
   ],
 });
 ```

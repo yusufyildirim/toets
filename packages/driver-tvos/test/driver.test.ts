@@ -146,6 +146,17 @@ describe('TvosDriver', () => {
     return driver;
   }
 
+  it('resolves a relative app path against the config directory', async () => {
+    const c = ctx();
+    await started(
+      {},
+      { ...c, app: { ...c.app, app: './build/Fixture.app' }, configDir: '/work/tv' },
+    );
+    expect(runner.lines()).toContain(
+      'xcrun simctl --set /simlock/set install UDID-1 /work/tv/build/Fixture.app',
+    );
+  });
+
   it('starts Appium, opens an XCUITest session with prebuilt WDA, installs the app and streams its logs', async () => {
     const driver = await started();
     const caps = requests[0]!.capabilities;

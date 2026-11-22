@@ -16,7 +16,7 @@ export default defineConfig({
   dpad: { sdk: true, mock: true },
   projects: [
     platforms.web(),
-    platforms.androidTV({ device: { model: 'tv_1080p', osVersion: '34' } }),
+    platforms.androidTV({ model: 'tv_1080p', osVersion: '34' }),
     platforms.tvOS({ dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } } }),
   ],
 });
@@ -26,7 +26,10 @@ export default defineConfig({
 
 - **Everything Playwright stays Playwright.** `workers`, `retries`, `reporter`, `grep`, `expect.timeout`, UI mode and sharding work unchanged.
 - **One project per platform.** A project name defaults to the platform (`web`, `android-tv`, `tvos`); add more projects for more devices of one platform.
-- **Drivers load lazily by package name**: `@dpad-tv/driver-web`, `@dpad-tv/driver-android-tv`, `@dpad-tv/driver-tvos`. Install only the ones you use. `driver` overrides the module (a package or a path relative to the config file); `driverOptions` go to the driver.
+- **Drivers load lazily by package name**: `@dpad-tv/driver-web`, `@dpad-tv/driver-android-tv`, `@dpad-tv/driver-tvos`. Install only the ones you use. `driver` overrides the module (a package or a path relative to the config file).
+- **One flat options object per project.** `platforms.androidTV({ ... })` takes Playwright project fields (`name`, `retries`, `use`, ...), dpad's keys (`driver`, `app`, `model`, `osVersion`, `devices`, `dpad`) and the driver's options (e.g. `remote: 'fire-tv'`), typed by the driver package. A custom driver passes its type: `platforms.web<MyOptions>({ driver: './my-driver.ts', ... })`.
+- **`model` and `osVersion`** tell the device provider what to boot or lease, e.g. `model: 'tv_1080p', osVersion: '34'`.
+- **Relative app paths** (`apk`, `app`) resolve against the config file's directory.
 - **Options merge** from the top-level `dpad` into each project's `dpad`. The `app` entry for the platform merges with the project's `app`.
 - **The parity reporter is added** after your reporters; `parityReport: false` turns it off.
 

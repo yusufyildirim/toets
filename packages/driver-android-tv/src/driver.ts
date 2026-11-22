@@ -1,6 +1,7 @@
 import {
   evaluateChain,
   focusedIn,
+  leaseEnvironment,
   type Capability,
   type Driver,
   type DriverCreateContext,
@@ -102,7 +103,7 @@ export class AndroidTvDriver implements Driver {
   ) {
     this.runner = deps.runner ?? nodeCommandRunner;
     this.env = deps.env ?? process.env;
-    this.app = parseAppConfig(ctx.app);
+    this.app = parseAppConfig(ctx.app, ctx.configDir);
     this.adb = new Adb(this.runner, adbPath, serial, this.env);
     this.capabilities = new Set<Capability>([
       ...REMOTE_PROFILE_CAPABILITIES[options.remote ?? 'android-tv'],
@@ -382,7 +383,7 @@ export function createAndroidTvDriver(
   ctx: DriverCreateContext,
   deps: AndroidTvDriverDeps = {},
 ): AndroidTvDriver {
-  const env = deps.env ?? process.env;
+  const env = { ...(deps.env ?? process.env), ...leaseEnvironment(ctx.device) };
   const serial = ctx.device?.address ?? options.serial ?? env.ANDROID_SERIAL;
   if (!serial) {
     throw androidError('ANDROID_NO_DEVICE', 'No Android device to run on.', {
@@ -391,7 +392,7 @@ export function createAndroidTvDriver(
     });
   }
   const sdk = resolveAndroidSdk(options.sdkRoot, env);
-  return new AndroidTvDriver(options, ctx, serial, sdk.adb, deps);
+  return new AndroidTvDriver(options, ctx, serial, sdk.adb, { ...deps, env });
 }
 
 /** Ports to `adb reverse` so the payload's `localhost` URLs reach the host. */

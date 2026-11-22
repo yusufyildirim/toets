@@ -191,6 +191,7 @@ export class Session {
       await mkdir(artifactsDir, { recursive: true });
       driver = await module.createDriver(options, {
         app: spec.app ?? {},
+        configDir: this.opts.baseDir,
         ...(lease && { device: lease }),
         workerIndex: 0,
         artifactsDir,

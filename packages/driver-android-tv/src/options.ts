@@ -1,3 +1,4 @@
+import { resolve } from 'node:path';
 import type { AppTargetConfig } from '@dpad-tv/core';
 import type { ManagedDeviceOptions } from './devices/managed.js';
 import { DOCS, androidError } from './errors.js';
@@ -17,7 +18,7 @@ export interface AndroidTvAppConfig {
    * launcher would start (`LEANBACK_LAUNCHER`, then `LAUNCHER`).
    */
   readonly activity?: string;
-  /** APK installed (`adb install -r`) when the driver starts. Omit when already installed. */
+  /** APK installed (`adb install -r`) when the driver starts; relative to the config file. Omit when already installed. */
   readonly apk?: string;
 }
 
@@ -66,7 +67,10 @@ export interface VideoOptions {
 }
 
 /** Validates the app config the user put in their dpad config. */
-export function parseAppConfig(app: AppTargetConfig): AndroidTvAppConfig {
+export function parseAppConfig(
+  app: AppTargetConfig,
+  configDir: string = process.cwd(),
+): AndroidTvAppConfig {
   const { package: pkg, activity, apk } = app;
   if (typeof pkg !== 'string' || !/^[A-Za-z][\w]*(\.[A-Za-z][\w]*)+$/.test(pkg)) {
     throw androidError(
@@ -88,6 +92,6 @@ export function parseAppConfig(app: AppTargetConfig): AndroidTvAppConfig {
   return {
     package: pkg,
     ...(typeof activity === 'string' ? { activity } : {}),
-    ...(typeof apk === 'string' ? { apk } : {}),
+    ...(typeof apk === 'string' ? { apk: resolve(configDir, apk) } : {}),
   };
 }

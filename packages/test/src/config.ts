@@ -9,7 +9,6 @@ import {
 import type {
   AppTargetConfig,
   CommandDevicesOptions,
-  DeviceSpec,
   IdleOptions,
   KeyOverrides,
   MockServerLike,
@@ -17,6 +16,9 @@ import type {
   RemoteOptions,
   Timeouts,
 } from '@dpad-tv/core';
+import type { AndroidTvAppConfig, AndroidTvDriverOptions } from '@dpad-tv/driver-android-tv';
+import type { TvosAppConfig, TvosDriverOptions } from '@dpad-tv/driver-tvos';
+import type { WebDriverOptions } from '@dpad-tv/driver-web';
 import type { SdkHost } from '@dpad-tv/protocol';
 import type { ParityReporterOptions } from './reporter.js';
 
@@ -66,11 +68,14 @@ export interface DpadOptions {
   readonly video?: 'off' | 'on' | 'retain-on-failure';
 }
 
-/** Per-platform app config, keyed like the platform helpers. */
+/** Per-platform app config, keyed like the platform helpers. Each driver documents its keys. */
 export interface AppTargets {
-  readonly web?: AppTargetConfig;
-  readonly androidTV?: AppTargetConfig;
-  readonly tvOS?: AppTargetConfig;
+  /** `url`, plus any web driver option (the project's options win). */
+  readonly web?: WebDriverOptions;
+  /** `package`, optional `apk` (relative to this config) and `activity`. */
+  readonly androidTV?: AndroidTvAppConfig;
+  /** `bundleId`, optional `app` (relative to this config), `launchArguments`, `launchEnvironment`. */
+  readonly tvOS?: TvosAppConfig;
 }
 
 export type PlatformKey = keyof AppTargets;
@@ -98,22 +103,56 @@ export interface DpadProjectConfig {
   readonly platform: Platform;
   /** Driver module: a package name or a path relative to the config file. */
   readonly driver: string;
+  /** The driver's own options: every key of the `platforms.*()` call dpad and Playwright do not own. */
   readonly driverOptions: Readonly<Record<string, unknown>>;
   readonly app: AppTargetConfig;
-  readonly device: Readonly<Record<string, unknown>>;
+  /** What the device provider is asked for (`model`, `osVersion`). */
+  readonly device: { readonly model?: string; readonly osVersion?: string };
   readonly devices: DeviceSelection | undefined;
   readonly options: DpadOptions;
 }
 
-export interface PlatformProjectOptions extends Omit<Project, 'use'> {
+/** Keys of a Playwright `Project` passed through unchanged (`use` is merged separately). */
+const PROJECT_KEYS = [
+  'default',
+  'dependencies',
+  'expect',
+  'fullyParallel',
+  'grep',
+  'grepInvert',
+  'ignoreSnapshots',
+  'metadata',
+  'name',
+  'outputDir',
+  'repeatEach',
+  'respectGitIgnore',
+  'retries',
+  'snapshotDir',
+  'snapshotPathTemplate',
+  'teardown',
+  'testDir',
+  'testIgnore',
+  'testMatch',
+  'timeout',
+  'workers',
+] as const satisfies readonly (keyof Project)[];
+
+/** Fails to compile when Playwright adds a `Project` key missing from `PROJECT_KEYS`. */
+type UnlistedProjectKey = Exclude<keyof Project, (typeof PROJECT_KEYS)[number] | 'use'>;
+const _allProjectKeysListed: [UnlistedProjectKey] extends [never] ? true : UnlistedProjectKey =
+  true;
+void _allProjectKeysListed;
+
+/** dpad's own keys of a platform project; everything else that is not Playwright's is the driver's. */
+interface DpadProjectKeys<App> {
   /** Driver module override (package name or path relative to the config). */
   readonly driver?: string;
-  /** Options passed to the driver's `createDriver`. */
-  readonly driverOptions?: Readonly<Record<string, unknown>>;
   /** Merged over the top-level `app` entry for this platform. */
-  readonly app?: AppTargetConfig;
-  /** Device spec for the provider, e.g. `{ model: 'tv_1080p', osVersion: '34' }`. */
-  readonly device?: Omit<DeviceSpec, 'platform'>;
+  readonly app?: Partial<App>;
+  /** Device model for the device provider, e.g. `tv_1080p` or `Apple TV 4K (3rd generation)`. */
+  readonly model?: string;
+  /** OS version for the device provider, e.g. `34` (Android API level) or `18.0`. */
+  readonly osVersion?: string;
   /** Default: `managed` when the driver provides devices. */
   readonly devices?: DeviceSelection;
   /** Overrides the top-level `dpad` options for this project. */
@@ -121,28 +160,75 @@ export interface PlatformProjectOptions extends Omit<Project, 'use'> {
   readonly use?: Project['use'];
 }
 
+/**
+ * Options of a `platforms.*()` project: Playwright project fields, dpad's own keys and the
+ * driver's options (`Driver`), all flat.
+ */
+export type PlatformProjectOptions<
+  Driver extends object = Readonly<Record<string, unknown>>,
+  App extends object = AppTargetConfig,
+> = Omit<Project, 'use'> & DpadProjectKeys<App> & Omit<Driver, keyof DpadProjectKeys<App>>;
+
+/** Fails to compile when a driver option shadows a Playwright or dpad key. */
+type Shadowed<Driver> = keyof Driver & (keyof Project | keyof DpadProjectKeys<object>);
+const _noShadowedDriverOptions: [
+  Shadowed<WebDriverOptions> | Shadowed<AndroidTvDriverOptions> | Shadowed<TvosDriverOptions>,
+] extends [never]
+  ? true
+  : never = true;
+void _noShadowedDriverOptions;
+
+const OWN_KEYS = new Set<string>([
+  ...PROJECT_KEYS,
+  'driver',
+  'app',
+  'model',
+  'osVersion',
+  'devices',
+  'dpad',
+  'use',
+]);
+
 function platformProject(platform: Platform, opts: PlatformProjectOptions = {}): Project {
-  const { driver, driverOptions, app, device, devices, dpad, use, ...project } = opts;
+  const { driver, app, model, osVersion, devices, dpad, use } = opts;
+  const project: Record<string, unknown> = {};
+  const driverOptions: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(opts)) {
+    if ((PROJECT_KEYS as readonly string[]).includes(key)) project[key] = value;
+    else if (!OWN_KEYS.has(key)) driverOptions[key] = value;
+  }
   const config: DpadProjectConfig = {
     platform,
     driver: driver ?? DEFAULT_DRIVER[platform],
-    driverOptions: driverOptions ?? {},
+    driverOptions,
     app: app ?? {},
-    device: device ?? {},
+    device: {
+      ...(model === undefined ? {} : { model }),
+      ...(osVersion === undefined ? {} : { osVersion }),
+    },
     devices,
     options: dpad ?? {},
   };
   return { name: platform, ...project, use: { ...use, dpad: config } };
 }
 
-/** Playwright projects, one per platform. Project name defaults to the platform name. */
+/**
+ * Playwright projects, one per platform. The project name defaults to the platform name. A custom
+ * `driver` with other options passes its options type: `platforms.web<MyOptions>({ ... })`.
+ */
 export const platforms = {
   /** Chromium through `@dpad-tv/driver-web`. */
-  web: (opts?: PlatformProjectOptions): Project => platformProject('web', opts),
+  web: <Driver extends object = WebDriverOptions>(
+    opts?: PlatformProjectOptions<Driver, WebDriverOptions>,
+  ): Project => platformProject('web', opts),
   /** Android TV / Fire TV emulators through `@dpad-tv/driver-android-tv`. */
-  androidTV: (opts?: PlatformProjectOptions): Project => platformProject('android-tv', opts),
+  androidTV: <Driver extends object = AndroidTvDriverOptions>(
+    opts?: PlatformProjectOptions<Driver, AndroidTvAppConfig>,
+  ): Project => platformProject('android-tv', opts),
   /** tvOS simulators through `@dpad-tv/driver-tvos`. */
-  tvOS: (opts?: PlatformProjectOptions): Project => platformProject('tvos', opts),
+  tvOS: <Driver extends object = TvosDriverOptions>(
+    opts?: PlatformProjectOptions<Driver, TvosAppConfig>,
+  ): Project => platformProject('tvos', opts),
 };
 
 export interface DpadConfig extends PlaywrightTestConfig {

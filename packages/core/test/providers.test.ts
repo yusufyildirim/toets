@@ -3,6 +3,7 @@ import {
   createCommandDeviceProvider,
   createExternalDeviceProvider,
   devicesFromEnv,
+  leaseEnvironment,
 } from '../src/index.js';
 
 const spec = { platform: 'android-tv' as const, model: 'tv_1080p' };
@@ -49,6 +50,19 @@ describe('command devices', () => {
     expect(lease).toMatchObject({ id: 'lease-3', address: 'emulator-5556', meta: { spec } });
     await lease.release();
     await lease.release();
+    await provider.dispose();
+  });
+
+  it('keeps the lease environment in meta.environment', async () => {
+    const provider = createCommandDeviceProvider({
+      acquire: node(
+        'console.log(JSON.stringify({ address: "emulator-5554", meta: { slot: 1 }, environment: { ANDROID_ADB_SERVER_PORT: "6100" } }))',
+      ),
+    });
+    const lease = await provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
+    expect(lease.meta).toEqual({ slot: 1, environment: { ANDROID_ADB_SERVER_PORT: '6100' } });
+    expect(leaseEnvironment(lease)).toEqual({ ANDROID_ADB_SERVER_PORT: '6100' });
+    expect(leaseEnvironment(undefined)).toEqual({});
     await provider.dispose();
   });
 

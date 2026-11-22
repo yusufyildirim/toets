@@ -48,7 +48,11 @@ class FakeSession implements AppiumSession {
   }
 }
 
-function setup(options: AndroidTvDriverOptions = {}, app: Record<string, unknown> = {}) {
+function setup(
+  options: AndroidTvDriverOptions = {},
+  app: Record<string, unknown> = {},
+  extra: { configDir?: string; meta?: Record<string, unknown> } = {},
+) {
   const sdkRoot = mkdtempSync(join(tmpdir(), 'dpad-sdk-'));
   mkdirSync(join(sdkRoot, 'platform-tools'));
   const artifactsDir = mkdtempSync(join(tmpdir(), 'dpad-art-'));
@@ -70,9 +74,10 @@ function setup(options: AndroidTvDriverOptions = {}, app: Record<string, unknown
       id: 'd',
       platform: 'android-tv',
       address: 'emulator-5554',
-      meta: {},
+      meta: extra.meta ?? {},
       release: async () => {},
     },
+    ...(extra.configDir === undefined ? {} : { configDir: extra.configDir }),
     workerIndex: 0,
     artifactsDir,
     log: (m) => logs.push(m),
@@ -288,6 +293,21 @@ describe('AndroidTvDriver start failures', () => {
     expect(lines.findIndex((l) => l.includes('install -r -t -g /tmp/app.apk'))).toBeLessThan(
       lines.findIndex((l) => l.includes('pm path')),
     );
+  });
+
+  it('resolves a relative APK path against the config directory', async () => {
+    const t = setup({}, { apk: './build/app.apk' }, { configDir: '/work/tv' });
+    await t.driver.start();
+    expect(
+      t.runner.lines('run').some((l) => l.includes('install -r -t -g /work/tv/build/app.apk')),
+    ).toBe(true);
+  });
+
+  it('drives the device with the lease environment', async () => {
+    const t = setup({}, {}, { meta: { environment: { ANDROID_ADB_SERVER_PORT: '6100' } } });
+    await t.driver.start();
+    expect(t.servers[0]?.env?.ANDROID_ADB_SERVER_PORT).toBe('6100');
+    expect(t.caps[0]?.['appium:adbPort']).toBe(6100);
   });
 
   it('explains a missing app', async () => {

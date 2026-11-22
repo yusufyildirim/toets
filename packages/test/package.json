@@ -35,9 +35,26 @@
     "@dpad-tv/protocol": "workspace:^"
   },
   "devDependencies": {
+    "@dpad-tv/driver-android-tv": "workspace:^",
+    "@dpad-tv/driver-tvos": "workspace:^",
+    "@dpad-tv/driver-web": "workspace:^",
     "@playwright/test": "^1.65.1"
   },
   "peerDependencies": {
+    "@dpad-tv/driver-android-tv": "workspace:^",
+    "@dpad-tv/driver-tvos": "workspace:^",
+    "@dpad-tv/driver-web": "workspace:^",
     "@playwright/test": "^1.65.0"
+  },
+  "peerDependenciesMeta": {
+    "@dpad-tv/driver-android-tv": {
+      "optional": true
+    },
+    "@dpad-tv/driver-tvos": {
+      "optional": true
+    },
+    "@dpad-tv/driver-web": {
+      "optional": true
+    }
   }
 }
