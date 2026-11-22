@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { DpadError, Key, type ActionInfo } from '../src/index.js';
+import type { DpadError } from '../src/index.js';
+import { Key, type ActionInfo } from '../src/index.js';
 import { rankDirections, nextStepInGraph } from '../src/runtime/focus.js';
 import { setup } from './fixtures.js';
 
