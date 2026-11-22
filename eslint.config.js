@@ -9,6 +9,8 @@ export default tseslint.config(
       '**/.vitepress/cache/**',
       'examples/**/android/**',
       'examples/**/ios/**',
+      '**/.expo/**',
+      'examples/**/build/**',
     ],
   },
   js.configs.recommended,
