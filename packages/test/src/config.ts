@@ -7,7 +7,14 @@ import {
   type ReporterDescription,
 } from '@playwright/test';
 import type { AppTargetConfig, Platform, Timeouts } from '@dpad-tv/core';
-import { mergeRuntimeConfig, type DeviceSelection, type RuntimeConfig } from '@dpad-tv/core/runner';
+import type { MockServerConfig } from '@dpad-tv/core';
+import {
+  mergeRuntimeConfig,
+  type DeviceSelection,
+  type MockServerFactory,
+  type RuntimeConfig,
+} from '@dpad-tv/core/runner';
+import type { RequestHandler } from '@dpad-tv/mock';
 import type { AndroidTvAppConfig, AndroidTvDriverOptions } from '@dpad-tv/driver-android-tv';
 import type { TvosAppConfig, TvosDriverOptions } from '@dpad-tv/driver-tvos';
 import type { WebDriverOptions } from '@dpad-tv/driver-web';
@@ -20,13 +27,30 @@ export type { DeviceSelection };
  * `mock`, `keyOverrides`, `idle` and `remote` are the core's runtime options (the MCP server
  * reads the same ones); `steps` and `video` are test-only.
  */
-export interface DpadOptions extends Omit<RuntimeConfig, 'timeouts'> {
+export interface DpadOptions extends Omit<RuntimeConfig, 'timeouts' | 'mock'> {
+  /**
+   * Host-side network mocking (`network.mock`): `true`, or the mock server settings. A project's
+   * settings merge key by key over the top-level ones. Default off.
+   */
+  readonly mock?: boolean | DpadMockOptions;
   /** Assertion timeouts come from Playwright's `expect.timeout`. */
   readonly timeouts?: Partial<Omit<Timeouts, 'expectMs'>>;
   /** Per-step artifacts attached to every action step. Both default off (they cost time on devices). */
   readonly steps?: { readonly screenshot?: boolean; readonly snapshot?: boolean };
   /** Screen recording per test, where the driver has `video`. Default `off`. */
   readonly video?: 'off' | 'on' | 'retain-on-failure';
+}
+
+/** Settings of the per-worker mock server (`dpad.mock`). */
+export interface DpadMockOptions extends Omit<MockServerConfig, 'handlers'> {
+  /**
+   * Baseline MSW handlers, active in every test, e.g.
+   * `[http.get('https://api.example.com/config', ...)]`. Handlers a test adds with
+   * `app.network.use()` take precedence and are removed after it.
+   */
+  readonly handlers?: readonly RequestHandler[];
+  /** Custom server factory; default `createMockServer` from `@dpad-tv/mock`. */
+  readonly createServer?: MockServerFactory;
 }
 
 /** Per-platform app config, keyed like the platform helpers. Each driver documents its keys. */

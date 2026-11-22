@@ -2,7 +2,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { DpadError, packageDocsLink, type AppRuntime, type LaunchOptions } from '@dpad-tv/core';
 import { mergeRuntimeConfig, RunningTarget, type TargetConfig } from '@dpad-tv/core/runner';
-import { createMockServer } from '@dpad-tv/mock';
+import { mockServerFactory } from '@dpad-tv/mock';
 import type { McpConfig, McpTargetConfig } from './config.js';
 
 const DEFAULT_EXPECT_TIMEOUT_MS = 5000;
@@ -126,7 +126,7 @@ export class Session {
       configDir: this.opts.baseDir,
       artifactsDir: resolve(this.opts.baseDir, config.artifactsDir ?? join(tmpdir(), 'dpad-mcp')),
       log: this.opts.log,
-      createMockServer,
+      createMockServer: mockServerFactory,
     });
     this.opts.log(`dpad mcp: target "${wanted}" (${target.driver.platform}) ready`);
     this.active = {

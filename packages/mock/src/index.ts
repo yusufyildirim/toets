@@ -7,7 +7,12 @@
  *
  * @packageDocumentation
  */
-export { createMockServer, type MockServer, type MockServerOptions } from './server.js';
+export {
+  createMockServer,
+  mockServerFactory,
+  type MockServer,
+  type MockServerOptions,
+} from './server.js';
 export {
   failure,
   latency,

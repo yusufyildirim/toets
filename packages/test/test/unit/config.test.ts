@@ -1,4 +1,5 @@
 import { Key } from '@dpad-tv/core';
+import { http, HttpResponse } from '@dpad-tv/mock';
 import { describe, expect, it } from 'vitest';
 import { defineConfig, platforms, type DpadProjectConfig } from '../../src/config.js';
 import { requiredCapabilities, requires, requiresSkipReason } from '../../src/requires.js';
@@ -100,6 +101,20 @@ describe('defineConfig', () => {
       timeouts: { actionMs: 3000, sdkConnectMs: 30_000 },
     });
     expect(plain).toEqual({ name: 'plain' });
+  });
+
+  it('merges mock settings key by key into projects', () => {
+    const handlers = [http.get('https://api.example.com/config', () => HttpResponse.json({}))];
+    const [web, tvos] = defineConfig({
+      dpad: { mock: { handlers, onUnhandledRequest: 'reject' } },
+      projects: [platforms.web({ dpad: { mock: { port: 4100 } } }), platforms.tvOS()],
+    }).projects!;
+    expect(dpadOf(web).options.mock).toEqual({
+      handlers,
+      onUnhandledRequest: 'reject',
+      port: 4100,
+    });
+    expect(dpadOf(tvos).options.mock).toEqual({ handlers, onUnhandledRequest: 'reject' });
   });
 
   it('defaults dpad projects to host-independent snapshot paths', () => {

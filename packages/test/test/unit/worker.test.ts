@@ -85,6 +85,42 @@ describe('DpadWorker', () => {
     await expect(fetch(`${mock?.url}/v1/ping`)).rejects.toThrow();
   });
 
+  it('passes the mock settings from config to the real mock server', async () => {
+    const origin = { 'x-dpad-original-origin': 'https://api.example.com' };
+    const config = configOf('web', {
+      driver: './fake-web-driver.ts',
+      dpad: {
+        mock: {
+          handlers: [http.get('https://api.example.com/v1/config', () => HttpResponse.json(1))],
+          onUnhandledRequest: 'reject',
+        },
+      },
+    });
+    const worker = await DpadWorker.start(config, ctx());
+    const { mock } = worker.runtime;
+    try {
+      mock?.use(http.get('https://api.example.com/v1/config', () => HttpResponse.json(2)));
+      const overridden = await fetch(`${mock?.url}/v1/config`, { headers: origin });
+      expect(await overridden.json()).toBe(2);
+      mock?.resetHandlers();
+      const baseline = await fetch(`${mock?.url}/v1/config`, { headers: origin });
+      expect(await baseline.json()).toBe(1);
+      const unhandled = await fetch(`${mock?.url}/v1/other`, { headers: origin });
+      expect(unhandled.status).toBe(502);
+    } finally {
+      await worker.stop(() => {});
+    }
+  });
+
+  it('rejects baseline handlers that are not MSW handlers', async () => {
+    const config = configOf('web', {
+      driver: './fake-web-driver.ts',
+      dpad: { mock: { handlers: [{} as never] } },
+    });
+    const error = await dpadError(DpadWorker.start(config, ctx()));
+    expect(error.code).toBe('MOCK_INVALID_HANDLER');
+  });
+
   it('checks that the driver drives the project platform', async () => {
     const error = await dpadError(
       DpadWorker.start(configOf('tvOS', { driver: './fake-web-driver.ts' }), ctx()),

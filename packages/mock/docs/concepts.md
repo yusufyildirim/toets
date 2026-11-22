@@ -22,8 +22,8 @@ This is a **cooperative proxy**: the app opts in by routing requests to `mockUrl
 ## Isolation model
 
 - **One mock server per worker**, started once, its URL passed to every launch. Ports are picked by the OS, so workers never collide.
-- **Handlers reset per test.** Baseline handlers (`createMockServer({ handlers })`, wired in through the `dpad.mock.createServer` config option) always apply; handlers added in a test with `app.network.use()` are removed after it. Recordings are cleared per test too.
-- **Hermetic runs**: with `createMockServer({ onUnhandledRequest: 'reject' })` unmatched requests fail with `MOCK_UNHANDLED` instead of reaching the real API.
+- **Handlers reset per test.** Baseline handlers (`createMockServer({ handlers })`, or `dpad: { mock: { handlers } }` in a dpad config) always apply; handlers added in a test with `app.network.use()` are removed after it. Recordings are cleared per test too.
+- **Hermetic runs**: with `onUnhandledRequest: 'reject'` (in `createMockServer` or `dpad.mock`) unmatched requests fail with `MOCK_UNHANDLED` instead of reaching the real API.
 - **Concurrency is safe.** Requests are handled in parallel; each one resolves against the handler list as it was when it arrived, so a reset never affects a request in flight.
 
 ## Failures are explicit

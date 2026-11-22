@@ -15,7 +15,8 @@ await expect(app.network).toHaveRequested({ method: 'GET', url: '/api/home' }, {
 
 - **Cooperative, not intercepting.** The app must route requests to `mockUrl` when it is present. This is a few lines in the app's HTTP client, and it is what makes mocking portable.
 - **Handlers are MSW handlers.** Use them before `launch()` for data the first screen loads.
-- **Isolation:** handlers and recorded requests are reset between tests; a serial block keeps its handlers.
+- **Baseline handlers come from config**: `dpad: { mock: { handlers: [...] } }` applies them in every test, below the per-test ones. The other `mock` settings: `onUnhandledRequest` (`proxy` or `reject`), `port`, `maxRecordedBodyBytes`.
+- **Isolation:** handlers added in a test and recorded requests are reset between tests; a serial block keeps its handlers.
 - **Recorded requests** are attached to the test report and summarized in failure dumps.
 
 ## TV trap: requests that bypass the client

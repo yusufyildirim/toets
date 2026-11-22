@@ -38,7 +38,7 @@ export default defineConfig({
 | `dpad` option  | Meaning                                                                                |
 | -------------- | -------------------------------------------------------------------------------------- |
 | `sdk`          | Wait for the in-app SDK on launch (adds idle sync, focus graph, media, launch states). |
-| `mock`         | Run a host-side mock server per worker (`network.mock`).                               |
+| `mock`         | Run a host-side mock server per worker (`network.mock`): `true` or its settings.       |
 | `keyOverrides` | How a semantic key is performed for this app. Flagged in reports.                      |
 | `timeouts`     | `actionMs`, `sdkConnectMs`, `navigationSettleMs`. Assertions use `expect.timeout`.     |
 | `remote`       | `intervalMs` between `repeat`/`sequence` presses (100), `longPressMs` (1000).          |
