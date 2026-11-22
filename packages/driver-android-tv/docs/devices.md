@@ -35,7 +35,7 @@ platforms.androidTV({
 
 ## external
 
-You start the emulators; dpad hands them out by worker index (`DPAD_DEVICES=emulator-5554,emulator-5556`) and only checks that they are booted. `createExternalDeviceProvider()` implements it.
+You start the emulators; dpad hands them out by worker index (`DPAD_DEVICES=emulator-5554,emulator-5556`) (`devices: { mode: 'external' }`, see `@dpad-tv/test`). The driver waits for boot on start.
 
 ## command
 

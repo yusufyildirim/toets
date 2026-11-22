@@ -53,12 +53,10 @@ export {
   type ManagedDeviceDeps,
 } from './devices/managed.js';
 export {
-  createExternalDeviceProvider,
   prepareAndroidDevice,
   type AndroidDeviceInfo,
-  type ExternalDeviceOptions,
   type PrepareDeviceOptions,
-} from './devices/external.js';
+} from './devices/prepare.js';
 export { startAppiumServer, type AppiumServer, type StartAppiumOptions } from './appium.js';
 export { Adb, type LaunchTarget } from './adb.js';
 export {

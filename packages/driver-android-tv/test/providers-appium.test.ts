@@ -10,7 +10,7 @@ import {
   startAppiumServer,
 } from '../src/appium.js';
 import { nodeCommandRunner } from '../src/command.js';
-import { createExternalDeviceProvider, prepareAndroidDevice } from '../src/devices/external.js';
+import { prepareAndroidDevice } from '../src/devices/prepare.js';
 import { resolveAndroidSdk, sdkAt } from '../src/sdk.js';
 import { bootedDevice, FakeRunner } from './fake-runner.js';
 
@@ -19,44 +19,9 @@ const fakeSdk = () => {
   mkdirSync(join(root, 'platform-tools'));
   return root;
 };
-const spec = { platform: 'android-tv' as const };
 
-describe('external devices', () => {
-  it('hands out DPAD_DEVICES by worker index once they are booted', async () => {
-    const runner = bootedDevice(new FakeRunner());
-    const provider = createExternalDeviceProvider({
-      sdkRoot: fakeSdk(),
-      runner,
-      env: { DPAD_DEVICES: 'emulator-5554, emulator-5556' },
-    });
-    const b = await provider.acquire(spec, { workerIndex: 1, parallelIndex: 1 });
-    const a = await provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
-    expect([a.address, b.address]).toEqual(['emulator-5554', 'emulator-5556']);
-    expect(a.meta).toEqual({ apiLevel: 33, isTv: true });
-    await expect(
-      provider.acquire(spec, { workerIndex: 2, parallelIndex: 2 }),
-    ).rejects.toMatchObject({
-      code: 'ANDROID_NO_DEVICE',
-    });
-    await a.release();
-    expect((await provider.acquire(spec, { workerIndex: 2, parallelIndex: 2 })).address).toBe(
-      'emulator-5554',
-    );
-    expect(runner.lines().some((l) => l.includes('emu kill'))).toBe(false);
-  });
-
-  it('explains an empty configuration', async () => {
-    const provider = createExternalDeviceProvider({
-      sdkRoot: fakeSdk(),
-      runner: new FakeRunner(),
-      env: {},
-    });
-    await expect(provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 })).rejects.toThrow(
-      /No external devices configured/,
-    );
-  });
-
-  it('prepareAndroidDevice reports TV-ness and can require it', async () => {
+describe('prepareAndroidDevice', () => {
+  it('reports TV-ness and can require it', async () => {
     const runner = bootedDevice(new FakeRunner());
     const sdkRoot = fakeSdk();
     expect(await prepareAndroidDevice('emulator-5554', { sdkRoot, runner, env: {} })).toEqual({
