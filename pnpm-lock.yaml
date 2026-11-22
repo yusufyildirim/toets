@@ -85,6 +85,25 @@ importers:
       '@dpad-tv/core':
         specifier: workspace:^
         version: link:../core
+      '@dpad-tv/protocol':
+        specifier: workspace:^
+        version: link:../protocol
+      appium:
+        specifier: 4.0.0
+        version: 4.0.0(bare-buffer@3.7.3)
+      appium-xcuitest-driver:
+        specifier: 13.6.1
+        version: 13.6.1(@types/node@24.19.2)(appium@4.0.0(bare-buffer@3.7.3))
+      pngjs:
+        specifier: 7.0.0
+        version: 7.0.0
+      webdriverio:
+        specifier: 10.2.0
+        version: 10.2.0(bare-buffer@3.7.3)(yauzl@3.4.0)
+    devDependencies:
+      '@types/pngjs':
+        specifier: 6.0.5
+        version: 6.0.5
 
   packages/driver-web:
     dependencies:
@@ -1369,6 +1388,32 @@ packages:
       - axios
       - io.appium.settings
       - teen_process
+
+  appium-xcuitest-driver@13.6.1:
+    resolution: {integrity: sha512-IqpzhLiFT3QOmCRDS3hjjUmiptSk3aOhUUbpH7QWAn31a8PuUKapa3ZyTqirrn4R2uywnNVUpm2rKDSjQUlD/Q==}
+    engines: {node: ^22.22.2 || ^24.15.0 || >=26.0.0, npm: '>=10'}
+    peerDependencies:
+      appium: ^4.0.0
+    bundledDependencies:
+      - '@appium/css-locator-to-native'
+      - '@appium/strongbox'
+      - appium-ios-remotexpc
+      - appium-ios-simulator
+      - appium-remote-debugger
+      - appium-webdriveragent
+      - appium-xcode
+      - asyncbox
+      - axios
+      - commander
+      - dayjs
+      - js2xmlparser2
+      - lru-cache
+      - node-devicectl
+      - semver
+      - teen_process
+      - winston
+      - ws
+      - '@appium/media-proxy'
 
   appium@4.0.0:
     resolution: {integrity: sha512-8Ev8mJAMWFQhht2fL7UtjHocsdfTfec+xd2aydSZbcJJIs3JKudP8UPH867Rv1feeXD1hd2K4SJh5JF5u1hOaA==}
@@ -5155,6 +5200,14 @@ snapshots:
   anynum@1.0.1: {}
 
   appium-uiautomator2-driver@9.3.0(@types/node@24.19.2)(appium@4.0.0(bare-buffer@3.7.3)):
+    dependencies:
+      appium: 4.0.0(bare-buffer@3.7.3)
+    optionalDependencies:
+      sharp: 0.35.5(@types/node@24.19.2)
+    transitivePeerDependencies:
+      - '@types/node'
+
+  appium-xcuitest-driver@13.6.1(@types/node@24.19.2)(appium@4.0.0(bare-buffer@3.7.3)):
     dependencies:
       appium: 4.0.0(bare-buffer@3.7.3)
     optionalDependencies:
