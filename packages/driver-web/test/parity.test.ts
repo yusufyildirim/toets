@@ -3,7 +3,12 @@
  * the core's `evaluateChain` (what the SDK path, Appium drivers and FakeDriver use) on every
  * chain, including `nth` on the document scope and the empty chain.
  */
-import { evaluateChain, type ElementSnapshot, type SelectorChain } from '@dpad-tv/core';
+import {
+  evaluateChain,
+  type ElementSnapshot,
+  type Selector,
+  type SelectorChain,
+} from '@dpad-tv/core';
 import { FakeDriver, type FakeScreen } from '@dpad-tv/core/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createWebDriver, type WebDriver } from '../src/index.js';
@@ -66,11 +71,11 @@ const PARITY_SCREEN: FakeScreen = {
   },
 };
 
-const testId = (value: string) => ({ kind: 'testId', value }) as const;
-const text = (value: string | RegExp, exact?: boolean) =>
-  (exact === undefined ? { kind: 'text', value } : { kind: 'text', value, exact }) as const;
-const nth = (index: number) => ({ kind: 'nth', index }) as const;
-const focused = { kind: 'focused' } as const;
+const testId = (value: string): Selector => ({ kind: 'testId', value });
+const text = (value: string | RegExp, exact?: boolean): Selector =>
+  exact === undefined ? { kind: 'text', value } : { kind: 'text', value, exact };
+const nth = (index: number): Selector => ({ kind: 'nth', index });
+const focused: Selector = { kind: 'focused' };
 
 const CHAINS: readonly SelectorChain[] = [
   [],
