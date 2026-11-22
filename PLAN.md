@@ -7,8 +7,8 @@ Source of truth for goals and decisions: [VISION.md](./VISION.md). This file spl
 | Phase | What                                                                                                                                                                       | Status      |
 | ----- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ----------- |
 | 0     | Foundation: monorepo, tooling, shared contracts (`core` types, `protocol` types), FakeDriver                                                                               | done        |
-| 1     | Parallel build: streams S1-S9 below, each in its own worktree/branch                                                                                                       | in progress |
-| 2     | Integration: example app wired to the SDK, one cross-platform E2E suite green on web + Android TV + tvOS, docs finalized against real APIs, skills, fresh-agent dogfooding | pending     |
+| 1     | Parallel build: streams S1-S9 below, each in its own worktree/branch                                                                                                       | done        |
+| 2     | Integration: example app wired to the SDK, one cross-platform E2E suite green on web + Android TV + tvOS, docs finalized against real APIs, skills, fresh-agent dogfooding | in progress |
 | 3     | Release prep: changesets, versioning, publish under `@dpad-tv` (needs the owner)                                                                                           | pending     |
 
 ## Rules for every stream
