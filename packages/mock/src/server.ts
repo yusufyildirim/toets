@@ -131,6 +131,7 @@ export async function createMockServer(opts: MockServerOptions = {}): Promise<Mo
 }
 
 const DEFAULT_BODY_LIMIT = 1024 * 1024;
+const KEEP_ALIVE_MS = 330_000;
 
 class MockServerImpl implements MockServer {
   url = '';
@@ -233,7 +234,12 @@ class MockServerImpl implements MockServer {
   }
 
   private createHttpServer(): http.Server {
-    const server = http.createServer((req, res) => void this.handle(req, res));
+    const server = http.createServer(
+      // Outlive client idle timeouts (OkHttp keeps sockets 5 min) so the server rarely closes
+      // a pooled socket at the moment a client reuses it; close() drops idle sockets anyway.
+      { keepAliveTimeout: KEEP_ALIVE_MS },
+      (req, res) => void this.handle(req, res),
+    );
     server.on('upgrade', (_req: IncomingMessage, socket: Duplex) => {
       socket.end(
         'HTTP/1.1 501 Not Implemented\r\nconnection: close\r\ncontent-type: text/plain\r\n\r\n' +

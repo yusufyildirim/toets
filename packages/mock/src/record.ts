@@ -20,7 +20,10 @@ export interface RecordedMockResponse {
   readonly statusText: string;
   /** Headers as sent to the app (lowercase names, repeated values joined with `, `). */
   readonly headers: Readonly<Record<string, string>>;
-  /** Body with `content-encoding` removed; `null` when empty. See `bodyEncoding`. */
+  /**
+   * Body with `content-encoding` removed; `null` when empty or still streaming (available once
+   * the request's `durationMs` is set). See `bodyEncoding`.
+   */
   readonly body: string | null;
   readonly bodyEncoding: BodyEncoding;
   /** Bytes sent to the app (before decoding). */
@@ -153,7 +156,7 @@ export class Exchange {
       mocked: this.mocked,
       status: this.status,
       durationMs: this.durationMs,
-      error: this.error,
+      error: this.error ? Object.freeze({ ...this.error }) : null,
       response: this.responseSnapshot(),
     });
     if (this.done) this.cache = snap;

@@ -6,17 +6,20 @@ export interface Har {
   readonly log: HarLog;
 }
 
+/** The `log` object of a {@link Har}. */
 export interface HarLog {
   readonly version: '1.2';
   readonly creator: { readonly name: string; readonly version: string };
   readonly entries: readonly HarEntry[];
 }
 
+/** A header, cookie or query parameter. */
 export interface HarNameValue {
   readonly name: string;
   readonly value: string;
 }
 
+/** One recorded exchange. */
 export interface HarEntry {
   readonly startedDateTime: string;
   /** Total time in ms (elapsed so far for in-flight requests). */
@@ -34,6 +37,7 @@ export interface HarEntry {
   };
 }
 
+/** The request as the app sent it (`url` is the original origin + path). */
 export interface HarRequest {
   readonly method: string;
   readonly url: string;
@@ -52,6 +56,7 @@ export interface HarRequest {
   readonly bodySize: number;
 }
 
+/** The response as the app received it. */
 export interface HarResponse {
   /** `0` when no response was sent (dropped connection, aborted, in flight). */
   readonly status: number;
@@ -73,6 +78,7 @@ export interface HarResponse {
   readonly _error?: string;
 }
 
+/** Phase timings in ms; connection phases are not measured (`-1`). */
 export interface HarTimings {
   readonly blocked: -1;
   readonly dns: -1;
