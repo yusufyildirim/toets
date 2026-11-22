@@ -20,18 +20,18 @@ test('the red key opens the guide', { requires: ['key.color'] }, async ({ app })
 
 A target's capabilities are the union of its **driver's** (what the platform and its automation can do) and those granted by the [in-app SDK](./sdk.md) when connected (`focus.graph`, `sync.idle`, `media.state`, `app.state`).
 
-| Capability           | Means                                                               |
-| -------------------- | ------------------------------------------------------------------- |
-| `key.*`              | the remote has the key, see [Remote and keys](./remote-and-keys.md) |
-| `key.longpress`      | keys can be held                                                    |
-| `focus.graph`        | focus neighbors are known without pressing                          |
-| `sync.idle`          | the app reports when it is idle, see [Idle](./idle.md)              |
-| `media.state`        | player state can be read: `expect(app.media)`                       |
-| `app.state`          | `app.launch({ state })` can start in a named state                  |
-| `network.mock`       | [network mocking](./network-mocking.md) is available                |
-| `screenshot.element` | screenshots of a single element                                     |
-| `platform.events`    | `app.platform.emit('suspend')` and other OS events                  |
-| `logs`, `video`      | device logs and screen recording are attached to results            |
+| Capability           | Means                                                                                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `key.*`              | the remote has the key, see [Remote and keys](./remote-and-keys.md)                                                                              |
+| `key.longpress`      | keys can be held                                                                                                                                 |
+| `focus.graph`        | focus neighbors are known without pressing                                                                                                       |
+| `sync.idle`          | the app reports when it is idle, see [Idle](./idle.md)                                                                                           |
+| `media.state`        | player state can be read: `expect(app.media)`                                                                                                    |
+| `app.state`          | `app.launch({ state })` can start in a named state                                                                                               |
+| `network.mock`       | [network mocking](./network-mocking.md) is available                                                                                             |
+| `screenshot.element` | screenshots of a single element                                                                                                                  |
+| `platform.events`    | `app.platform.emit('suspend' \| 'resume' \| 'network-lost' \| 'network-restored')` (web, Android TV); a lost network is restored after each test |
+| `logs`, `video`      | device logs and screen recording are attached to results                                                                                         |
 
 ## Parity matrix
 

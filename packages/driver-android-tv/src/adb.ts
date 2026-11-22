@@ -165,19 +165,27 @@ export class Adb {
    * Starts an activity with string extras and waits until it is drawn (`am start -W`). `am`
    * exits 0 even when it fails, so its output is checked.
    */
+  /**
+   * Starts `target` with string extras. With `bringToFront`, an already running task is brought
+   * to the front as it is (what the launcher does), which `am` reports as "Activity not started".
+   */
   async startActivity(
     target: LaunchTarget,
     extras: Readonly<Record<string, string>> = {},
+    opts: { readonly bringToFront?: boolean } = {},
   ): Promise<void> {
     const args = ['am', 'start', '-W', '-n', target.component];
     if (target.action) args.push('-a', target.action);
     if (target.category) args.push('-c', target.category);
     for (const [k, v] of Object.entries(extras)) args.push('--es', k, v);
     const out = await this.shell(args, { timeoutMs: 120_000 });
+    const notStarted = opts.bringToFront
+      ? /^Error|^Exception/
+      : /^(Error|Exception|Warning: Activity not started)/;
     const errors = out
       .split('\n')
       .map((l) => l.trim())
-      .filter((l) => /^(Error|Exception|Warning: Activity not started)/.test(l));
+      .filter((l) => notStarted.test(l));
     if (errors.length > 0 || !/Status: ok|Complete/.test(out)) {
       throw androidError(
         'ANDROID_LAUNCH_FAILED',

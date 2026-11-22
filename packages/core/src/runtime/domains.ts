@@ -79,5 +79,6 @@ export class PlatformInfoImpl implements PlatformInfo {
       );
     }
     await this.ctx.step({ kind: 'emit', title: `platform.emit ${event}` }, () => emit(event));
+    this.ctx.recordEvent(event);
   }
 }

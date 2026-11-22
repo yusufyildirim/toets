@@ -166,6 +166,15 @@ describe('platform', () => {
     expect(ok.driver.events).toEqual(['suspend']);
   });
 
+  it('restores a lost network between tests', async () => {
+    const { app, driver, runtime } = setup({ capabilities: ['platform.events'] });
+    await app.platform.emit('network-lost');
+    await runtime.isolate();
+    expect(driver.events).toEqual(['network-lost', 'network-restored']);
+    await runtime.isolate();
+    expect(driver.events).toHaveLength(2);
+  });
+
   it('runs platformOnly only on the matching platform', async () => {
     const { app, driver } = setup();
     const seen: unknown[] = [];

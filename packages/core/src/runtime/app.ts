@@ -6,6 +6,7 @@ import type {
   Locator,
   Media,
   Network,
+  PlatformEvent,
   PlatformInfo,
   RecordedRequest,
   Remote,
@@ -72,6 +73,8 @@ export class AppRuntime implements RuntimeContext {
   private keys: KeyLogEntry[] = [];
   private logBuffer: LogEntry[] = [];
   private launched = false;
+  /** Set by `platform.emit('network-lost')` until restored; `isolate()` restores it. */
+  private networkLost = false;
   private unsubscribeLogs: (() => void) | null = null;
 
   constructor(opts: AppRuntimeOptions) {
@@ -170,6 +173,11 @@ export class AppRuntime implements RuntimeContext {
   recordKey(entry: KeyLogEntry): void {
     this.keys.push(entry);
     if (this.keys.length > KEY_LOG_SIZE) this.keys.shift();
+  }
+
+  recordEvent(event: PlatformEvent): void {
+    if (event === 'network-lost') this.networkLost = true;
+    else if (event === 'network-restored') this.networkLost = false;
   }
 
   log(message: string): void {
@@ -311,8 +319,8 @@ export class AppRuntime implements RuntimeContext {
 
   /**
    * Returns the target to a neutral state between tests that do not share the app: terminates a
-   * launched app, closes the SDK session, resets mock handlers and clears recorded requests,
-   * the key log and logs.
+   * launched app, closes the SDK session, restores a network a test took down, resets mock
+   * handlers and clears recorded requests, the key log and logs.
    */
   async isolate(): Promise<void> {
     await this.closeSession();
@@ -323,6 +331,14 @@ export class AppRuntime implements RuntimeContext {
         this.log(`terminating the app between tests failed: ${String(e)}`);
       }
       this.launched = false;
+    }
+    if (this.networkLost) {
+      this.networkLost = false;
+      try {
+        await this.driver.emit?.('network-restored');
+      } catch (e) {
+        this.log(`restoring the network between tests failed: ${String(e)}`);
+      }
     }
     this.mock?.resetHandlers();
     this.mock?.clearRequests();

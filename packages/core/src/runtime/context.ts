@@ -1,4 +1,4 @@
-import type { ScreenshotOptions } from '../api.js';
+import type { PlatformEvent, ScreenshotOptions } from '../api.js';
 import type { Capability } from '../capabilities.js';
 import type { Key } from '../keys.js';
 import type { MockServerLike } from '../mock.js';
@@ -44,6 +44,8 @@ export interface RuntimeContext {
   /** Throws a `DpadError` naming `feature` when the capability is missing. */
   requireCapability(capability: Capability, feature: string): void;
   recordKey(entry: KeyLogEntry): void;
+  /** Records an emitted platform event, so state like a lost network is restored between tests. */
+  recordEvent(event: PlatformEvent): void;
   captureScreen(opts?: ScreenshotOptions): Promise<CapturedScreen>;
   log(message: string): void;
 }

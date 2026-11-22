@@ -100,6 +100,7 @@ describe('web driver on the fixture app', () => {
         'key.media.track',
         'key.numeric',
         'logs',
+        'platform.events',
         'screenshot.element',
         'video',
       ].sort(),
@@ -355,6 +356,50 @@ describe('web driver on the fixture app', () => {
     expect(path.endsWith('.webm')).toBe(true);
     expect(existsSync(path) && statSync(path).size).toBeGreaterThan(0);
     await expectDpadError(driver.stopRecording(), 'web.not-recording');
+  });
+
+  it('emits network and lifecycle events', async () => {
+    const page = driver.escapeHatch();
+    await page.evaluate(() => {
+      const log: string[] = [];
+      (window as unknown as { __events: string[] }).__events = log;
+      for (const type of ['online', 'offline']) window.addEventListener(type, () => log.push(type));
+      for (const type of ['visibilitychange', 'freeze', 'resume']) {
+        document.addEventListener(type, () => log.push(`${type}:${document.visibilityState}`));
+      }
+    });
+    const probe = () =>
+      page.evaluate(async () => ({
+        events: (window as unknown as { __events: string[] }).__events,
+        onLine: navigator.onLine,
+        hidden: document.hidden,
+        fetched: await fetch(location.href).then(
+          () => true,
+          () => false,
+        ),
+      }));
+
+    await driver.emit('network-lost');
+    expect(await probe()).toMatchObject({ events: ['offline'], onLine: false, fetched: false });
+    await driver.emit('network-restored');
+    expect(await probe()).toMatchObject({ onLine: true, fetched: true });
+
+    await driver.emit('suspend');
+    expect(await probe()).toMatchObject({ hidden: true });
+    await driver.emit('resume');
+    expect(await probe()).toEqual({
+      events: [
+        'offline',
+        'online',
+        'visibilitychange:hidden',
+        'freeze:hidden',
+        'resume:visible',
+        'visibilitychange:visible',
+      ],
+      onLine: true,
+      hidden: false,
+      fetched: true,
+    });
   });
 
   it('rejects unmapped keys with a hint', async () => {

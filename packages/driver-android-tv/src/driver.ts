@@ -10,6 +10,7 @@ import {
   type ElementSnapshot,
   type Key,
   type LogEntry,
+  type PlatformEvent,
   type PressOptions,
   type SelectorChain,
   type UITree,
@@ -110,6 +111,7 @@ export class AndroidTvDriver implements Driver {
       'key.longpress',
       'screenshot.element',
       'video',
+      'platform.events',
       ...(options.logcat === false ? [] : (['logs'] as const)),
     ]);
     this.logcat =
@@ -283,6 +285,30 @@ export class AndroidTvDriver implements Driver {
 
   async terminate(): Promise<void> {
     await this.adb.forceStop(this.app.package);
+  }
+
+  /**
+   * - `network-lost` / `network-restored`: Wi-Fi and mobile data off (`svc`) and back on. `adb
+   *   reverse` runs over adb, so the SDK host and mock server stay reachable.
+   * - `suspend`: HOME, the app goes to the background. `resume`: its task comes back to the front
+   *   unchanged, as from the launcher.
+   */
+  async emit(event: PlatformEvent): Promise<void> {
+    switch (event) {
+      case 'network-lost':
+      case 'network-restored': {
+        const state = event === 'network-lost' ? 'disable' : 'enable';
+        await this.adb.shell(['svc', 'wifi', state]);
+        await this.adb.shell(['svc', 'data', state]);
+        return;
+      }
+      case 'suspend':
+        await this.adb.shell(['input', 'keyevent', String(ANDROID_KEYCODES.HOME)]);
+        return;
+      case 'resume':
+        await this.adb.startActivity(this.requireTarget(), {}, { bringToFront: true });
+        return;
+    }
   }
 
   async reset(): Promise<void> {

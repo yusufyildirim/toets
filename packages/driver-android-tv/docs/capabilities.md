@@ -2,16 +2,17 @@
 
 What the driver declares black-box (without the in-app SDK). The SDK adds its domains on top.
 
-| Capability                                                                                | Declared            | Notes                                                                                                         |
-| ----------------------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `key.back` `key.home` `key.menu` `key.media.toggle` `key.media.seek`                      | yes                 | All remotes.                                                                                                  |
-| `key.info` `key.media.discrete` `key.media.track` `key.color` `key.numeric` `key.channel` | `android-tv` remote | Not on the `fire-tv` remote.                                                                                  |
-| `key.longpress`                                                                           | yes                 | Exact hold duration with auto-repeat ([keys](./keys.md)).                                                     |
-| `screenshot.element`                                                                      | yes                 | Viewport screenshot cropped to the element's on-screen bounds.                                                |
-| `logs`                                                                                    | yes                 | logcat of the app's uid plus system warnings naming the app.                                                  |
-| `video`                                                                                   | yes                 | `screenrecord`, H.264 MP4.                                                                                    |
-| `network.mock`                                                                            | with `dpad.mock`    | Granted by the core when the mock server is on; payload ports are `adb reverse`d, the app must use `mockUrl`. |
-| `focus.graph` `sync.idle` `media.state` `app.state` `platform.events`                     | no                  | Need the SDK.                                                                                                 |
+| Capability                                                                                | Declared            | Notes                                                                                                                                                               |
+| ----------------------------------------------------------------------------------------- | ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `key.back` `key.home` `key.menu` `key.media.toggle` `key.media.seek`                      | yes                 | All remotes.                                                                                                                                                        |
+| `key.info` `key.media.discrete` `key.media.track` `key.color` `key.numeric` `key.channel` | `android-tv` remote | Not on the `fire-tv` remote.                                                                                                                                        |
+| `key.longpress`                                                                           | yes                 | Exact hold duration with auto-repeat ([keys](./keys.md)).                                                                                                           |
+| `screenshot.element`                                                                      | yes                 | Viewport screenshot cropped to the element's on-screen bounds.                                                                                                      |
+| `logs`                                                                                    | yes                 | logcat of the app's uid plus system warnings naming the app.                                                                                                        |
+| `video`                                                                                   | yes                 | `screenrecord`, H.264 MP4.                                                                                                                                          |
+| `network.mock`                                                                            | with `dpad.mock`    | Granted by the core when the mock server is on; payload ports are `adb reverse`d, the app must use `mockUrl`.                                                       |
+| `platform.events`                                                                         | yes                 | `network-lost`/`-restored`: `svc wifi` and `svc data` off/on (`adb reverse` keeps the host reachable). `suspend`: HOME. `resume`: the app's task back to the front. |
+| `focus.graph` `sync.idle` `media.state` `app.state`                                       | no                  | Need the SDK.                                                                                                                                                       |
 
 ## Snapshot fields
 

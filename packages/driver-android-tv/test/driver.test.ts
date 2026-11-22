@@ -134,6 +134,7 @@ describe('AndroidTvDriver', () => {
         'key.menu',
         'key.numeric',
         'logs',
+        'platform.events',
         'screenshot.element',
         'video',
       ].sort(),
@@ -183,6 +184,26 @@ describe('AndroidTvDriver', () => {
     await driver.stop();
     expect(t.runner.lines()).toContain('adb -s emulator-5554 reverse --remove tcp:8080');
     expect(t.runner.lines()).toContain('adb -s emulator-5554 reverse --remove tcp:9323');
+  });
+
+  it('emits network and lifecycle events', async () => {
+    t.runner.on(
+      'am start',
+      'Warning: Activity not started, its current task has been brought to the front\nStatus: ok\nComplete\n',
+    );
+    const from = adbShell(t.runner).length;
+    await driver.emit('network-lost');
+    await driver.emit('network-restored');
+    await driver.emit('suspend');
+    await driver.emit('resume');
+    expect(adbShell(t.runner).slice(from)).toEqual([
+      'svc wifi disable',
+      'svc data disable',
+      'svc wifi enable',
+      'svc data enable',
+      'input keyevent 3',
+      'am start -W -n tv.dpad.fixture/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER',
+    ]);
   });
 
   it('uses a configured activity', async () => {

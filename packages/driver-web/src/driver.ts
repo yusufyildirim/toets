@@ -13,6 +13,7 @@ import {
   type ElementSnapshot,
   type Key,
   type LogEntry,
+  type PlatformEvent,
   type PressOptions,
   type Rect,
   type Selector,
@@ -59,6 +60,7 @@ const BASE_CAPABILITIES: readonly Capability[] = [
   'screenshot.element',
   'logs',
   'video',
+  'platform.events',
 ];
 
 /**
@@ -271,6 +273,31 @@ export class WebDriver implements Driver {
     return this.#logs.drain();
   }
 
+  /**
+   * - `network-lost` / `network-restored`: the browser context goes offline (`navigator.onLine`,
+   *   `offline`/`online` events, failing requests) and back.
+   * - `suspend` / `resume`: the Page Lifecycle a backgrounded tab goes through. The page reports
+   *   `document.visibilityState === 'hidden'` and receives `visibilitychange` then `freeze`;
+   *   resuming fires `resume` then `visibilitychange`. Scripts keep running, so dpad can still read
+   *   the page.
+   */
+  async emit(event: PlatformEvent): Promise<void> {
+    const { page } = this.#require();
+    switch (event) {
+      case 'network-lost':
+      case 'network-restored':
+        await page.context().setOffline(event === 'network-lost');
+        return;
+      case 'suspend':
+      case 'resume':
+        await page.evaluate<void, LifecycleState>(
+          setLifecycle,
+          event === 'suspend' ? 'hidden' : 'visible',
+        );
+        return;
+    }
+  }
+
   /** Starts recording the page (Playwright screencast, WebM) into the artifacts directory. */
   async startRecording(): Promise<void> {
     const { page } = this.#require();
@@ -451,6 +478,25 @@ export class WebDriver implements Driver {
  */
 export function createWebDriver(options: WebDriverOptions, ctx: WebDriverContext = {}): WebDriver {
   return new WebDriver(resolveOptions(options, ctx.app), ctx);
+}
+
+type LifecycleState = 'hidden' | 'visible';
+
+/** Runs in the page: emulates a tab going to the background (`hidden`) and back (`visible`). */
+function setLifecycle(state: LifecycleState): void {
+  const fire = (type: string) => document.dispatchEvent(new Event(type));
+  if (state === 'hidden') {
+    Object.defineProperty(document, 'visibilityState', { configurable: true, get: () => state });
+    Object.defineProperty(document, 'hidden', { configurable: true, get: () => true });
+    fire('visibilitychange');
+    fire('freeze');
+  } else {
+    // Back to the native getters.
+    delete (document as { visibilityState?: unknown }).visibilityState;
+    delete (document as { hidden?: unknown }).hidden;
+    fire('resume');
+    fire('visibilitychange');
+  }
 }
 
 /** Runs in the page (init script transport): exposes the encoded payload to the top frame. */
