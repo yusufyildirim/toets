@@ -185,6 +185,17 @@ describe('activation', () => {
     const session = await l.session();
     expect(session.hello.framework).toBe('react-native-web');
   });
+  it('leaves react-native-web roots to the web adapter', async () => {
+    const { sdk } = await load('web');
+    const l = await launch();
+    (globalThis as Record<string, unknown>).__DPAD__ = l.payload;
+    onCleanup(() => delete (globalThis as Record<string, unknown>).__DPAD__);
+    const Wrapped = sdk.withDpad(() => h('RCTView', { testID: 'x' }));
+    const rendered = render(h(Wrapped));
+    onCleanup(() => rendered.unmount());
+    expect(sdk.getDpad()).toBeNull();
+    expect(rendered.container.children[0]!.props.testID).toBe('x');
+  });
 });
 
 describe('tree', () => {

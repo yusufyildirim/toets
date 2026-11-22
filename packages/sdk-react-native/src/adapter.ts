@@ -146,8 +146,7 @@ export function withDpad<P extends object>(
 }
 
 const ROOT_PROPS = {
-  style: { flex: 1 },
-  pointerEvents: 'box-none',
+  style: { flex: 1, pointerEvents: 'box-none' },
   // Focus and blur bubble in React Native's event system: one capture listener at the root
   // sees every native focus change on Android and tvOS.
   onFocusCapture: (event: unknown) => tracker.focus(eventTarget(event)),
@@ -165,7 +164,8 @@ function isActive(): boolean {
 }
 
 function activateFromRoot(initialProps: unknown): void {
-  if (runtime) return;
+  // react-native-web: the web adapter owns the session (started by startDpad()).
+  if (runtime || Platform.OS === 'web') return;
   const fromProps = payloadFromInitialProps(initialProps);
   if (fromProps !== undefined) {
     if (fromProps !== lastPayload) activate(fromProps);
