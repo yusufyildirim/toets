@@ -6,7 +6,7 @@ Focus is what TV tests assert most, so the adapter only reports focus it can tru
 
 React Native dispatches `focus`/`blur` for every native view on Android and tvOS, and they bubble through React's event system. `DpadRoot` listens in the capture phase at the root, so every focus change is seen without touching app components. Out-of-order events (tvOS may deliver the new focus before the old blur) are handled.
 
-Focusable means what the native focus engine uses: `focusable` (Android), `isTVSelectable` (tvOS; set by `focusable` on `View`), Pressables and Touchables by default, and editable text inputs. Override with `isFocusable(props, type)`.
+Focusable means what the native focus engine uses: `focusable` (Android), `isTVSelectable` (tvOS; set by `focusable` on `View`), Pressables and Touchables by default, and editable text inputs. A `TVFocusGuideView` is not focusable, although react-native-tvos marks its view `isTVSelectable`: it hands focus to its children and is never focused itself. Override with `isFocusable(props, type)`.
 
 ## Focus graph
 
