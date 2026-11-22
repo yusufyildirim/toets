@@ -56,7 +56,10 @@ export class Adb {
 
   /** Starts a long-running `adb -s <serial> ...args` process. */
   spawn(args: readonly string[], opts: Omit<SpawnOptions, 'env'> = {}): SpawnedProcess {
-    return this.runner.spawn(this.adbPath, ['-s', this.serial, ...args], { ...opts, env: this.env });
+    return this.runner.spawn(this.adbPath, ['-s', this.serial, ...args], {
+      ...opts,
+      env: this.env,
+    });
   }
 
   async getProp(name: string): Promise<string> {
@@ -171,11 +174,14 @@ export class Adb {
     if (target.category) args.push('-c', target.category);
     for (const [k, v] of Object.entries(extras)) args.push('--es', k, v);
     const out = await this.shell(args, { timeoutMs: 120_000 });
-    const error = out.split('\n').find((l) => /^(Error|Exception|Warning: Activity not started)/.test(l.trim()));
-    if (error || !/Status: ok|Complete/.test(out)) {
+    const errors = out
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => /^(Error|Exception|Warning: Activity not started)/.test(l));
+    if (errors.length > 0 || !/Status: ok|Complete/.test(out)) {
       throw androidError(
         'ANDROID_LAUNCH_FAILED',
-        `Launching ${target.component} failed: ${(error ?? out).trim()}`,
+        `Launching ${target.component} failed: ${errors.length ? errors.join(' ') : out.trim()}`,
         {
           hint: 'Check `app.package` / `app.activity` and that the activity is exported.',
           docs: DOCS.setup,

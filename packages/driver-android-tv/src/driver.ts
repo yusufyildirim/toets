@@ -143,15 +143,21 @@ export class AndroidTvDriver implements Driver {
 
   private async doStart(): Promise<void> {
     await this.adb.waitForBoot(this.options.bootTimeoutMs ?? 180_000);
-    const isTv = (await this.adb.shell(['pm', 'has-feature', 'android.software.leanback']).catch(() => '')).includes('true');
-    if (!isTv) this.note('warn', `${this.serial} is not an Android TV device (no leanback feature).`);
+    const isTv = (
+      await this.adb.shell(['pm', 'has-feature', 'android.software.leanback']).catch(() => '')
+    ).includes('true');
+    if (!isTv)
+      this.note('warn', `${this.serial} is not an Android TV device (no leanback feature).`);
 
     if (this.app.apk) await this.adb.install(this.app.apk);
     if (!(await this.adb.isInstalled(this.app.package))) {
       throw androidError(
         'ANDROID_APP_NOT_INSTALLED',
         `${this.app.package} is not installed on ${this.serial}.`,
-        { hint: 'Set `app.apk` so dpad installs it, or install it before the run.', docs: DOCS.setup },
+        {
+          hint: 'Set `app.apk` so dpad installs it, or install it before the run.',
+          docs: DOCS.setup,
+        },
       );
     }
     this.launchTarget = await this.resolveLaunchTarget();
@@ -165,7 +171,10 @@ export class AndroidTvDriver implements Driver {
       ? externalAppiumServer(appium.url)
       : await (this.deps.startServer ?? startAppiumServer)({
           runner: this.runner,
-          env: { ...this.env, ANDROID_HOME: resolveAndroidSdk(this.options.sdkRoot, this.env).root },
+          env: {
+            ...this.env,
+            ANDROID_HOME: resolveAndroidSdk(this.options.sdkRoot, this.env).root,
+          },
           logFile: join(this.ctx.artifactsDir, `appium-${this.ctx.workerIndex}.log`),
           log: this.ctx.log,
           ...(appium.port ? { port: appium.port } : {}),
@@ -175,7 +184,10 @@ export class AndroidTvDriver implements Driver {
       ...appium.capabilities,
     };
     try {
-      this.session = await (this.deps.createSession ?? createWebdriverSession)(this.server, capabilities);
+      this.session = await (this.deps.createSession ?? createWebdriverSession)(
+        this.server,
+        capabilities,
+      );
     } catch (e) {
       throw androidError(
         'ANDROID_SESSION_FAILED',
@@ -384,7 +396,8 @@ export function payloadPorts(payload: LaunchPayload): number[] {
     if (!raw) continue;
     const url = new URL(raw);
     if (!LOCAL_HOSTS.has(url.hostname)) continue;
-    const port = Number(url.port) || (url.protocol === 'https:' || url.protocol === 'wss:' ? 443 : 80);
+    const port =
+      Number(url.port) || (url.protocol === 'https:' || url.protocol === 'wss:' ? 443 : 80);
     ports.add(port);
   }
   return [...ports];

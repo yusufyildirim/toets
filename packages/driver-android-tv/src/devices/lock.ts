@@ -25,7 +25,9 @@ export async function withFileLock<T>(
         continue;
       }
       if (Date.now() > deadline) {
-        throw new Error(`Timed out after ${timeoutMs}ms waiting for lock ${lockDir}.`);
+        throw new Error(`Timed out after ${timeoutMs}ms waiting for lock ${lockDir}.`, {
+          cause: e,
+        });
       }
       await new Promise((r) => setTimeout(r, opts.pollMs ?? 500));
     }

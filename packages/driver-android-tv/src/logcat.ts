@@ -75,11 +75,14 @@ export class LogcatCollector {
   /** Starts streaming from now on (older device logs are skipped). */
   start(): void {
     if (this.proc) return;
-    this.proc = this.adb.spawn(['logcat', '-v', 'epoch', '-v', 'uid', '-v', 'printable', '-T', '1'], {
-      onLine: (line, stream) => {
-        if (stream === 'stdout') this.accept(line);
+    this.proc = this.adb.spawn(
+      ['logcat', '-v', 'epoch', '-v', 'uid', '-v', 'printable', '-T', '1'],
+      {
+        onLine: (line, stream) => {
+          if (stream === 'stdout') this.accept(line);
+        },
       },
-    });
+    );
   }
 
   /** The app's uid; lines from it are attributed to the app. Unknown until installed. */

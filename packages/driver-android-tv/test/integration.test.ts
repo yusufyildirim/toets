@@ -6,7 +6,12 @@
  *
  * The fixture APK is built with Gradle when missing (`pnpm fixture:build`).
  */
-import { Key, type DriverCreateContext, type ElementSnapshot, type SelectorChain } from '@dpad-tv/core';
+import {
+  Key,
+  type DriverCreateContext,
+  type ElementSnapshot,
+  type SelectorChain,
+} from '@dpad-tv/core';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, statSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
@@ -91,7 +96,8 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
     await new Promise((r) => server?.close(r));
     const rows = Object.entries(latency).map(([action, samples]) => {
       const sorted = [...samples].sort((a, b) => a - b);
-      const pick = (q: number) => Math.round(sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))]!);
+      const pick = (q: number) =>
+        Math.round(sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))]!);
       return { action, n: samples.length, p50: pick(0.5), p90: pick(0.9), max: pick(1) };
     });
     console.table(rows);
@@ -106,8 +112,14 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
         clearData: true,
       }),
     );
-    await waitFor(() => textOf('launch_payload'), (t) => t === 'payload: state=home');
-    await waitFor(() => textOf('mock_result'), (t) => t === 'mock: hello from host');
+    await waitFor(
+      () => textOf('launch_payload'),
+      (t) => t === 'payload: state=home',
+    );
+    await waitFor(
+      () => textOf('mock_result'),
+      (t) => t === 'mock: hello from host',
+    );
   }, 60_000);
 
   it('maps the page source to snapshots', async () => {
@@ -115,7 +127,12 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
     expect(tree.viewport).toEqual({ width: 1920, height: 1080 });
 
     const focused = await timed('focused', () => driver.focused());
-    expect(focused).toMatchObject({ testId: 'card_0', text: 'Item 0', focused: true, focusable: true });
+    expect(focused).toMatchObject({
+      testId: 'card_0',
+      text: 'Item 0',
+      focused: true,
+      focusable: true,
+    });
 
     const [disabled] = await timed('query', () => driver.query(byId('disabled_button')));
     expect(disabled).toMatchObject({
@@ -134,7 +151,11 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
 
     const byText = await driver.query([{ kind: 'text', value: 'item 2' }]);
     expect(byText.map((s) => s.testId)).toEqual(['card_2']);
-    const scoped = await driver.query([...byId('rail'), { kind: 'text', value: /^Item \d$/ }, { kind: 'nth', index: 1 }]);
+    const scoped = await driver.query([
+      ...byId('rail'),
+      { kind: 'text', value: /^Item \d$/ },
+      { kind: 'nth', index: 1 },
+    ]);
     expect(scoped.map((s) => s.testId)).toEqual(['card_1']);
 
     // The last card is scrolled out of the rail.
@@ -154,7 +175,10 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
   it('drives the fake player with media keys', async () => {
     await pressAndExpectFocus(Key.SELECT, 'play_button');
     await driver.press(Key.SELECT);
-    await waitFor(() => textOf('player_state'), (t) => t === 'playing');
+    await waitFor(
+      () => textOf('player_state'),
+      (t) => t === 'playing',
+    );
     const steps: [Key, string, string][] = [
       [Key.PLAY_PAUSE, 'paused', 'position: 0'],
       [Key.PLAY, 'playing', 'position: 0'],
@@ -187,18 +211,27 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
       [Key.BLUE, 'KEYCODE_PROG_BLUE'],
       [Key.CHANNEL_UP, 'KEYCODE_CHANNEL_UP'],
       [Key.CHANNEL_DOWN, 'KEYCODE_CHANNEL_DOWN'],
-      ...Array.from({ length: 10 }, (_, d) => [`DIGIT_${d}` as Key, `KEYCODE_${d}`] as [Key, string]),
+      ...Array.from(
+        { length: 10 },
+        (_, d) => [`DIGIT_${d}` as Key, `KEYCODE_${d}`] as [Key, string],
+      ),
     ];
     for (const [key, code] of expected) {
       await timed('press', () => driver.press(key));
-      await waitFor(() => textOf('last_key'), (t) => t === `last key: ${code}`);
+      await waitFor(
+        () => textOf('last_key'),
+        (t) => t === `last key: ${code}`,
+      );
     }
   }, 120_000);
 
   it('holds a key for the requested time with auto-repeat', async () => {
     expect(await focusedId()).toBe('card_1');
     await timed('press (hold 1000ms)', () => driver.press(Key.RIGHT, { holdMs: 1000 }));
-    const hold = await waitFor(() => textOf('key_hold'), (t) => /ms=\d+/.test(t ?? ''));
+    const hold = await waitFor(
+      () => textOf('key_hold'),
+      (t) => /ms=\d+/.test(t ?? ''),
+    );
     const ms = Number(/ms=(\d+)/.exec(hold!)![1]);
     expect(ms).toBeGreaterThanOrEqual(1000);
     expect(ms).toBeLessThan(1100);
@@ -210,15 +243,23 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
     const png = PNG.sync.read(Buffer.from(await timed('screenshot', () => driver.screenshot())));
     expect([png.width, png.height]).toEqual([1920, 1080]);
     const [card] = (await driver.query(byId('card_9'))) as [ElementSnapshot];
-    const el = PNG.sync.read(Buffer.from(await timed('screenshot (element)', () => driver.screenshot({ element: card.ref }))));
+    const el = PNG.sync.read(
+      Buffer.from(
+        await timed('screenshot (element)', () => driver.screenshot({ element: card.ref })),
+      ),
+    );
     expect([el.width, el.height]).toEqual([card.bounds.width, card.bounds.height]);
   });
 
   it('collects app logs from logcat', async () => {
     await new Promise((r) => setTimeout(r, 500));
     const logs = await driver.drainLogs();
-    expect(logs.some((l) => l.source === 'app' && l.message.startsWith('DpadFixture: launch payload'))).toBe(true);
-    expect(logs.every((l) => l.source !== 'device' || l.level === 'warn' || l.level === 'error')).toBe(true);
+    expect(
+      logs.some((l) => l.source === 'app' && l.message.startsWith('DpadFixture: launch payload')),
+    ).toBe(true);
+    expect(
+      logs.every((l) => l.source !== 'device' || l.level === 'warn' || l.level === 'error'),
+    ).toBe(true);
   });
 
   it('records the screen', async () => {
@@ -244,9 +285,15 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
   it('resets app data and terminates', async () => {
     await timed('reset', () => driver.reset());
     await driver.launch({ payload: { v: 1 } });
-    await waitFor(() => textOf('launch_payload'), (t) => t === 'payload: none' || t === 'payload: state=-');
+    await waitFor(
+      () => textOf('launch_payload'),
+      (t) => t === 'payload: none' || t === 'payload: state=-',
+    );
     await timed('press', () => driver.press(Key.HOME));
-    await waitFor(() => driver.query(byId('home_title')), (r) => r.length === 0);
+    await waitFor(
+      () => driver.query(byId('home_title')),
+      (r) => r.length === 0,
+    );
     await timed('terminate', () => driver.terminate());
   }, 60_000);
 });

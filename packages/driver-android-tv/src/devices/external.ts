@@ -35,7 +35,9 @@ export async function prepareAndroidDevice(
   const adb = new Adb(opts.runner ?? nodeCommandRunner, sdk.adb, serial, env);
   await adb.waitForBoot(opts.bootTimeoutMs ?? 180_000);
   const apiLevel = await adb.sdkVersion();
-  const isTv = (await adb.shell(['pm', 'has-feature', 'android.software.leanback'])).includes('true');
+  const isTv = (await adb.shell(['pm', 'has-feature', 'android.software.leanback'])).includes(
+    'true',
+  );
   if (opts.requireTv && !isTv) {
     throw androidError('ANDROID_NOT_A_TV', `${serial} is not an Android TV device.`, {
       hint: 'Use an Android TV / Google TV system image (`tv_1080p` device profile).',

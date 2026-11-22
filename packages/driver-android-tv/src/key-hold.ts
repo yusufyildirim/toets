@@ -23,10 +23,7 @@ export class KeyHolder {
     await this.pushed;
     const ms = Math.max(0, Math.round(holdMs));
     const res = await this.adb.run(
-      [
-        'shell',
-        `CLASSPATH=${REMOTE_JAR} app_process / tv.dpad.helper.KeyHold ${keycode} ${ms}`,
-      ],
+      ['shell', `CLASSPATH=${REMOTE_JAR} app_process / tv.dpad.helper.KeyHold ${keycode} ${ms}`],
       { timeoutMs: ms + 30_000 },
     );
     if (res.exitCode !== 0 || !/repeats=\d+/.test(res.stdout)) {

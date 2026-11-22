@@ -108,7 +108,9 @@ export class ManagedDeviceProvider implements DeviceProvider {
     if (this.options.reuse) return;
     await Promise.all(
       devices.map(async (d) => {
-        await this.adb(d.serial).run(['emu', 'kill'], { timeoutMs: 30_000 }).catch(() => null);
+        await this.adb(d.serial)
+          .run(['emu', 'kill'], { timeoutMs: 30_000 })
+          .catch(() => null);
         if (d.proc) {
           const exited = await Promise.race([
             d.proc.exited.then(() => true),
@@ -154,7 +156,13 @@ export class ManagedDeviceProvider implements DeviceProvider {
   }
 
   /** Picks the system image from the spec (`osVersion` = API level, `model` = device profile). */
-  resolveImage(spec: DeviceSpec): { api: string; tag: string; abi: string; model: string; pkg: string } {
+  resolveImage(spec: DeviceSpec): {
+    api: string;
+    tag: string;
+    abi: string;
+    model: string;
+    pkg: string;
+  } {
     const tag = this.options.imageTag ?? 'android-tv';
     const abi = this.options.abi ?? (arch() === 'arm64' ? 'arm64-v8a' : 'x86_64');
     const model = spec.model ?? DEFAULT_MODEL;
@@ -165,8 +173,7 @@ export class ManagedDeviceProvider implements DeviceProvider {
           .map((d) => d.replace(/^android-/, ''))
       : [];
     const api =
-      spec.osVersion ??
-      installed.sort((a, b) => Number.parseFloat(b) - Number.parseFloat(a))[0];
+      spec.osVersion ?? installed.sort((a, b) => Number.parseFloat(b) - Number.parseFloat(a))[0];
     const pkg = `system-images;android-${api ?? '<api>'};${tag};${abi}`;
     if (!api || !installed.includes(api)) {
       throw androidError(
@@ -192,7 +199,9 @@ export class ManagedDeviceProvider implements DeviceProvider {
     await withFileLock(join(this.avdHome, `${avd}.dpad-lock`), async () => {
       if (!existsSync(join(this.avdHome, `${avd}.ini`))) await this.createAvd(avd, image);
       if (existsSync(snapshotDir)) return;
-      this.deps.log?.(`android-tv: cold-booting ${avd} once to create the ${CLEAN_SNAPSHOT} snapshot`);
+      this.deps.log?.(
+        `android-tv: cold-booting ${avd} once to create the ${CLEAN_SNAPSHOT} snapshot`,
+      );
       const port = await this.findPort(0);
       const proc = this.spawnEmulator(avd, port, ['-no-snapshot-load']);
       const adb = this.adb(`emulator-${port}`);
@@ -283,10 +292,14 @@ export class ManagedDeviceProvider implements DeviceProvider {
       if (taken.has(`emulator-${port}`)) continue;
       if ((await isFree(port)) && (await isFree(port + 1))) return port;
     }
-    throw androidError('ANDROID_EMULATOR_FAILED', `No free emulator port from ${base} to ${MAX_PORT}.`, {
-      hint: 'Too many emulators are running. Stop unused ones or lower the worker count.',
-      docs: DOCS.devices,
-    });
+    throw androidError(
+      'ANDROID_EMULATOR_FAILED',
+      `No free emulator port from ${base} to ${MAX_PORT}.`,
+      {
+        hint: 'Too many emulators are running. Stop unused ones or lower the worker count.',
+        docs: DOCS.devices,
+      },
+    );
   }
 
   private spawnEmulator(avd: string, port: number, extra: readonly string[]): SpawnedProcess {

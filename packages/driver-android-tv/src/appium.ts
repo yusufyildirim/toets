@@ -96,18 +96,15 @@ export function externalAppiumServer(url: string): AppiumServer {
  * different installs never share (or fight over) one manifest.
  */
 export function ensureAppiumHome(): string {
-  const driverDir = realpathSync(dirname(require.resolve('appium-uiautomator2-driver/package.json')));
+  const driverDir = realpathSync(
+    dirname(require.resolve('appium-uiautomator2-driver/package.json')),
+  );
   const hash = createHash('sha256').update(driverDir).digest('hex').slice(0, 12);
   const home = join(tmpdir(), 'dpad-appium', hash);
   const modules = join(home, 'node_modules');
   const link = join(modules, 'appium-uiautomator2-driver');
   mkdirSync(modules, { recursive: true });
-  let current: string | null = null;
-  try {
-    current = readlinkSync(link);
-  } catch {
-    current = null;
-  }
+  const current = readLink(link);
   if (current !== driverDir) {
     if (current !== null) unlinkSync(link);
     try {
@@ -118,6 +115,14 @@ export function ensureAppiumHome(): string {
     }
   }
   return home;
+}
+
+function readLink(path: string): string | null {
+  try {
+    return readlinkSync(path);
+  } catch {
+    return null;
+  }
 }
 
 /** Asks the OS for a free TCP port on localhost. */
