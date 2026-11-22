@@ -49,6 +49,15 @@ describe('videoMediaProps', () => {
     expect(r.snapshot).toMatchObject({ position: 30, duration: 120, rate: 2 });
   });
 
+  it('keeps playing when playback starts before the load completes (autoplay)', () => {
+    const r = fakeReporter();
+    const p = videoMediaProps(r);
+    p.onPlaybackStateChanged({ isPlaying: true });
+    p.onLoadStart();
+    p.onLoad({ duration: 52, currentTime: 0 });
+    expect(r.history).toEqual(['playing', 'loading', 'playing']);
+  });
+
   it('reports errors and clears them on the next load', () => {
     const r = fakeReporter();
     const p = videoMediaProps(() => r);
