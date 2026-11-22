@@ -29,3 +29,7 @@ await expect(app).toMatchTextSnapshot(); // per-platform baseline file
 ## TV trap: offscreen rail items
 
 Rails keep offscreen items in the tree. They are left out of snapshots on purpose, so a snapshot does not change when an item scrolls in from far away, only when the user can see it.
+
+## Parity trap: nesting comes from the tree
+
+The outline nests like the tree it is read from. The SDK tree and the web DOM nest like the app's components, but a black-box platform tree may not: React Native on Android lists a plain `View`'s descendants as its siblings (see the Android TV driver's traps). An inline snapshot meant for every platform should cover a container that keeps its children everywhere, or run with `dpad.sdk`.
