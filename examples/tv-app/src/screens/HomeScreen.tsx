@@ -28,7 +28,9 @@ export function HomeScreen({ visible }: { visible: boolean }) {
       id="home"
       testID="screen_home"
       visible={visible}
-      initialFocusKey={firstItem && `card_${firstItem.id}`}
+      initialFocusKey={
+        catalog.status === 'error' ? 'home_retry' : firstItem && `card_${firstItem.id}`
+      }
     >
       {catalog.status !== 'success' ? (
         <StatusView

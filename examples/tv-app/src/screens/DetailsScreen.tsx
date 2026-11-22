@@ -20,7 +20,12 @@ interface DetailsScreenProps {
 export function DetailsScreen({ scope, itemId, visible }: DetailsScreenProps) {
   const item = useRequest(`item:${itemId}`, (signal) => api.getItem(itemId, signal));
   return (
-    <Screen id={scope} testID="screen_details" visible={visible} initialFocusKey="details_play">
+    <Screen
+      id={scope}
+      testID="screen_details"
+      visible={visible}
+      initialFocusKey={item.status === 'error' ? 'details_retry' : 'details_play'}
+    >
       {item.status === 'success' ? (
         <Details item={item.data} />
       ) : (

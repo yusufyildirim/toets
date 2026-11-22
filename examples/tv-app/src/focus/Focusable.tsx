@@ -1,4 +1,4 @@
-import { useRef, type ComponentRef, type ReactNode } from 'react';
+import { useEffect, useRef, type ComponentRef, type ReactNode } from 'react';
 import {
   Pressable,
   type PressableProps,
@@ -29,6 +29,8 @@ export function Focusable({ testID, focusKey = testID, onFocus, style, ...props 
   const scope = useFocusScope();
   const ref = useRef<ComponentRef<typeof View>>(null);
   const preferred = scope.active && scope.requestedKey === focusKey;
+  const { register } = scope;
+  useEffect(() => register(focusKey), [register, focusKey]);
   usePreferredFocus(ref, preferred);
 
   return (

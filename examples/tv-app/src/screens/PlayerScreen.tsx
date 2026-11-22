@@ -30,7 +30,7 @@ export function PlayerScreen({ scope, itemId, visible }: PlayerScreenProps) {
       id={scope}
       testID="screen_player"
       visible={visible}
-      initialFocusKey="player_play_pause"
+      initialFocusKey={item.status === 'error' ? 'player_retry' : 'player_play_pause'}
       style={styles.screen}
     >
       {item.status === 'success' ? (
