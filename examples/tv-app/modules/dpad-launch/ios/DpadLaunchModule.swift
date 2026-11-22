@@ -1,6 +1,6 @@
 import ExpoModulesCore
 
-/// Reads the dpad launch payload passed as the launch argument pair `-__dpad <JSON>`.
+/// Reads the dpad launch payload passed as the launch argument pair `-__dpad <value>` (base64url JSON).
 public class DpadLaunchModule: Module {
   public func definition() -> ModuleDefinition {
     Name("DpadLaunch")

@@ -1,4 +1,5 @@
 import { Key, type DpadError, type DriverCreateContext, type ElementRef } from '@dpad-tv/core';
+import { encodeLaunchPayloadParam } from '@dpad-tv/protocol';
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -168,7 +169,7 @@ describe('AndroidTvDriver', () => {
       'adb -s emulator-5554 shell pm clear tv.dpad.fixture',
       'adb -s emulator-5554 reverse tcp:9323 tcp:9323',
       'adb -s emulator-5554 reverse tcp:8080 tcp:8080',
-      `adb -s emulator-5554 shell am start -W -n tv.dpad.fixture/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER --es __dpad '{"v":1,"sdkUrl":"ws://localhost:9323","token":"t","mockUrl":"http://127.0.0.1:8080"}'`,
+      `adb -s emulator-5554 shell am start -W -n tv.dpad.fixture/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER --es __dpad ${encodeLaunchPayloadParam({ v: 1, sdkUrl: 'ws://localhost:9323', token: 't', mockUrl: 'http://127.0.0.1:8080' })}`,
     ]);
 
     // Ports are reversed once per driver and removed on stop.
@@ -184,7 +185,7 @@ describe('AndroidTvDriver', () => {
     await custom.driver.start();
     await custom.driver.launch({ payload: { v: 1 } });
     expect(adbShell(custom.runner).find((l) => l.startsWith('am start'))).toBe(
-      `am start -W -n tv.dpad.fixture/.Other -a android.intent.action.MAIN --es __dpad '{"v":1}'`,
+      `am start -W -n tv.dpad.fixture/.Other -a android.intent.action.MAIN --es __dpad ${encodeLaunchPayloadParam({ v: 1 })}`,
     );
   });
 

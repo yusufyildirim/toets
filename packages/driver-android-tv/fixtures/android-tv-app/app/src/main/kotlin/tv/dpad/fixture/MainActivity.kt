@@ -2,6 +2,7 @@ package tv.dpad.fixture
 
 import android.app.Activity
 import android.os.Bundle
+import android.util.Base64
 import android.util.Log
 import android.view.KeyEvent
 import android.view.View
@@ -88,7 +89,7 @@ class MainActivity : Activity() {
             return
         }
         Log.i(TAG, "launch payload: $raw")
-        val payload = runCatching { JSONObject(raw) }.getOrNull()
+        val payload = runCatching { JSONObject(decodePayload(raw)) }.getOrNull()
         if (payload == null) {
             label.text = "payload: invalid"
             return
@@ -97,6 +98,11 @@ class MainActivity : Activity() {
         val mockUrl = payload.optString("mockUrl", "")
         if (mockUrl.isNotEmpty()) fetchMock(mockUrl, mock)
     }
+
+    /** dpad sends base64url(JSON); plain JSON is accepted too. */
+    private fun decodePayload(raw: String): String =
+        if (raw.trimStart().startsWith("{")) raw
+        else String(Base64.decode(raw, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP), Charsets.UTF_8)
 
     /** Proves `adb reverse`: the payload URL says `localhost`, which only works if reversed. */
     private fun fetchMock(base: String, target: TextView) {

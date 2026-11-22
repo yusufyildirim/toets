@@ -38,10 +38,15 @@ export function parseLaunchPayload(raw: unknown): LaunchPayload | null {
   return value as LaunchPayload;
 }
 
-/** Decodes the web transport: base64url-encoded JSON (raw JSON is accepted too). */
-export function decodeWebLaunchParam(param: string | null): LaunchPayload | null {
+/**
+ * Decodes the launch parameter as every dpad driver sends it: base64url-encoded JSON. Raw JSON
+ * and already parsed objects are accepted too.
+ */
+export function decodeLaunchParam(param: unknown): LaunchPayload | null {
   if (!param) return null;
-  if (param.trimStart().startsWith('{')) return parseLaunchPayload(param);
+  if (typeof param !== 'string' || param.trimStart().startsWith('{')) {
+    return parseLaunchPayload(param);
+  }
   try {
     const base64 = param.replace(/-/g, '+').replace(/_/g, '/');
     const padded = base64 + '='.repeat((4 - (base64.length % 4)) % 4);

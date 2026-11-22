@@ -25,9 +25,11 @@ The app calls the API at `http://localhost:8091` (`EXPO_PUBLIC_API_URL` at build
 
 The app reads the dpad [launch payload](../../packages/protocol/src/launch.ts) without the dpad SDK:
 
-- web: `?__dpad=<base64url JSON>` or `window.__DPAD__`
-- Android: intent string extra `__dpad` (`adb shell am start -n dev.dpad.example/.MainActivity --es __dpad '{"v":1,...}'`)
-- tvOS: launch arguments `-__dpad '{"v":1,...}'`
+- web: `?__dpad=<value>` or `window.__DPAD__`
+- Android: intent string extra `__dpad` (`adb shell am start -n dev.dpad.example/.MainActivity --es __dpad <value>`)
+- tvOS: launch arguments `-__dpad <value>`
+
+dpad drivers send the value as unpadded base64url of the JSON; plain JSON (`'{"v":1,...}'`) works too, which is handy by hand.
 
 With a `mockUrl`, API requests go to the mock server instead, keeping the path, with the real origin in the `x-dpad-original-origin` header so unmatched requests can be proxied. Settings shows the API in use.
 

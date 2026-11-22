@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 
-import { decodeWebLaunchParam, parseLaunchPayload } from './launchPayload';
+import { decodeLaunchParam, parseLaunchPayload } from './launchPayload';
 
 const payload = { v: 1, mockUrl: 'http://localhost:9400', flags: { beta: true } };
 
@@ -18,16 +18,17 @@ describe('parseLaunchPayload', () => {
   });
 });
 
-describe('decodeWebLaunchParam', () => {
+describe('decodeLaunchParam', () => {
   it('decodes base64url JSON, including non-ASCII values', () => {
     const value = { ...payload, state: 'héllo' };
     const encoded = Buffer.from(JSON.stringify(value)).toString('base64url');
-    expect(decodeWebLaunchParam(encoded)).toEqual(value);
+    expect(decodeLaunchParam(encoded)).toEqual(value);
   });
 
   it('accepts raw JSON and rejects garbage', () => {
-    expect(decodeWebLaunchParam(JSON.stringify(payload))).toEqual(payload);
-    expect(decodeWebLaunchParam('%%%')).toBeNull();
-    expect(decodeWebLaunchParam(null)).toBeNull();
+    expect(decodeLaunchParam(JSON.stringify(payload))).toEqual(payload);
+    expect(decodeLaunchParam('%%%')).toBeNull();
+    expect(decodeLaunchParam(null)).toBeNull();
+    expect(decodeLaunchParam(payload)).toEqual(payload);
   });
 });

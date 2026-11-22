@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import type { DeviceLease, DriverCreateContext, ElementRef } from '@dpad-tv/core';
 import { KEY_CAPABILITY, Key } from '@dpad-tv/core';
+import { encodeLaunchPayloadParam } from '@dpad-tv/protocol';
 import { PNG } from 'pngjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import tvosDriverModule, { TvosDriver, type TvosDriverDeps } from '../src/index.js';
@@ -189,7 +190,7 @@ describe('TvosDriver', () => {
     expect(appiumStops).toBe(0);
   });
 
-  it('launches with the payload as `-__dpad <JSON>` after the app launch arguments', async () => {
+  it('launches with the payload as `-__dpad <base64url>` after the app launch arguments', async () => {
     const driver = await started();
     await driver.launch({
       payload: { v: 1, state: 'details', sdkUrl: 'ws://localhost:9323', token: 't' },
@@ -206,7 +207,12 @@ describe('TvosDriver', () => {
             '-AppleLanguages',
             '(en)',
             '-__dpad',
-            '{"v":1,"state":"details","sdkUrl":"ws://localhost:9323","token":"t"}',
+            encodeLaunchPayloadParam({
+              v: 1,
+              state: 'details',
+              sdkUrl: 'ws://localhost:9323',
+              token: 't',
+            }),
           ],
           environment: {},
         },

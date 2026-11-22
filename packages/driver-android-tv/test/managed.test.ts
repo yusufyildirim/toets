@@ -226,7 +226,10 @@ describe('withFileLock', () => {
         { pollMs: 5 },
       );
     await Promise.all([hold('a'), hold('b')]);
-    expect(order).toEqual(['a+', 'a-', 'b+', 'b-']);
+    // Either may win the race; the holds must not interleave.
+    const first = order[0]?.charAt(0);
+    const second = first === 'a' ? 'b' : 'a';
+    expect(order).toEqual([`${first}+`, `${first}-`, `${second}+`, `${second}-`]);
   });
 
   it('takes over a lock whose owner process is gone', async () => {

@@ -19,7 +19,7 @@ import {
   type SelectorChain,
   type UITree,
 } from '@dpad-tv/core';
-import { encodeLaunchPayload } from '@dpad-tv/protocol';
+import { encodeLaunchPayloadParam } from '@dpad-tv/protocol';
 import {
   chromium,
   type BrowserContext,
@@ -135,7 +135,7 @@ export class WebDriver implements Driver {
     } else {
       this.#initScript = await page.addInitScript(
         setLaunchGlobal,
-        encodeLaunchPayload(opts.payload),
+        encodeLaunchPayloadParam(opts.payload),
       );
     }
 
@@ -453,9 +453,9 @@ export function createWebDriver(options: WebDriverOptions, ctx: WebDriverContext
   return new WebDriver(resolveOptions(options, ctx.app), ctx);
 }
 
-/** Runs in the page (init script transport): exposes the payload JSON to the top frame. */
-function setLaunchGlobal(json: string): void {
-  if (window.top === window) (window as unknown as { __DPAD__?: string }).__DPAD__ = json;
+/** Runs in the page (init script transport): exposes the encoded payload to the top frame. */
+function setLaunchGlobal(encoded: string): void {
+  if (window.top === window) (window as unknown as { __DPAD__?: string }).__DPAD__ = encoded;
 }
 
 async function newPageOrClose(context: BrowserContext, close: () => Promise<void>): Promise<Page> {

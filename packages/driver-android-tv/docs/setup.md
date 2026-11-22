@@ -47,10 +47,12 @@ All optional (`AndroidTvDriverOptions`):
 
 ## Read the launch payload in the app
 
-`app.launch()` starts the activity with the launch payload as the intent string extra `__dpad` (JSON). Black-box tests need nothing in the app. To use the mock server or the SDK, read it at startup:
+`app.launch()` starts the activity with the launch payload as the intent string extra `__dpad`: unpadded base64url of the JSON (`encodeLaunchPayloadParam` from `@dpad-tv/protocol`). Black-box tests need nothing in the app. To use the mock server without the SDK, read it at startup:
 
 ```kotlin
-val payload = intent.getStringExtra("__dpad")?.let { JSONObject(it) }
+val payload = intent.getStringExtra("__dpad")?.let {
+    JSONObject(String(Base64.decode(it, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP)))
+}
 val mockUrl = payload?.optString("mockUrl") // e.g. http://localhost:9400
 ```
 

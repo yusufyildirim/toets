@@ -16,7 +16,7 @@ import {
   type SelectorChain,
   type UITree,
 } from '@dpad-tv/core';
-import { LAUNCH_PARAM, encodeLaunchPayload } from '@dpad-tv/protocol';
+import { LAUNCH_PARAM, encodeLaunchPayloadParam } from '@dpad-tv/protocol';
 import {
   startAppiumServer,
   freePort,
@@ -155,7 +155,7 @@ export class TvosDriver implements Driver {
     if (opts.clearData) await this.mobile('clearApp', { bundleId });
     await this.mobile('launchApp', {
       bundleId,
-      arguments: [...launchArguments, `-${LAUNCH_PARAM}`, encodeLaunchPayload(opts.payload)],
+      arguments: [...launchArguments, `-${LAUNCH_PARAM}`, encodeLaunchPayloadParam(opts.payload)],
       environment: launchEnvironment,
     });
   }

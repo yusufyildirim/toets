@@ -13,7 +13,7 @@ import {
   type SelectorChain,
   type UITree,
 } from '@dpad-tv/core';
-import { encodeLaunchPayload, LAUNCH_PARAM, type LaunchPayload } from '@dpad-tv/protocol';
+import { encodeLaunchPayloadParam, LAUNCH_PARAM, type LaunchPayload } from '@dpad-tv/protocol';
 import { join } from 'node:path';
 import { Adb, type LaunchTarget } from './adb.js';
 import {
@@ -276,7 +276,9 @@ export class AndroidTvDriver implements Driver {
       await this.adb.reverse(port);
       this.reversedPorts.add(port);
     }
-    await this.adb.startActivity(target, { [LAUNCH_PARAM]: encodeLaunchPayload(opts.payload) });
+    await this.adb.startActivity(target, {
+      [LAUNCH_PARAM]: encodeLaunchPayloadParam(opts.payload),
+    });
   }
 
   async terminate(): Promise<void> {

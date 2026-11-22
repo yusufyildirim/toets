@@ -8,7 +8,7 @@ import os
 private let log = Logger(subsystem: "tv.dpad.fixture", category: "app")
 
 /// The part of dpad's launch payload this fixture reads. dpad passes it as the launch
-/// arguments `-__dpad <JSON>`, which UserDefaults exposes under the key `__dpad`.
+/// arguments `-__dpad <base64url(JSON)>`, which UserDefaults exposes under the key `__dpad`.
 struct LaunchPayload: Decodable {
   let v: Int
   let state: String?
@@ -16,9 +16,17 @@ struct LaunchPayload: Decodable {
 
 func readLaunchPayload() -> LaunchPayload? {
   guard let raw = UserDefaults.standard.string(forKey: "__dpad"),
-    let data = raw.data(using: .utf8)
+    let data = decodePayload(raw)
   else { return nil }
   return try? JSONDecoder().decode(LaunchPayload.self, from: data)
+}
+
+/// base64url (unpadded) JSON; plain JSON is accepted too.
+func decodePayload(_ raw: String) -> Data? {
+  if raw.hasPrefix("{") { return raw.data(using: .utf8) }
+  var base64 = raw.replacingOccurrences(of: "-", with: "+").replacingOccurrences(of: "_", with: "/")
+  base64 += String(repeating: "=", count: (4 - base64.count % 4) % 4)
+  return Data(base64Encoded: base64)
 }
 
 enum Route: Hashable {

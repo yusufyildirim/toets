@@ -21,7 +21,7 @@ export default module;
 - **Selector semantics are shared.** Answer `query` with `evaluateChain` (and `focused` with `focusedIn`) from `@dpad-tv/core` over your tree instead of reimplementing them: the first step searches the whole tree, text matches the deepest element (`matchText`), regexes are stateless (`testRegExp`), `nth` picks among the current matches. A driver that must evaluate elsewhere for speed (the web driver evaluates in the page) keeps exactly these semantics.
 - **Stable refs.** `ElementSnapshot.ref` must be the same for one element across `query`, `focused` and `tree`, and stay stable while the element is attached. Focus navigation and `focus.current()` compare refs.
 - **One coordinate space.** Bounds and `UITree.viewport` share the tree's coordinate space (points, dp or CSS pixels), with the viewport origin at 0,0. The viewport screenshot may be in device pixels; core scales by image width over viewport width when it crops elements and masks.
-- **Launch passes the payload** (`sdkUrl`, `token`, `mockUrl`, `state`, `flags`) to the app in the platform's way (URL parameter, intent extra, launch arguments).
+- **Launch passes the payload** (`sdkUrl`, `token`, `mockUrl`, `state`, `flags`) to the app in the platform's way (URL parameter, intent extra, launch arguments), always encoded with `encodeLaunchPayloadParam` from `@dpad-tv/protocol` (base64url JSON).
 - **Devices:** use `DeviceAcquireOptions.parallelIndex` to pick an exclusive device per worker slot.
 - **Errors** are `DpadError` with a `hint` and a `docs` slug.
 

@@ -29,7 +29,7 @@ export default defineConfig({
 3. WebDriverAgent (the on-device automation server) is built once per WDA and Xcode version for the generic tvOS Simulator and cached in `~/Library/Caches/dpad/tvos-wda`. Sessions install that bundle instead of compiling: the first run takes about a minute longer, later sessions start in seconds.
 4. An XCUITest session opens, the app is installed and its unified log is streamed.
 
-`launch` terminates the app and starts it with the launch payload (`@dpad-tv/protocol`) as launch arguments `-__dpad <JSON>`. The app (or the dpad SDK) reads it with `UserDefaults.standard.string(forKey: "__dpad")`. Payload URLs use `localhost`: the simulator shares the host's network.
+`launch` terminates the app and starts it with the launch payload (`@dpad-tv/protocol`) as launch arguments `-__dpad <value>`, where the value is unpadded base64url of the JSON (`encodeLaunchPayloadParam`). The app (or the dpad SDK) reads it with `UserDefaults.standard.string(forKey: "__dpad")` and decodes it. Payload URLs use `localhost`: the simulator shares the host's network.
 
 ## Driver options
 

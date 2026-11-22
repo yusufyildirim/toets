@@ -16,15 +16,19 @@ for (const type of ['keydown', 'keypress', 'keyup']) {
   );
 }
 
-// Launch payload: `?__dpad=<base64url(JSON)>` or `window.__DPAD__` (JSON string).
+// Launch payload: `?__dpad=<base64url(JSON)>` or `window.__DPAD__` (same encoding).
+function decodeParam(param) {
+  const bytes = Uint8Array.from(atob(param.replace(/-/g, '+').replace(/_/g, '/')), (c) =>
+    c.charCodeAt(0),
+  );
+  return new TextDecoder().decode(bytes);
+}
 function readPayload() {
   const param = new URLSearchParams(location.search).get('__dpad');
-  if (param) {
-    const b64 = param.replace(/-/g, '+').replace(/_/g, '/');
-    const bytes = Uint8Array.from(atob(b64), (c) => c.charCodeAt(0));
-    return { source: 'query', json: new TextDecoder().decode(bytes) };
+  if (param) return { source: 'query', json: decodeParam(param) };
+  if (typeof window.__DPAD__ === 'string') {
+    return { source: 'global', json: decodeParam(window.__DPAD__) };
   }
-  if (typeof window.__DPAD__ === 'string') return { source: 'global', json: window.__DPAD__ };
   return { source: 'none', json: '' };
 }
 const payload = readPayload();
