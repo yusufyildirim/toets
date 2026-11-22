@@ -6,6 +6,7 @@ import type {
   SdkSession,
 } from '@dpad-tv/protocol';
 import type { Capability } from '../capabilities.js';
+import { fromProtocolError } from '../errors.js';
 import type { Driver } from '../driver.js';
 import type { SelectorChain } from '../selectors.js';
 import type { ElementSnapshot, UITree } from '../snapshot.js';
@@ -140,7 +141,11 @@ export class Target {
   async media(): Promise<MediaInfo | null | undefined> {
     const session = this.session;
     if (!session?.has('media.get')) return undefined;
-    return (await session.request('media.get', {})).media;
+    try {
+      return (await session.request('media.get', {})).media;
+    } catch (e) {
+      throw fromProtocolError(e);
+    }
   }
 
   async waitForIdle(budgetMs: number): Promise<IdleCheck> {

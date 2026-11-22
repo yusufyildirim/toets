@@ -293,6 +293,9 @@ importers:
       '@dpad-tv/core':
         specifier: workspace:^
         version: link:../core
+      '@dpad-tv/mock':
+        specifier: workspace:^
+        version: link:../mock
       '@dpad-tv/protocol':
         specifier: workspace:^
         version: link:../protocol

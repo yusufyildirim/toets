@@ -108,7 +108,6 @@ export class AndroidTvDriver implements Driver {
       ...REMOTE_PROFILE_CAPABILITIES[options.remote ?? 'android-tv'],
       'key.longpress',
       'screenshot.element',
-      'network.mock',
       'video',
       ...(options.logcat === false ? [] : (['logs'] as const)),
     ]);

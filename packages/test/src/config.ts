@@ -40,7 +40,7 @@ export interface DpadOptions {
     | boolean
     | {
         readonly port?: number;
-        /** Custom host factory; default `createSdkHost` from `@dpad-tv/protocol`. */
+        /** Custom host factory; default `createSdkHost` from `@dpad-tv/protocol/host`. */
         readonly createHost?: (opts: { port?: number }) => Promise<SdkHost>;
       };
   /** Host-side network mocking with `@dpad-tv/mock` (`network.mock`). Default off. */

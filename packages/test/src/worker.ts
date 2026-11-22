@@ -12,7 +12,9 @@ import {
   type DriverModule,
   type MockServerLike,
 } from '@dpad-tv/core';
+import { createMockServer } from '@dpad-tv/mock';
 import type { SdkHost } from '@dpad-tv/protocol';
+import { createSdkHost } from '@dpad-tv/protocol/host';
 import type { DeviceSelection, DpadOptions, DpadProjectConfig } from './config.js';
 import { importUserModule } from './load.js';
 
@@ -96,47 +98,34 @@ export function selectDeviceProvider(
   }
 }
 
-async function createSdkHost(
+/** The worker's SDK host: `createSdkHost` from `@dpad-tv/protocol/host` unless overridden. */
+async function startSdkHost(
   options: DpadOptions,
-  configDir: string,
+  log: (m: string) => void,
 ): Promise<SdkHost | undefined> {
   const sdk = options.sdk;
   if (!sdk) return undefined;
-  const opts = typeof sdk === 'object' && sdk.port !== undefined ? { port: sdk.port } : {};
+  const port = typeof sdk === 'object' ? sdk.port : undefined;
+  const opts = port === undefined ? {} : { port };
   if (typeof sdk === 'object' && sdk.createHost) return sdk.createHost(opts);
-  for (const specifier of ['@dpad-tv/protocol/host', '@dpad-tv/protocol']) {
-    let mod: Record<string, unknown>;
-    try {
-      mod = await importUserModule(specifier, configDir, 'SDK host');
-    } catch {
-      continue;
-    }
-    if (typeof mod.createSdkHost === 'function') {
-      return (mod.createSdkHost as (o: { port?: number }) => Promise<SdkHost>)(opts);
-    }
-  }
-  throw new DpadError('SDK_HOST_UNAVAILABLE', 'No dpad SDK host implementation was found.', {
-    hint: 'Install a @dpad-tv/protocol version that exports createSdkHost, or pass dpad.sdk.createHost.',
-    docs: docsLink('core/sdk'),
+  return createSdkHost({
+    ...opts,
+    onEvent: (e) => {
+      if (e.type === 'rejected') log(`SDK host rejected a connection (${e.reason}): ${e.message}`);
+      else if (e.type === 'session') log(`SDK connected: ${e.hello.sdk} (${e.hello.framework})`);
+      else if (e.type === 'session-closed') log(`SDK session closed: ${e.code} ${e.reason}`);
+    },
   });
 }
 
-async function createMock(
-  options: DpadOptions,
-  configDir: string,
-): Promise<MockServerLike | undefined> {
+/** The worker's mock server: `createMockServer` from `@dpad-tv/mock` unless overridden. */
+async function startMockServer(options: DpadOptions): Promise<MockServerLike | undefined> {
   const mock = options.mock;
   if (!mock) return undefined;
-  const opts = typeof mock === 'object' && mock.port !== undefined ? { port: mock.port } : {};
+  const port = typeof mock === 'object' ? mock.port : undefined;
+  const opts = port === undefined ? {} : { port };
   if (typeof mock === 'object' && mock.createServer) return mock.createServer(opts);
-  const mod = await importUserModule('@dpad-tv/mock', configDir, 'network mocking');
-  if (typeof mod.createMockServer !== 'function') {
-    throw new DpadError('MOCK_UNAVAILABLE', '@dpad-tv/mock does not export createMockServer.', {
-      hint: 'Update @dpad-tv/mock to a version matching @dpad-tv/test.',
-      docs: docsLink('core/network'),
-    });
-  }
-  return (mod.createMockServer as (o: { port?: number }) => Promise<MockServerLike>)(opts);
+  return createMockServer(opts);
 }
 
 /**
@@ -186,9 +175,9 @@ export class DpadWorker {
       disposers.push(() => driver.stop());
       await driver.start();
 
-      const mock = await createMock(config.options, ctx.configDir);
+      const mock = await startMockServer(config.options);
       if (mock) disposers.push(() => mock.close());
-      const sdkHost = await createSdkHost(config.options, ctx.configDir);
+      const sdkHost = await startSdkHost(config.options, ctx.log);
       if (sdkHost) disposers.push(() => sdkHost.close());
 
       const runtime = new AppRuntime({

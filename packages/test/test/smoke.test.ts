@@ -153,6 +153,16 @@ describe('@dpad-tv/test end to end', () => {
     expect(web?.result.attachments.some((a) => a.name === 'step-snapshot')).toBe(true);
   });
 
+  it('attaches the mock server traffic as a HAR', () => {
+    const web = tests(first.dir).find(
+      (t) => t.project === 'web' && t.title === 'loads home through the mock server',
+    );
+    const har = web?.result.attachments.find((a) => a.name === 'dpad-network.har');
+    expect(har?.contentType).toBe('application/json');
+    const body = har?.body ? Buffer.from(har.body, 'base64').toString('utf8') : '';
+    expect(JSON.parse(body).log.entries).toHaveLength(1);
+  });
+
   it('flags key overrides on the test', () => {
     const tvos = tests(first.dir).find((t) => t.project === 'tvos' && t.title === 'fast forward');
     expect(tvos?.test.annotations).toContainEqual({

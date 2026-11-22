@@ -67,9 +67,10 @@ export function formatFailureDump(dump: FailureDump): string {
   if (dump.requests.length) {
     out.push('', `## Requests (last ${dump.requests.length})`, '');
     for (const r of dump.requests) {
-      out.push(
-        `- ${time(r.timestamp)} ${r.method} ${r.url} -> ${r.status ?? 'pending'}${r.mocked ? ' (mocked)' : ''}`,
-      );
+      const outcome = r.error
+        ? `failed: ${r.error.code} ${r.error.message}`
+        : `${r.status ?? 'pending'}${r.mocked ? ' (mocked)' : ''}`;
+      out.push(`- ${time(r.timestamp)} ${r.method} ${r.url} -> ${outcome}`);
     }
   }
   return out.join('\n') + '\n';

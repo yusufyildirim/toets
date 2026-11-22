@@ -129,7 +129,6 @@ describe('AndroidTvDriver', () => {
         'key.menu',
         'key.numeric',
         'logs',
-        'network.mock',
         'screenshot.element',
         'video',
       ].sort(),

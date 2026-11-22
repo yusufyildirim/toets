@@ -84,7 +84,9 @@ export class FakeSdkSession implements SdkSession {
     }
     this.requests.push({ method, params });
     if (this.isClosed) throw new ProtocolError('sdk.closed', 'The SDK session is closed.');
-    if (this.failing.has(method)) throw new Error(`fake ${method} failure`);
+    if (this.failing.has(method)) {
+      throw new ProtocolError('sdk.remote-error', `fake ${method} failure`, { rpcCode: -32603 });
+    }
     const answer = (): unknown => {
       switch (method) {
         case 'tree.get':

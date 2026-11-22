@@ -7,13 +7,14 @@ import type {
   Media,
   Network,
   PlatformInfo,
+  RecordedRequest,
   Remote,
   Screenshot,
   ScreenshotOptions,
 } from '../api.js';
 import type { Capability } from '../capabilities.js';
 import type { Driver } from '../driver.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, docsLink, fromProtocolError } from '../errors.js';
 import type { MockServerLike } from '../mock.js';
 import type { Platform } from '../platform.js';
 import type { LogEntry, Rect } from '../snapshot.js';
@@ -128,8 +129,13 @@ export class AppRuntime implements RuntimeContext {
     return this.launched;
   }
 
+  /** Runs an action as a step. SDK protocol errors escaping it surface as `DpadError`. */
   step<T>(info: ActionInfo, run: () => Promise<T>): Promise<T> {
-    return this.currentHooks.step(info, run);
+    return this.currentHooks.step(info, () =>
+      run().catch((e: unknown) => {
+        throw fromProtocolError(e);
+      }),
+    );
   }
 
   retry<T>(
@@ -338,7 +344,7 @@ export class AppRuntime implements RuntimeContext {
     await this.drainLogs();
     let requests: FailureDump['requests'] = [];
     try {
-      requests = this.mock?.requests().slice(-DUMP_REQUESTS) ?? [];
+      requests = dumpRequests(this.mock?.requests() ?? []);
     } catch (e) {
       this.log(`reading recorded requests failed: ${String(e)}`);
     }
@@ -435,4 +441,14 @@ class AppImpl implements App {
 /** The runtime behind an `App`, or `null` for anything else. */
 export function appRuntime(value: unknown): AppRuntime | null {
   return value instanceof AppImpl ? value.runtime : null;
+}
+
+/**
+ * The requests a failure dump shows: the last {@link DUMP_REQUESTS}, plus earlier failed ones
+ * (often the cause), in arrival order.
+ */
+function dumpRequests(all: readonly RecordedRequest[]): readonly RecordedRequest[] {
+  const recent = Math.max(0, all.length - DUMP_REQUESTS);
+  const picked = all.filter((r, i) => i >= recent || r.error);
+  return picked.slice(-2 * DUMP_REQUESTS);
 }

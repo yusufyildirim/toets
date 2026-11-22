@@ -7,7 +7,7 @@ const isPath = (specifier: string): boolean =>
   specifier.startsWith('.') || isAbsolute(specifier) || specifier.startsWith('file:');
 
 /**
- * Imports a module the user installed (a driver, `@dpad-tv/mock`). Packages are resolved from
+ * Imports a module the user installed (a driver). Packages are resolved from
  * the user's config directory first, so strict package managers (pnpm) work without dpad
  * depending on every driver; paths are relative to the config directory.
  */

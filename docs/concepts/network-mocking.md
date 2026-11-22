@@ -7,8 +7,7 @@ description: Mock API responses with MSW handlers that run on the test host. The
 Tests that depend on data mock it. dpad runs [MSW](https://mswjs.io) handlers in a **mock server on the test host**. The app sends its API traffic to that server; matched requests get the handler's response, unmatched ones are proxied to the real backend. Because it is plain HTTP on the host, it works the same on web, emulators and simulators, without certificates.
 
 ```ts
-import { test, expect } from '@dpad-tv/test';
-import { http, HttpResponse } from '@dpad-tv/mock';
+import { test, expect, http, HttpResponse } from '@dpad-tv/test';
 
 test('shows an empty state without favorites', async ({ app }) => {
   app.network.use(http.get('*/api/favorites', () => HttpResponse.json([])));

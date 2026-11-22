@@ -26,7 +26,8 @@ It also lists busy resources (when idle sync is on), recent app logs and recorde
 
 - **Text first.** The screen is a [text snapshot](./text-snapshots.md), readable in CI logs and by AI agents. The screenshot is attached separately.
 - **Never masks the real error.** Collecting the dump never throws; missing parts are left out.
-- **Logs and requests** are attached for every test (`dpad-logs`, `dpad-requests`), not only failures.
+- **Logs and network traffic** are attached for every test (`dpad-logs`, `dpad-network.har`), not only failures.
+- **Failed requests stay.** The dump lists the last 20 requests plus any earlier failed ones (no route, upstream unreachable), with the failure reason.
 
 ## TV trap: the failing key was three presses ago
 

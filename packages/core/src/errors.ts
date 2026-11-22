@@ -1,3 +1,5 @@
+import { ProtocolError } from '@dpad-tv/protocol';
+
 /**
  * Every dpad error explains itself: what happened, the likely cause and fix (`hint`)
  * and where to read more (`docs`). Agents act on these fields; keep them specific.
@@ -25,6 +27,19 @@ export class DpadError extends Error {
     if (this.docs) out += `\nDocs: ${this.docs}`;
     return out;
   }
+}
+
+/**
+ * Surfaces an SDK host `ProtocolError` as a `DpadError` with the same code, hint and docs, so
+ * users see one error type. Anything else is returned unchanged.
+ */
+export function fromProtocolError(error: unknown): unknown {
+  if (!(error instanceof ProtocolError)) return error;
+  return new DpadError(error.code, error.message, {
+    ...(error.hint === undefined ? {} : { hint: error.hint }),
+    ...(error.docs === undefined ? {} : { docs: error.docs }),
+    cause: error,
+  });
 }
 
 /**

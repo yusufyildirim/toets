@@ -26,7 +26,7 @@ export class NetworkImpl implements Network {
     const mock = this.ctx.mock;
     if (!mock) {
       throw new DpadError('MOCK_DISABLED', 'Network mocking is not enabled for this project.', {
-        hint: "Enable it in the dpad config (dpad: { mock: true }) and install @dpad-tv/mock, or declare requires('network.mock') to skip where it is off.",
+        hint: "Enable it in the dpad config (dpad: { mock: true }), or declare requires('network.mock') to skip where it is off.",
         docs: docsLink('core/network'),
       });
     }

@@ -82,7 +82,10 @@ export interface RecordedRequest {
   readonly timestamp: number;
   /** Whether a mock handler answered (vs proxied upstream). */
   readonly mocked: boolean;
+  /** Response status; `null` while in flight or when the request failed. */
   readonly status: number | null;
+  /** Why the request failed (no route, upstream unreachable, handler threw), if it did. */
+  readonly error?: { readonly code: string; readonly message: string } | null;
 }
 
 /** Network mocking and inspection (`network.mock`). Handlers come from `@dpad-tv/mock`. */

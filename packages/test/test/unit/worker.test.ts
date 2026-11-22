@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { DpadError, type DriverModule } from '@dpad-tv/core';
 import { FakeMockServer, FakeSdkHost } from '@dpad-tv/core/testing';
+import { http, HttpResponse } from '@dpad-tv/mock';
 import { describe, expect, it } from 'vitest';
 import {
   platforms,
@@ -156,6 +157,30 @@ describe('DpadWorker', () => {
     await worker.stop(() => {});
     expect(registry.driver?.stopped).toBe(true);
     expect(registry.mock?.closed).toBe(true);
+  });
+
+  it('runs the real mock server and SDK host by default', async () => {
+    const config = configOf('web', {
+      driver: './fake-web-driver.ts',
+      dpad: { mock: true, sdk: true },
+    });
+    const worker = await DpadWorker.start(config, ctx());
+    const { mock, sdkHost } = worker.runtime;
+    try {
+      expect(sdkHost?.url).toMatch(/^ws:\/\/localhost:\d+$/);
+      expect(sdkHost?.issueToken()).toEqual(expect.any(String));
+      expect(mock?.url).toMatch(/^http:\/\/localhost:\d+$/);
+      mock?.use(http.get('https://api.example.com/v1/ping', () => HttpResponse.json({ ok: true })));
+      const res = await fetch(`${mock?.url}/v1/ping`, {
+        headers: { 'x-dpad-original-origin': 'https://api.example.com' },
+      });
+      expect(await res.json()).toEqual({ ok: true });
+      expect(mock?.requests({ url: '/v1/ping' })).toHaveLength(1);
+      expect(mock?.toHar?.()).toMatchObject({ log: { version: '1.2' } });
+    } finally {
+      await worker.stop(() => {});
+    }
+    await expect(fetch(`${mock?.url}/v1/ping`)).rejects.toThrow();
   });
 
   it('tears down what it started when a later step fails', async () => {

@@ -18,5 +18,7 @@ export interface MockServerLike {
   resetHandlers(): void;
   requests(filter?: RequestFilter): readonly RecordedRequest[];
   clearRequests(): void;
+  /** Recorded traffic as a HAR 1.2 log, attached to each test's report. */
+  toHar?(): unknown;
   close(): Promise<void>;
 }

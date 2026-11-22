@@ -113,6 +113,17 @@ describe('SDK composition', () => {
     expect(methods.indexOf('sync.waitForIdle')).toBeLessThan(methods.indexOf('tree.get', 1));
   });
 
+  it('surfaces SDK protocol errors as DpadError', async () => {
+    const { app, host } = setup({ sdk: true });
+    await app.launch();
+    host!.session!.failing.add('media.get');
+    await expect(app.media.get()).rejects.toMatchObject({
+      name: 'DpadError',
+      code: 'sdk.remote-error',
+      message: 'fake media.get failure',
+    });
+  });
+
   it('collects app logs from the SDK', async () => {
     const { app, host, runtime } = setup({ sdk: true });
     await app.launch();
@@ -222,6 +233,26 @@ describe('isolation and failure dumps', () => {
         '- 00:00:00.000 GET http://localhost:9400/api/home -> 200 (mocked)',
         '',
       ].join('\n'),
+    );
+  });
+
+  it('keeps failed requests in the dump even when older than the last 20', async () => {
+    const mock = new FakeMockServer();
+    const { runtime } = setup({ runtime: { mock } });
+    mock.record({
+      url: 'https://api.example.com/v1/me',
+      status: null,
+      mocked: false,
+      error: { code: 'MOCK_UPSTREAM_UNREACHABLE', message: 'connect ECONNREFUSED' },
+      timestamp: 0,
+    });
+    for (let i = 0; i < 25; i++) mock.record({ url: `/ok/${i}`, timestamp: 0 });
+    const dump = await runtime.failureDump();
+    expect(dump.requests).toHaveLength(21);
+    expect(dump.requests[0]?.url).toBe('https://api.example.com/v1/me');
+    expect(dump.requests[1]?.url).toBe('/ok/5');
+    expect(formatFailureDump(dump)).toContain(
+      '- 00:00:00.000 GET https://api.example.com/v1/me -> failed: MOCK_UPSTREAM_UNREACHABLE connect ECONNREFUSED',
     );
   });
 

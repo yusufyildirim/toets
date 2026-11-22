@@ -101,6 +101,17 @@ async function attachFailure(runtime: AppRuntime, testInfo: TestInfo): Promise<v
   }
 }
 
+/** The test's mock server traffic as `dpad-network.har` (HAR 1.2), when there was any. */
+async function attachNetwork(runtime: AppRuntime, testInfo: TestInfo): Promise<void> {
+  const mock = runtime.mock;
+  if (!mock?.requests().length) return;
+  const body = mock.toHar ? mock.toHar() : { requests: mock.requests() };
+  await testInfo.attach(mock.toHar ? 'dpad-network.har' : 'dpad-requests', {
+    body: JSON.stringify(body, null, 2),
+    contentType: 'application/json',
+  });
+}
+
 /**
  * The dpad test function: Playwright's `test` with the `app` fixture.
  *
@@ -193,13 +204,7 @@ export const test = base.extend<DpadTestFixtures, DpadWorkerFixtures>({
       const logs = await runtime.takeLogs();
       if (logs.length)
         await testInfo.attach('dpad-logs', { body: formatLogs(logs), contentType: 'text/plain' });
-      const requests = runtime.mock?.requests() ?? [];
-      if (requests.length) {
-        await testInfo.attach('dpad-requests', {
-          body: JSON.stringify(requests, null, 2),
-          contentType: 'application/json',
-        });
-      }
+      await attachNetwork(runtime, testInfo);
       if (video) {
         const path = await driver.stopRecording?.();
         if (path && (options.video === 'on' || failed)) {

@@ -46,6 +46,16 @@ export class FakeMockServer implements MockServerLike {
     this.recorded = [];
   }
 
+  /** A minimal HAR log of the recorded requests. */
+  toHar(): { log: { version: string; entries: { request: { method: string; url: string } }[] } } {
+    return {
+      log: {
+        version: '1.2',
+        entries: this.recorded.map((r) => ({ request: { method: r.method, url: r.url } })),
+      },
+    };
+  }
+
   async close(): Promise<void> {
     this.closed = true;
   }
