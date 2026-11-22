@@ -4,15 +4,18 @@ import { createSdkHost } from '@dpad-tv/protocol/host';
 import type { DeviceLease } from '../devices.js';
 import type { AppTargetConfig, Driver, DriverModule } from '../driver.js';
 import { DpadError, packageDocsLink } from '../errors.js';
-import type { MockServerLike } from '../mock.js';
+import type { MockServerConfig, MockServerLike } from '../mock.js';
 import type { Platform } from '../platform.js';
 import { AppRuntime } from '../runtime/app.js';
 import type { IdleOptions, KeyOverrides, RemoteOptions, Timeouts } from '../runtime/options.js';
 import { selectDeviceProvider, type DeviceSelection } from './devices.js';
 import { loadDriverModule } from './load.js';
 
-/** Creates the host-side mock server; `createMockServer` from `@dpad-tv/mock` fits. */
-export type MockServerFactory = (opts: { port?: number }) => Promise<MockServerLike>;
+/**
+ * Creates the host-side mock server from the `mock` settings; `createMockServer` from
+ * `@dpad-tv/mock` fits (runners pass it the MSW handlers the user configured).
+ */
+export type MockServerFactory = (opts: MockServerConfig) => Promise<MockServerLike>;
 
 /**
  * Runtime options every runner understands: the `dpad` options of the test config, which the
@@ -30,14 +33,16 @@ export interface RuntimeConfig {
         /** Custom host factory; default `createSdkHost` from `@dpad-tv/protocol/host`. */
         readonly createHost?: (opts: { port?: number }) => Promise<SdkHost>;
       };
-  /** Host-side network mocking with `@dpad-tv/mock` (`network.mock`). Default off. */
+  /**
+   * Host-side network mocking with `@dpad-tv/mock` (`network.mock`): `true`, or the server
+   * settings (baseline handlers, unhandled request policy, ...). Default off.
+   */
   readonly mock?:
     | boolean
-    | {
-        readonly port?: number;
+    | (MockServerConfig & {
         /** Custom server factory; default `createMockServer` from `@dpad-tv/mock`. */
         readonly createServer?: MockServerFactory;
-      };
+      });
   /**
    * App-level key overrides: how a semantic key is performed when the app maps it to another
    * gesture, e.g. `{ FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } }`. Flagged in reports.
@@ -48,11 +53,32 @@ export interface RuntimeConfig {
   readonly remote?: Partial<RemoteOptions>;
 }
 
-/** Merges runtime options: `over` wins, nested option groups merge key by key. */
+/**
+ * Merges an on/off-or-settings option: `false` turns it off, `true` keeps the base settings,
+ * settings merge key by key over the base ones.
+ */
+function mergeToggle<S extends object>(
+  base: boolean | S | undefined,
+  over: boolean | S | undefined,
+): boolean | S | undefined {
+  if (over === undefined || over === false) return over ?? base;
+  const settings = typeof base === 'object' ? base : undefined;
+  if (over === true) return settings ?? true;
+  return { ...settings, ...over };
+}
+
+/**
+ * Merges runtime options: `over` wins, nested option groups merge key by key. `sdk` and `mock`
+ * settings merge too, so a project's `mock: { port }` keeps the shared baseline handlers.
+ */
 export function mergeRuntimeConfig<T extends RuntimeConfig>(base: T, over: T): T {
+  const sdk = mergeToggle(base.sdk, over.sdk);
+  const mock = mergeToggle(base.mock, over.mock);
   return {
     ...base,
     ...over,
+    ...(sdk === undefined ? {} : { sdk }),
+    ...(mock === undefined ? {} : { mock }),
     keyOverrides: { ...base.keyOverrides, ...over.keyOverrides },
     timeouts: { ...base.timeouts, ...over.timeouts },
     idle: { ...base.idle, ...over.idle },
@@ -115,9 +141,11 @@ async function startMockServer(
   fallback: MockServerFactory | undefined,
 ): Promise<MockServerLike | undefined> {
   if (!mock) return undefined;
-  const port = typeof mock === 'object' ? mock.port : undefined;
-  const opts = port === undefined ? {} : { port };
-  const create = (typeof mock === 'object' ? mock.createServer : undefined) ?? fallback;
+  const { createServer, ...settings } = typeof mock === 'object' ? mock : {};
+  const opts: MockServerConfig = Object.fromEntries(
+    Object.entries(settings).filter(([, value]) => value !== undefined),
+  );
+  const create = createServer ?? fallback;
   if (!create) {
     throw new DpadError('MOCK_UNAVAILABLE', 'Network mocking is on, but no mock server is set.', {
       hint: 'Pass `createMockServer` from @dpad-tv/mock to startTarget, or set `mock.createServer`.',

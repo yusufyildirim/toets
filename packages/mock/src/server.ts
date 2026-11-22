@@ -4,7 +4,7 @@ import type { Duplex } from 'node:stream';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
-import type { DpadError } from '@dpad-tv/core';
+import type { DpadError, MockServerConfig } from '@dpad-tv/core';
 import { ORIGINAL_ORIGIN_HEADER } from '@dpad-tv/protocol';
 import { getResponse, isPassthroughResponse, type RequestHandler } from 'msw';
 import { BodyCapture } from './body.js';
@@ -596,6 +596,15 @@ function assertHandlers(handlers: readonly unknown[]): RequestHandler[] {
     }
   }
   return [...(handlers as RequestHandler[])];
+}
+
+/**
+ * {@link createMockServer} as the core's `MockServerFactory`, for runners (`@dpad-tv/test`, the
+ * MCP server): the `mock` settings of a dpad config carry handlers untyped through the core;
+ * they are validated here (`MOCK_INVALID_HANDLER`).
+ */
+export function mockServerFactory(settings: MockServerConfig): Promise<MockServer> {
+  return createMockServer({ ...settings, handlers: assertHandlers(settings.handlers ?? []) });
 }
 
 /** Path and query of the request target (handles absolute-form targets too). */

@@ -11,12 +11,13 @@ import { createWebDriver } from './driver.js';
 import type { WebDriverOptions } from './options.js';
 
 export { WebDriver, createWebDriver, type WebDriverContext } from './driver.js';
-export { DEFAULT_KEY_MAP, type WebKeyMap, type WebKeySpec } from './keys.js';
+export { DEFAULT_KEY_MAP, type ResolvedKeyMap, type WebKeyMap, type WebKeySpec } from './keys.js';
 export { launchUrl } from './launch.js';
 export {
   DEFAULT_VIEWPORT,
   type LaunchTransport,
   type LaunchWaitUntil,
+  type ResolvedWebOptions,
   type WebDriverOptions,
 } from './options.js';
 

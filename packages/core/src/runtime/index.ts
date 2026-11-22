@@ -1,5 +1,5 @@
 export { AppRuntime, appRuntime } from './app.js';
-export type { KeyLogEntry } from './context.js';
+export type { CapturedScreen, KeyLogEntry, RuntimeContext } from './context.js';
 export { formatFailureDump, type FailureDump } from './failure-dump.js';
 export { describeElement, isLocator, resolveLocator } from './locator.js';
 export {
@@ -23,9 +23,14 @@ export {
   type RemoteOptions,
   type Timeouts,
 } from './options.js';
-export type { IdleCheck, IdleOutcome } from './retry.js';
+export type { IdleCheck, IdleOutcome, RetryResult } from './retry.js';
 export { screenshotPng } from './screenshot.js';
-export { DOMAIN_CAPABILITIES, SDK_CAPABILITIES } from './target.js';
+export {
+  DOMAIN_CAPABILITIES,
+  SDK_CAPABILITIES,
+  type Target,
+  type TargetOptions,
+} from './target.js';
 export { normalizeTextSnapshot, renderTextSnapshot } from './text-snapshot.js';
 export {
   evaluateChain,

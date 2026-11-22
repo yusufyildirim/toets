@@ -25,7 +25,7 @@ Packages: [`@dpad-tv/sdk`](../reference/sdk.md) (framework-neutral core and web 
 
 With `state`, a test starts where it needs to be instead of clicking through onboarding:
 
-```ts
+```ts run
 import { test, expect, requires } from '@dpad-tv/test';
 
 test('resumes from the continue-watching rail', requires('app.state'), async ({ app }) => {

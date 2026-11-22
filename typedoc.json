@@ -1,0 +1,25 @@
+{
+  "$schema": "https://typedoc.org/schema.json",
+  "entryPointStrategy": "packages",
+  "entryPoints": ["packages/*"],
+  "packageOptions": {
+    "excludeInternal": true,
+    "externalSymbolLinkMappings": {
+      "@types/react": {
+        "React.Component.render": "https://react.dev/reference/react/Component#render",
+        "React.ComponentLifecycle.componentDidMount": "https://react.dev/reference/react/Component#componentdidmount",
+        "React.StaticLifecycle.getDerivedStateFromProps": "https://react.dev/reference/react/Component#static-getderivedstatefromprops"
+      }
+    }
+  },
+  "readme": "none",
+  "emit": "none",
+  "treatWarningsAsErrors": true,
+  "validation": {
+    "notExported": true,
+    "invalidLink": true,
+    "rewrittenLink": true,
+    "notDocumented": false,
+    "unusedMergeModuleWith": true
+  }
+}

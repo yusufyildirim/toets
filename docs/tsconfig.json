@@ -4,5 +4,6 @@
     "erasableSyntaxOnly": true,
     "types": ["node"]
   },
-  "include": [".vitepress/*.ts", "reference/*.ts", "scripts/**/*.ts", "*.config.ts"]
+  "include": [".vitepress/*.ts", "reference/*.ts", "scripts/**/*.ts", "*.config.ts"],
+  "exclude": ["scripts/examples/demo-app"]
 }

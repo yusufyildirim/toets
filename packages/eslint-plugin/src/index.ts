@@ -23,15 +23,16 @@ export {
   type PageObjectAssertionsOptions,
 } from './rules/page-object-assertions.js';
 
-const rules = {
+/** Names of the rules in this plugin. */
+export type RuleName =
+  'no-sleep' | 'page-object-assertions' | 'no-platform-only' | 'prefer-semantic-keys';
+
+const rules: Record<RuleName, Rule.RuleModule> = {
   'no-sleep': noSleep,
   'page-object-assertions': pageObjectAssertions,
   'no-platform-only': noPlatformOnly,
   'prefer-semantic-keys': preferSemanticKeys,
-} satisfies Record<string, Rule.RuleModule>;
-
-/** Names of the rules in this plugin. */
-export type RuleName = keyof typeof rules;
+};
 
 /** The dpad ESLint plugin: `rules` plus flat `configs`. */
 export interface DpadEslintPlugin extends ESLint.Plugin {

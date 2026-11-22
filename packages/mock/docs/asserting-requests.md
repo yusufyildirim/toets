@@ -2,12 +2,12 @@
 
 Every request that reaches the mock server is recorded, mocked or proxied. Assert on behavior the user can not see: the right call was made, with the right body, once.
 
-```ts
+```ts run
 import { test, expect, Key } from '@dpad-tv/test';
 
 test('liking a video posts to the API once', async ({ app }) => {
   await app.launch();
-  await app.focus.navigateTo(app.getByTestId('like_button'));
+  await app.focus.navigateTo(app.getByTestId('like-button'));
   await app.remote.press(Key.SELECT);
 
   await expect(app.network).toHaveRequested({ method: 'POST', url: '/v1/likes' });

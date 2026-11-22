@@ -2,7 +2,7 @@
 
 dpad driver for Android TV / Google TV / Fire TV emulators, built on Appium UiAutomator2 and `adb`. `@dpad-tv/test` loads it for `android-tv` projects; tests never import it.
 
-Docs: [`docs/`](./docs/index.md). Project overview: [dpad](../../README.md).
+Docs: [`docs/`](./docs/index.md). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
 
 ## Development
 

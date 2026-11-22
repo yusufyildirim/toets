@@ -3,7 +3,7 @@
 `app.focus.navigateTo(target)` moves focus to an element with real D-pad presses and returns the path it took. It is how a test says "go to the Settings button" without hardcoding `DOWN, DOWN, RIGHT`, which breaks whenever the layout changes.
 
 ```ts nocheck
-const path = await app.focus.navigateTo(app.getByTestId('menu_settings'));
+const path = await app.focus.navigateTo(app.getByTestId('menu-watchlist'));
 await app.remote.press(Key.SELECT);
 
 await app.focus.waitForChange(() => app.remote.press(Key.RIGHT));

@@ -3,10 +3,18 @@
   "version": "0.0.0",
   "description": "ESLint rules for writing good dpad tests.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/eslint-plugin"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/eslint-plugin#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },

@@ -8,7 +8,7 @@ Every dpad assertion **retries until it passes or times out**. That alone makes 
 
 The app is idle when it has had no tracked work for about 100 ms. Tracked work: network requests, animations, short timers (under about 1.5 s), focus and navigation transitions, and anything the app marks busy itself.
 
-```ts
+```ts run
 import { test, expect, Key } from '@dpad-tv/test';
 
 test('closing the menu leaves no overlay behind', async ({ app }) => {

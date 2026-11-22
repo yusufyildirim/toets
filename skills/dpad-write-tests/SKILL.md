@@ -28,7 +28,7 @@ Docs are referenced by slug, for example `concepts/focus`: the docs site page `/
 
 ## Example
 
-```ts
+```ts run
 import { test, expect, Key, http, HttpResponse } from '@dpad-tv/test';
 
 test('shows the empty state when the watchlist is empty', async ({ app }) => {

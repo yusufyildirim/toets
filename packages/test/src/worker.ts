@@ -1,7 +1,7 @@
 import { join } from 'node:path';
 import type { AppRuntime, Driver } from '@dpad-tv/core';
 import { RunningTarget } from '@dpad-tv/core/runner';
-import { createMockServer } from '@dpad-tv/mock';
+import { mockServerFactory } from '@dpad-tv/mock';
 import type { DpadProjectConfig } from './config.js';
 
 export interface WorkerContext {
@@ -47,7 +47,7 @@ export class DpadWorker {
         ...(config.devices === undefined ? {} : { devices: config.devices }),
         options: config.options,
       },
-      { ...ctx, createMockServer },
+      { ...ctx, createMockServer: mockServerFactory },
     );
     return new DpadWorker(config, target);
   }

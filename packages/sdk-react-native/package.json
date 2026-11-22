@@ -3,15 +3,24 @@
   "version": "0.0.0",
   "description": "dpad in-app SDK adapter for React Native (incl. react-native-tvos and react-native-web).",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/sdk-react-native"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/sdk-react-native#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./noop": {
       "@dpad-tv/source": "./src/noop.ts",
+      "typedoc": "./src/noop.ts",
       "types": "./dist/noop.d.ts",
       "default": "./dist/noop.js"
     },

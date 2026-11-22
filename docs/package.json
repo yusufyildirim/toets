@@ -15,7 +15,7 @@
     "check:errors": "node scripts/error-codes.ts --check",
     "errors": "node scripts/error-codes.ts",
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit && tsc --noEmit -p scripts/examples/demo-app"
   },
   "engines": {
     "node": ">=24"

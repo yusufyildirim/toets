@@ -3,15 +3,24 @@
   "version": "0.0.0",
   "description": "dpad test runner: Playwright Test fixtures, config and matchers for cross-platform TV E2E tests.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/test"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/test#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./reporter": {
       "@dpad-tv/source": "./src/reporter.ts",
+      "typedoc": "./src/reporter.ts",
       "types": "./dist/reporter.d.ts",
       "default": "./dist/reporter.js"
     },

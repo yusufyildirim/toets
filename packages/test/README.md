@@ -21,6 +21,6 @@ test('opens details', async ({ app }) => {
 - [Devices](./docs/devices.md)
 - [Reporting](./docs/reporting.md)
 
-Concepts shared by every platform (locators, assertions, focus, remote, snapshots, SDK, mocking) are in [`@dpad-tv/core` docs](../core/docs).
+Concepts shared by every platform (locators, assertions, focus, remote, snapshots, SDK, mocking) are in the [`@dpad-tv/core` docs](https://github.com/yusufyildirim/dpad/tree/main/packages/core/docs) (offline: `node_modules/@dpad-tv/core/docs`).
 
-Project overview: [dpad](../../README.md).
+Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).

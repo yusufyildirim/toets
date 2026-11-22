@@ -77,7 +77,8 @@ export interface DpadOptions {
 export type DpadStatus =
   'inert' | 'ready' | 'connecting' | 'connected' | 'closed' | 'rejected' | 'failed';
 
-type Handler<M extends HostToAppMethod> = (
+/** Answers one host request: gets its params, returns (or resolves) its result. */
+export type HostRequestHandler<M extends HostToAppMethod> = (
   params: HostToAppRequests[M]['params'],
 ) => HostToAppRequests[M]['result'] | Promise<HostToAppRequests[M]['result']>;
 
@@ -103,7 +104,8 @@ export class Dpad {
 
   private statusValue: DpadStatus;
   private readonly options: DpadOptions;
-  private readonly handlers: Partial<Record<HostToAppMethod, Handler<HostToAppMethod>>> = {};
+  private readonly handlers: Partial<Record<HostToAppMethod, HostRequestHandler<HostToAppMethod>>> =
+    {};
   private readonly state: StateRegistry;
   private readonly queue: Array<{ method: string; params: unknown }> = [];
   private readonly cleanups: Array<() => void> = [];
@@ -164,8 +166,8 @@ export class Dpad {
    * `focus.graph`; a domain is announced when all its methods have handlers. Register
    * before `start()`.
    */
-  handle<M extends HostToAppMethod>(method: M, handler: Handler<M>): void {
-    this.handlers[method] = handler as unknown as Handler<HostToAppMethod>;
+  handle<M extends HostToAppMethod>(method: M, handler: HostRequestHandler<M>): void {
+    this.handlers[method] = handler as unknown as HostRequestHandler<HostToAppMethod>;
   }
 
   /** Sends a notification (queued until the handshake completes; dropped when inert). */

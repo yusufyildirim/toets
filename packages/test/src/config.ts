@@ -7,7 +7,14 @@ import {
   type ReporterDescription,
 } from '@playwright/test';
 import type { AppTargetConfig, Platform, Timeouts } from '@dpad-tv/core';
-import { mergeRuntimeConfig, type DeviceSelection, type RuntimeConfig } from '@dpad-tv/core/runner';
+import type { MockServerConfig } from '@dpad-tv/core';
+import {
+  mergeRuntimeConfig,
+  type DeviceSelection,
+  type MockServerFactory,
+  type RuntimeConfig,
+} from '@dpad-tv/core/runner';
+import type { RequestHandler } from '@dpad-tv/mock';
 import type { AndroidTvAppConfig, AndroidTvDriverOptions } from '@dpad-tv/driver-android-tv';
 import type { TvosAppConfig, TvosDriverOptions } from '@dpad-tv/driver-tvos';
 import type { WebDriverOptions } from '@dpad-tv/driver-web';
@@ -20,13 +27,30 @@ export type { DeviceSelection };
  * `mock`, `keyOverrides`, `idle` and `remote` are the core's runtime options (the MCP server
  * reads the same ones); `steps` and `video` are test-only.
  */
-export interface DpadOptions extends Omit<RuntimeConfig, 'timeouts'> {
+export interface DpadOptions extends Omit<RuntimeConfig, 'timeouts' | 'mock'> {
+  /**
+   * Host-side network mocking (`network.mock`): `true`, or the mock server settings. A project's
+   * settings merge key by key over the top-level ones. Default off.
+   */
+  readonly mock?: boolean | DpadMockOptions;
   /** Assertion timeouts come from Playwright's `expect.timeout`. */
   readonly timeouts?: Partial<Omit<Timeouts, 'expectMs'>>;
   /** Per-step artifacts attached to every action step. Both default off (they cost time on devices). */
   readonly steps?: { readonly screenshot?: boolean; readonly snapshot?: boolean };
   /** Screen recording per test, where the driver has `video`. Default `off`. */
   readonly video?: 'off' | 'on' | 'retain-on-failure';
+}
+
+/** Settings of the per-worker mock server (`dpad.mock`). */
+export interface DpadMockOptions extends Omit<MockServerConfig, 'handlers'> {
+  /**
+   * Baseline MSW handlers, active in every test, e.g.
+   * `[http.get('https://api.example.com/config', ...)]`. Handlers a test adds with
+   * `app.network.use()` take precedence and are removed after it.
+   */
+  readonly handlers?: readonly RequestHandler[];
+  /** Custom server factory; default `createMockServer` from `@dpad-tv/mock`. */
+  readonly createServer?: MockServerFactory;
 }
 
 /** Per-platform app config, keyed like the platform helpers. Each driver documents its keys. */
@@ -105,7 +129,7 @@ const _allProjectKeysListed: [UnlistedProjectKey] extends [never] ? true : Unlis
 void _allProjectKeysListed;
 
 /** dpad's own keys of a platform project; everything else that is not Playwright's is the driver's. */
-interface DpadProjectKeys<App> {
+export interface DpadProjectKeys<App> {
   /** Driver module override (package name or path relative to the config). */
   readonly driver?: string;
   /** Merged over the top-level `app` entry for this platform. */
@@ -201,6 +225,14 @@ export interface DpadConfig extends PlaywrightTestConfig {
   readonly parityReport?: false | ParityReporterOptions;
 }
 
+/**
+ * Default `snapshotPathTemplate` of dpad projects: Playwright's default without the host OS
+ * suffix (`{-snapshotSuffix}`). Baselines are per project (so per platform and device) and the
+ * same on every machine; device screenshots do not depend on the host.
+ */
+const SNAPSHOT_PATH_TEMPLATE =
+  '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{ext}';
+
 function mergeOptions(base: DpadOptions, over: DpadOptions): DpadOptions {
   return { ...mergeRuntimeConfig(base, over), steps: { ...base.steps, ...over.steps } };
 }
@@ -227,7 +259,8 @@ function withParityReporter(
 /**
  * Playwright's `defineConfig` plus dpad: the per-platform `app` entries and shared `dpad`
  * options are merged into every `platforms.*()` project, and the parity matrix reporter is
- * added.
+ * added. dpad projects default `snapshotPathTemplate` to Playwright's default without the host
+ * OS suffix, so baselines match across machines; a top-level or project value wins.
  */
 export function defineConfig(config: DpadConfig): PlaywrightTestConfig {
   const { app, dpad, parityReport, projects, reporter, ...playwright } = config;
@@ -239,7 +272,12 @@ export function defineConfig(config: DpadConfig): PlaywrightTestConfig {
       app: { ...app?.[KEY_OF[target.platform]], ...target.app },
       options: mergeOptions(dpad ?? {}, target.options),
     };
-    return { ...project, use: { ...project.use, dpad: resolved } };
+    return {
+      ...project,
+      snapshotPathTemplate:
+        project.snapshotPathTemplate ?? config.snapshotPathTemplate ?? SNAPSHOT_PATH_TEMPLATE,
+      use: { ...project.use, dpad: resolved },
+    };
   });
   return playwrightDefineConfig({
     ...playwright,

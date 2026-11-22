@@ -6,7 +6,7 @@ description: Page objects take app, expose locators and user-level actions, and 
 
 A **page object** names the parts of one screen and the actions a user takes on it, so tests read as intent and a layout change is fixed in one place. In dpad a page object is a plain class that takes `app`.
 
-```ts
+```ts run
 import { test, expect, Key, type App, type Locator } from '@dpad-tv/test';
 
 class HomePage {

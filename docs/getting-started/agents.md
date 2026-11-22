@@ -30,8 +30,8 @@ Four skills in the [open agent skills format](https://agentskills.io), each shor
 Install all of them into your project with the [skills CLI](https://github.com/vercel-labs/skills), which detects the agents you use:
 
 ```sh
-npx skills add dpad-tv/dpad
-npx skills add dpad-tv/dpad --skill dpad-write-tests   # just one
+npx skills add yusufyildirim/dpad
+npx skills add yusufyildirim/dpad --skill dpad-write-tests   # just one
 ```
 
 Or copy `skills/<name>/` from the repository into your agent's skills folder (for example `.claude/skills/` or `.agents/skills/`). Skills refer to docs pages by slug, such as `concepts/focus`: the page at `/concepts/focus` on this site.

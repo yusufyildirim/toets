@@ -1,6 +1,6 @@
 /**
  * Canonical, semantic remote keys. Drivers map each key to what the platform's remote
- * really has; keys a platform lacks are unsupported there (see {@link KEY_CAPABILITY}).
+ * really has; keys a platform lacks are unsupported there (see `KEY_CAPABILITY` in `@dpad-tv/core`).
  *
  * `PLAY`, `PAUSE` and `PLAY_PAUSE` are deliberately distinct: use `PLAY_PAUSE` to toggle.
  */

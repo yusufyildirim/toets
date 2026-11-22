@@ -3,20 +3,30 @@
   "version": "0.0.0",
   "description": "dpad in-app SDK core (framework neutral) and web adapter.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/sdk"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/sdk#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./web": {
       "@dpad-tv/source": "./src/web/index.ts",
+      "typedoc": "./src/web/index.ts",
       "types": "./dist/web/index.d.ts",
       "default": "./dist/web/index.js"
     },
     "./noop": {
       "@dpad-tv/source": "./src/noop.ts",
+      "typedoc": "./src/noop.ts",
       "types": "./dist/noop.d.ts",
       "default": "./dist/noop.js"
     },

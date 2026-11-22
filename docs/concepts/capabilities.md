@@ -6,7 +6,7 @@ description: Platforms declare what they can do as capabilities. Tests declare w
 
 dpad's promise is that a test means the same thing on every platform. Where a platform can not do something, it says so through a **capability** instead of approximating it. Tests declare the capabilities they need; on platforms without them the test is **skipped with a reason**, never silently changed.
 
-```ts
+```ts run
 import { test, expect, Key, requires } from '@dpad-tv/test';
 
 test('the red key opens the guide', requires('key.color'), async ({ app }) => {

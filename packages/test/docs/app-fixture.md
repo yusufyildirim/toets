@@ -2,14 +2,14 @@
 
 Every test gets `app`, the app under test on the project's platform. It is the only fixture a dpad test needs.
 
-```ts
+```ts run
 import { test, expect, Key } from '@dpad-tv/test';
 
 test('opens details', async ({ app }) => {
   await app.launch();
-  await app.focus.navigateTo(app.getByTestId('card_1'));
+  await app.focus.navigateTo(app.getByTestId('rail-0-card-1'));
   await app.remote.press(Key.SELECT);
-  await expect(app.getByTestId('details_title')).toBeVisible();
+  await expect(app.getByTestId('details-title')).toBeVisible();
 });
 ```
 
@@ -19,7 +19,7 @@ test('opens details', async ({ app }) => {
 - **Per test:** the app is isolated: the SDK session is closed, the app is terminated if it was launched, mock handlers and recorded requests are reset, key and log buffers are cleared. Each test calls `app.launch()` itself.
 - **Serial blocks share one app.** Tests in a `test.describe.serial` block run in order on the same app: no isolation between them, so step 2 continues where step 1 left off. The next test outside the block is isolated again.
 
-```ts
+```ts run
 import { test } from '@dpad-tv/test';
 
 test.describe.serial('onboarding', () => {

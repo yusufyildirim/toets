@@ -3,7 +3,7 @@
 A locator describes how to find an element, not the element itself. It is resolved again on every action and assertion, so it never goes stale when the screen re-renders.
 
 ```ts nocheck
-const rail = app.getByTestId('rail_trending');
+const rail = app.getByTestId('rail-popular');
 const card = rail.getByText(/the matrix/i).first();
 
 await app.focus.navigateTo(card);
@@ -20,4 +20,4 @@ await expect(card).toBeFocused();
 
 ## TV trap: virtualized lists
 
-TV rails and grids render only the items near focus. An item ten cards to the right does not exist yet, so `getByTestId('card_10')` finds nothing. Navigate toward it first (`app.focus.navigateTo` walks the visible part), or press `RIGHT` until it appears, then locate it.
+TV rails and grids render only the items near focus. An item ten cards to the right does not exist yet, so `getByTestId('rail-0-card-10')` finds nothing. Navigate toward it first (`app.focus.navigateTo` walks the visible part), or press `RIGHT` until it appears, then locate it.

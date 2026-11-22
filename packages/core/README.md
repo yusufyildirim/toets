@@ -1,6 +1,6 @@
 # @dpad-tv/core
 
-Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys, capabilities. Test authors use it through [`@dpad-tv/test`](../test); driver authors implement its `Driver` contract.
+Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys, capabilities. Test authors use it through [`@dpad-tv/test`](https://github.com/yusufyildirim/dpad/tree/main/packages/test#readme); driver authors implement its `Driver` contract.
 
 ## Docs
 
@@ -18,4 +18,4 @@ Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys,
 - [Writing a driver](./docs/drivers.md)
 - [Error codes](./docs/errors.md): every `DpadError` code, generated from the sources
 
-Project overview: [dpad](../../README.md).
+Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).

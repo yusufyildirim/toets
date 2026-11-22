@@ -3,20 +3,30 @@
   "version": "0.0.0",
   "description": "dpad in-app SDK protocol: types, spec, host server and conformance suite.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/protocol"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/protocol#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./host": {
       "@dpad-tv/source": "./src/server/index.ts",
+      "typedoc": "./src/server/index.ts",
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
     },
     "./conformance": {
       "@dpad-tv/source": "./src/conformance/index.ts",
+      "typedoc": "./src/conformance/index.ts",
       "types": "./dist/conformance/index.d.ts",
       "default": "./dist/conformance/index.js"
     },

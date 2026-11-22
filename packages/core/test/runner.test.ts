@@ -140,7 +140,48 @@ describe('mergeRuntimeConfig', () => {
   });
 });
 
+describe('mergeRuntimeConfig sdk and mock settings', () => {
+  const handlers = ['baseline'];
+
+  it('merges settings key by key', () => {
+    expect(
+      mergeRuntimeConfig(
+        { mock: { handlers, port: 1 } },
+        { mock: { onUnhandledRequest: 'reject' } },
+      ).mock,
+    ).toEqual({ handlers, port: 1, onUnhandledRequest: 'reject' });
+  });
+
+  it('keeps the shared settings for `true` and turns off for `false`', () => {
+    expect(mergeRuntimeConfig({ mock: { handlers } }, { mock: true }).mock).toEqual({ handlers });
+    expect(mergeRuntimeConfig({ mock: { handlers } }, { mock: false }).mock).toBe(false);
+    expect(mergeRuntimeConfig({ sdk: { port: 3 } }, {}).sdk).toEqual({ port: 3 });
+    expect(mergeRuntimeConfig({}, { sdk: true }).sdk).toBe(true);
+    expect('mock' in mergeRuntimeConfig({}, {})).toBe(false);
+  });
+});
+
 describe('RunningTarget', () => {
+  it('passes the mock settings to the server factory', async () => {
+    const seen: unknown[] = [];
+    const target = await RunningTarget.start(
+      {
+        driver: './fake-driver.ts',
+        options: {
+          mock: { handlers: ['baseline'], onUnhandledRequest: 'reject' },
+        },
+      },
+      ctx({
+        createMockServer: async (opts) => {
+          seen.push(opts);
+          return new FakeMockServer();
+        },
+      }),
+    );
+    await target.stop(() => {});
+    expect(seen).toEqual([{ handlers: ['baseline'], onUnhandledRequest: 'reject' }]);
+  });
+
   it('starts driver, mock and SDK host, and stops them', async () => {
     let mock: FakeMockServer | undefined;
     let host: FakeSdkHost | undefined;

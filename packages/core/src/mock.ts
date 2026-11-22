@@ -8,6 +8,27 @@ export interface RequestFilter {
 }
 
 /**
+ * Mock server settings of the `mock` runtime option, handed to the server factory. Handlers are
+ * opaque to the core: `@dpad-tv/mock` takes MSW request handlers.
+ */
+export interface MockServerConfig {
+  /** Port to listen on. Default: a free port. */
+  readonly port?: number;
+  /**
+   * Baseline handlers, active in every test. Handlers a test adds with `app.network.use()` are
+   * removed after it; these stay.
+   */
+  readonly handlers?: readonly unknown[];
+  /**
+   * A request no handler answers: `proxy` (default) forwards it to the real origin, `reject`
+   * fails it (`MOCK_UNHANDLED`), which keeps a suite hermetic.
+   */
+  readonly onUnhandledRequest?: 'proxy' | 'reject';
+  /** Max bytes recorded per request or response body (bodies are always forwarded in full). */
+  readonly maxRecordedBodyBytes?: number;
+}
+
+/**
  * What the core needs from the host-side mock server. `@dpad-tv/mock`'s `MockServer`
  * satisfies it; the core never imports that package so the dependency stays optional.
  */

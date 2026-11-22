@@ -20,6 +20,7 @@ export {
   type DpadOptions,
   type DpadStatus,
   type FocusSource,
+  type HostRequestHandler,
   type WebSocketConstructor,
   type WebSocketLike,
 } from './runtime.js';
@@ -30,8 +31,14 @@ export {
   type IdleOptions,
   type IdleResult,
 } from './idle.js';
-export type { MediaProvider, MediaReporter, MediaSnapshot, MediaSource } from './media.js';
+export type {
+  MediaProvider,
+  MediaRegistry,
+  MediaReporter,
+  MediaSnapshot,
+  MediaSource,
+} from './media.js';
 export type { StateHandler } from './state.js';
 export { describeRequest } from './instrument/network.js';
 export { formatLogArgs } from './instrument/console.js';
-export { getGlobal, setNativeTimeout, clearNativeTimeout, sdkWarn } from './env.js';
+export { getGlobal, setNativeTimeout, clearNativeTimeout, sdkWarn, type AnyGlobal } from './env.js';

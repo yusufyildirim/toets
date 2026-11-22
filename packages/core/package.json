@@ -3,21 +3,31 @@
   "version": "0.0.0",
   "description": "Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys, capabilities.",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "directory": "packages/core"
+  },
+  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/core#readme",
+  "bugs": "https://github.com/yusufyildirim/dpad/issues",
   "type": "module",
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json",
     "./runner": {
       "@dpad-tv/source": "./src/runner/index.ts",
+      "typedoc": "./src/runner/index.ts",
       "types": "./dist/runner/index.d.ts",
       "default": "./dist/runner/index.js"
     },
     "./testing": {
       "@dpad-tv/source": "./src/testing/index.ts",
+      "typedoc": "./src/testing/index.ts",
       "types": "./dist/testing/index.d.ts",
       "default": "./dist/testing/index.js"
     }
