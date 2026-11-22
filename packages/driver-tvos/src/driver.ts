@@ -104,12 +104,14 @@ export class TvosDriver implements Driver {
     let appium: AppiumServer | undefined;
     let session: TvosSession | undefined;
     try {
-      const [wdaPath, server] = await Promise.all([
-        this.wdaPath(),
-        options.appium?.url ? Promise.resolve(undefined) : this.startServer(),
-      ]);
-      appium = server;
-      const serverUrl = options.appium?.url ?? server?.url ?? '';
+      // Build/locate WDA while Appium boots; keep the server handle even if WDA fails.
+      const serverStart = options.appium?.url ? undefined : this.startServer();
+      const [wda, server] = await Promise.allSettled([this.wdaPath(), serverStart]);
+      if (server.status === 'fulfilled') appium = server.value;
+      if (server.status === 'rejected') throw server.reason;
+      if (wda.status === 'rejected') throw wda.reason;
+      const wdaPath = wda.value;
+      const serverUrl = options.appium?.url ?? appium?.url ?? '';
       const capabilities = buildCapabilities({
         simulator,
         wdaLocalPort: await deps.freePort(),

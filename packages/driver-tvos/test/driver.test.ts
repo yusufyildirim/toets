@@ -298,6 +298,15 @@ describe('TvosDriver', () => {
     expect(await driver.drainLogs()).toEqual([]);
   });
 
+  it('stops the started server when the WebDriverAgent build fails', async () => {
+    deps.ensureWda = async () => {
+      throw new Error('xcodebuild exit 65');
+    };
+    await expect(new TvosDriver({}, ctx(), deps).start()).rejects.toThrow('exit 65');
+    expect(appiumStops).toBe(1);
+    expect(requests).toHaveLength(0);
+  });
+
   it('cleans up the server when the session can not open', async () => {
     deps.createSession = async () => {
       throw new Error('xcodebuild failed with code 65');
