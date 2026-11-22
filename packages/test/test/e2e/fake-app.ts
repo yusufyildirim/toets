@@ -4,7 +4,7 @@
  * media in the fake SDK. Each launch records `GET <mockUrl>/api/home` on the fake mock server.
  */
 import type { Capability, DriverCreateContext, DriverLaunchOptions, Platform } from '@dpad-tv/core';
-import type { FakeMockServer, FakeSdkHost} from '@dpad-tv/core/testing';
+import type { FakeMockServer, FakeSdkHost } from '@dpad-tv/core/testing';
 import { FakeDriver, type FakeScreen } from '@dpad-tv/core/testing';
 
 /** Shared per worker process: the config's factories and the driver find each other here. */
