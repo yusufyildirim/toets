@@ -1,0 +1,6 @@
+{
+  "targets": {
+    "fake": { "driver": "../fake-driver-module.ts", "options": { "label": "From JSON" } }
+  },
+  "expectTimeoutMs": 1000
+}

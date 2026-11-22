@@ -4,6 +4,9 @@
   "description": "dpad MCP server: drive TV apps and read dpad docs from agents with the same primitives tests use.",
   "license": "MIT",
   "type": "module",
+  "bin": {
+    "dpad-mcp": "./dist/cli.js"
+  },
   "exports": {
     ".": {
       "source": "./src/index.ts",
@@ -25,6 +28,11 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^"
+    "@dpad-tv/core": "workspace:^",
+    "@modelcontextprotocol/server": "^2.4.0",
+    "zod": "^4.2.0"
+  },
+  "devDependencies": {
+    "@modelcontextprotocol/client": "^2.4.0"
   }
 }
