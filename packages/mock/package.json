@@ -26,6 +26,7 @@
   },
   "dependencies": {
     "@dpad-tv/core": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^"
+    "@dpad-tv/protocol": "workspace:^",
+    "msw": "^3.0.7"
   }
 }
