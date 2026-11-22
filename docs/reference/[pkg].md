@@ -17,4 +17,4 @@ Installed packages ship these pages, version-matched, at <code>node_modules/{{ $
 
 ## API
 
-Generated from TSDoc. Planned; until then, read the type declarations shipped in the package.
+No generated API pages yet. The type declarations the package ships, <code>node_modules/{{ $params.name }}/dist/*.d.ts</code>, carry the TSDoc of every export.

@@ -1,5 +1,5 @@
 ---
-description: Reference for every dpad package - pages from each package's own docs, shipped offline in node_modules, plus generated API docs.
+description: Reference for every dpad package - pages from each package's own docs, shipped offline in node_modules, plus the error code index.
 ---
 
 # Reference
@@ -20,4 +20,6 @@ Each package documents itself in its own `docs/` folder. The same pages ship ins
 | [`@dpad-tv/mcp`](./mcp.md)                             | MCP server for agents                                                |
 | [`@dpad-tv/eslint-plugin`](./eslint-plugin.md)         | Lint rules for dpad tests and page objects                           |
 
-API documentation generated from TSDoc will appear under each package. Until then, the type declarations and their doc comments are the API reference; editors and agents read them directly.
+Every error code a dpad error can carry is listed in [Error codes](./core/docs/errors.md).
+
+There is no generated API site yet: the type declarations each package ships (`dist/*.d.ts`) carry the TSDoc and are the API reference; editors and agents read them directly.
