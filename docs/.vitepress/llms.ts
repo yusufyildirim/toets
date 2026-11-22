@@ -48,7 +48,10 @@ export function cleanMarkdown(
     .replace(/<!--[\s\S]*?-->\n?/g, '')
     .replace(/\]\((?!https?:|\/|#|mailto:)([^)\s]+)\)/g, (_, target: string) => {
       const [path = '', hash] = target.split('#');
-      const resolved = posix.normalize(posix.join(base, path)).replace(/(\/index)?\.md$/, '');
+      const resolved = posix
+        .normalize(posix.join(base, path))
+        .replace(/\/index\.md$/, '/')
+        .replace(/\.md$/, '');
       return `](${resolved}${hash ? `#${hash}` : ''})`;
     })
     .replace(/\n{3,}/g, '\n\n')
