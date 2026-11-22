@@ -24,14 +24,23 @@ export interface Locator {
   /** Current visibility. Prefer `expect(locator).toBeVisible()` for assertions. */
   isVisible(): Promise<boolean>;
   isFocused(): Promise<boolean>;
-  screenshot(): Promise<Screenshot>;
+  /** PNG of this element, cropped from the viewport. Waits for exactly one match. */
+  screenshot(opts?: ScreenshotOptions): Promise<Screenshot>;
   /** Text snapshot (YAML) of this element's subtree. */
   snapshot(): Promise<string>;
 }
 
-/** PNG screenshot. Opaque. */
+/** PNG screenshot. Opaque; read the bytes with `screenshotPng()` from `@dpad-tv/core`. */
 export interface Screenshot {
   readonly __screenshot: unique symbol;
+}
+
+export interface ScreenshotOptions {
+  /**
+   * Elements painted over with a solid color before the image is returned, for regions that
+   * never settle (video surfaces, clocks, spinners).
+   */
+  readonly mask?: readonly Locator[];
 }
 
 export interface Remote {
@@ -120,7 +129,7 @@ export interface App {
   getByTestId(testId: string): Locator;
   getByText(text: string | RegExp, opts?: { exact?: boolean }): Locator;
 
-  screenshot(): Promise<Screenshot>;
+  screenshot(opts?: ScreenshotOptions): Promise<Screenshot>;
   /** Text snapshot (YAML) of the whole screen, focus-aware. */
   snapshot(): Promise<string>;
 

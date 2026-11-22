@@ -7,3 +7,7 @@ export * from './devices.js';
 export * from './driver.js';
 export * from './errors.js';
 export type * from './api.js';
+export type * from './mock.js';
+export * from './runtime/index.js';
+export * from './providers/external.js';
+export * from './providers/command.js';
