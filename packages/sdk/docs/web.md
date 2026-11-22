@@ -1,3 +1,7 @@
+---
+description: Start the SDK in a web TV app with startDpad, and how the web driver delivers the launch payload.
+---
+
 # Web adapter
 
 ```ts

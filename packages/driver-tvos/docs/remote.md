@@ -1,6 +1,6 @@
 # Remote buttons and key overrides
 
-The tvOS driver presses real Siri Remote buttons through `XCUIRemote`. It maps only what the remote has (VISION decision 17):
+The tvOS driver presses real Siri Remote buttons through `XCUIRemote`. It maps only what the remote has:
 
 | dpad key                   | Siri Remote button      | Capability         |
 | -------------------------- | ----------------------- | ------------------ |

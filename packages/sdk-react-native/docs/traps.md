@@ -1,3 +1,7 @@
+---
+description: Where web or mobile intuition fails with the SDK in React Native TV apps.
+---
+
 # TV traps (React Native)
 
 - **Reload loses the session.** The token is one-time; a full reload (Metro `r`, editing the entry file) starts a new JS context that the host refuses. Tests relaunch the app.

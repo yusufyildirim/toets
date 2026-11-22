@@ -37,7 +37,7 @@ The driver works on exactly one Playwright `Page`, chosen by which handle you pa
 | `browser` | creates a context (`contextOptions`) and a page | its context        |
 | none      | launches Chromium (`launchOptions`)             | the browser        |
 
-Inside `@dpad-tv/test` the runner passes Playwright Test's handles, so traces, the HTML report and `--headed`/`--debug` keep working. Standalone (scripts, tools), let the driver launch its own browser:
+Inside `@dpad-tv/test` the driver launches its own Chromium (set `launchOptions`, e.g. `{ headless: false }`, in `platforms.web({...})`). Playwright Test's `--trace` records it only when both load the same `playwright-core` copy: keep `@playwright/test` and `@dpad-tv/driver-web` on the same Playwright version so the package manager dedupes it. Standalone (scripts, tools), the same:
 
 ```ts
 import { createWebDriver } from '@dpad-tv/driver-web';
