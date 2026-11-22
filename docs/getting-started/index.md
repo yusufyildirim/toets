@@ -4,11 +4,19 @@ description: Install dpad, configure platforms and run a first cross-platform TV
 
 # Install and first test
 
-::: warning Pre-alpha
-dpad is not published yet. This page describes the intended setup; APIs may still change.
-:::
-
 dpad is a set of [Playwright Test](https://playwright.dev/docs/intro) fixtures for TV apps. Every platform is a Playwright project, and every test receives one fixture, `app`: the app under test on the current platform. You keep Playwright's runner, reporters, UI mode, retries and sharding.
+
+::: warning Pre-alpha
+dpad is not on npm yet and its APIs may change. Until the first release, install the packages from a checkout of the dpad repository:
+
+```sh
+pnpm install && pnpm build
+for p in core protocol mock test driver-web; do (cd packages/$p && pnpm pack --pack-destination /tmp/dpad); done
+# in your project, instead of the npm install below:
+npm install --save-dev /tmp/dpad/*.tgz @playwright/test
+```
+
+:::
 
 ## Requirements
 
@@ -18,7 +26,7 @@ dpad is a set of [Playwright Test](https://playwright.dev/docs/intro) fixtures f
 | Android TV / Fire TV | macOS, or Linux with KVM | Android SDK with an Android TV system image |
 | tvOS                 | macOS                    | Xcode with a tvOS simulator runtime         |
 
-Node 24 or later. Appium, emulators and simulators are started and reset by dpad; see the [platform pages](../platforms/web.md) for details.
+Node 24 or later. dpad starts Appium and boots, resets and shuts down emulators and simulators itself; see the [platform pages](../platforms/web.md).
 
 ## 1. Install
 
@@ -29,7 +37,7 @@ npm install --save-dev @dpad-tv/driver-web @dpad-tv/driver-android-tv @dpad-tv/d
 npx playwright install chromium
 ```
 
-Drivers load on demand, so install only the platforms you test.
+Drivers load when a project first needs them, so install only the platforms you test.
 
 ## 2. Configure
 
@@ -40,6 +48,7 @@ import { defineConfig, platforms } from '@dpad-tv/test';
 
 export default defineConfig({
   testDir: './e2e',
+  webServer: { command: 'npm run serve', url: 'http://localhost:8080' },
   app: {
     web: { url: 'http://localhost:8080' },
     androidTV: { apk: './build/app-debug.apk', package: 'com.example.tv' },
@@ -53,11 +62,16 @@ export default defineConfig({
 });
 ```
 
-`app` says how to start your app on each platform; `projects` says where tests run. Drop the platforms you do not target. App-specific flows (login, waiting for your splash screen) belong in your own fixtures, not in this file: see [Writing tests](../guides/writing-tests.md).
+- `app` says how to start the app on each platform; `projects` says where tests run. Drop the platforms you do not target.
+- dpad does not serve or build the app. `webServer` (Playwright's option) serves the web build; the APK and `.app` come from your build.
+- Project names are the platform names: `web`, `android-tv`, `tvos`.
+- App-specific flows (sign-in, waiting for your splash screen) belong in your own fixtures, not here: see [Writing tests](../guides/writing-tests.md).
+
+Every option: [`@dpad-tv/test` config](../reference/test/docs/config.md).
 
 ## 3. Give elements test IDs
 
-dpad finds elements by test ID or text. The test ID is `data-testid` on web, the resource ID on Android and the accessibility identifier on tvOS; React Native's `testID` sets all three. See [Locators and assertions](../concepts/locators-and-assertions.md).
+dpad finds elements by test ID or text. The test ID is `data-testid` on web, the resource ID on Android and the accessibility identifier on tvOS; React Native's `testID` sets all three. Elements also need to be focusable the way the platform expects (on web: a focusable element or `tabindex`). See [Locators and assertions](../concepts/locators-and-assertions.md).
 
 ## 4. Write a test
 
@@ -85,11 +99,22 @@ There is no click. Focus moves with real remote presses, then `SELECT` activates
 ```sh
 npx playwright test --project=web   # fastest loop
 npx playwright test                 # every platform
-npx playwright show-report          # steps, screenshots, logs, parity matrix
+npx playwright show-report          # steps, failure dumps, logs
 ```
+
+A run ends with the parity summary; the full matrix (which test ran on which platform, and why any was skipped) is in `dpad-report/parity.md`:
+
+```text
+  1 passed (1.3s)
+
+dpad parity (1 tests): web: 1 passed
+Parity matrix: dpad-report/parity.md
+```
+
+A failure prints the error with a `Hint:` and a `Docs:` page, and attaches a failure dump. See [Debugging failures](../guides/debugging-failures.md).
 
 ## Next
 
 - [Concepts](../concepts/locators-and-assertions.md): the few ideas dpad is built on.
-- [Working with agents](./agents.md): skills, `AGENTS.md` template and docs for coding agents.
+- [Working with agents](./agents.md): skills, an `AGENTS.md` template and docs for coding agents.
 - [CI recipes](../ci/index.md).

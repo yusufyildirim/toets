@@ -11,9 +11,9 @@ Docs are referenced by slug, for example `concepts/idle`: the docs site page `/<
 
 ## Workflow
 
-1. **Read the error.** A `DpadError` prints `[code]`, the message, `Hint:` (likely cause and fix) and `Docs:` (a slug). Follow the hint first.
-2. **Read the failure dump** attached to the test: focused element, text snapshot of the surrounding tree, last keys pressed, screenshot, recent logs and requests. The text snapshot shows which test IDs exist and what is focused.
-3. **Read the steps** in the report (`npx playwright show-report`, or the attachments in `test-results/`): every action is a step with a screenshot and text snapshot. Find the first step where reality diverged from intent; that is usually earlier than the failing line.
+1. **Read the error.** A thrown error prints `DpadError: [CODE] message`, `Hint:` (likely cause and fix) and `Docs:` (a slug, plus its offline path in `node_modules`). Follow the hint first. Any code: `reference/core/docs/errors`. A failed assertion prints expected and received state, the focused element and idle status.
+2. **Read the failure dump** (`dpad-failure` attachment, in `test-results/` or the report): focused element, text snapshot of the screen, last keys pressed, busy resources, recent logs and requests; `dpad-screenshot` next to it. The text snapshot shows which test IDs exist and what is focused. (`reference/core/docs/failure-dumps`)
+3. **Read the steps** in the report (`npx playwright show-report`): every action is a step. For a screenshot and text snapshot after every step, rerun with `dpad: { steps: { screenshot: true, snapshot: true } }`. Find the first step where reality diverged from intent; that is usually earlier than the failing line.
 4. **Reproduce narrowly**, without retries:
 
    ```sh
@@ -26,18 +26,18 @@ Docs are referenced by slug, for example `concepts/idle`: the docs site page `/<
 
 ## Symptoms
 
-| Symptom                                    | Likely cause and fix                                                                                                                    |
-| ------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Element not found on one platform          | Test ID missing or not mapped there. Check the text snapshot; add the ID in the app. (`concepts/locators-and-assertions`)               |
-| Focus on the wrong element                 | Overlay, focus memory or that platform's focus engine rules. Assert focus after each step to find where it diverged. (`concepts/focus`) |
-| `navigateTo` unreachable                   | Target not focusable or behind a focus trap. Read the recorded path. Possibly an app bug.                                               |
-| Timeout naming a busy resource             | App never idle (poller, animation, player). Exclude the noise in the SDK config, or fix the app. (`concepts/idle`)                      |
-| Unsupported key / capability error         | The remote lacks the key. Add `requires`, or a key override if the app has a gesture for it. (`concepts/remote-and-keys`)               |
-| Negative assertion passes, bug still there | It ran before the state existed. Anchor it on a positive assertion first. (`concepts/idle`)                                             |
-| Passes on web, fails on device             | Slower device, stricter focus engine, missing key. Compare text snapshots between platforms. (`platforms/tvos`, `platforms/android-tv`) |
-| Mock not applied                           | Handler added after `launch()`, or matched on host instead of path. (`concepts/network-mocking`)                                        |
-| Launch or device errors                    | Read driver and device logs; check the platform's `app` config and host requirements. (`platforms/web`)                                 |
-| Fails in CI only                           | Missing KVM, cold boots, uncached WebDriverAgent, fewer CPUs. (`ci/android`, `ci/tvos`)                                                 |
+| Symptom                                    | Likely cause and fix                                                                                                                               |
+| ------------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Element not found on one platform          | Test ID missing or not mapped there. Check the text snapshot; add the ID in the app. (`concepts/locators-and-assertions`)                          |
+| Focus on the wrong element                 | Overlay, focus memory or that platform's focus engine rules. Assert focus after each step to find where it diverged. (`concepts/focus`)            |
+| `navigateTo` unreachable                   | Target not focusable or behind a focus trap. Read the recorded path. Possibly an app bug.                                                          |
+| Timeout naming a busy resource             | App never idle (poller, animation, player). Exclude the noise in the SDK config, or fix the app. (`concepts/idle`)                                 |
+| Unsupported key / capability error         | The remote lacks the key. Add `requires`, or a key override if the app has a gesture for it. (`concepts/remote-and-keys`)                          |
+| Negative assertion passes, bug still there | It ran before the state existed. Anchor it on a positive assertion first. (`concepts/idle`)                                                        |
+| Passes on web, fails on device             | Slower device, stricter focus engine, missing key. Compare text snapshots between platforms. (`platforms/tvos`, `platforms/android-tv`)            |
+| Mock not applied                           | `dpad.mock` off, handler added after `launch()`, or the app never routed the request: check `app.network.requests()`. (`concepts/network-mocking`) |
+| Launch or device errors                    | Read driver and device logs; check the platform's `app` config and host requirements. (`platforms/web`)                                            |
+| Fails in CI only                           | Missing KVM, cold boots, uncached WebDriverAgent, fewer CPUs. (`ci/android`, `ci/tvos`)                                                            |
 
 ## Never
 

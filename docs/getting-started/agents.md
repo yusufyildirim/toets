@@ -6,14 +6,15 @@ description: Give coding agents what they need to write and debug dpad tests - s
 
 Most dpad tests are written and maintained by coding agents, so dpad ships its knowledge in forms agents load cheaply. An agent with no prior context should be able to set up dpad, write a correct cross-platform test and debug a failure from these alone.
 
-| Artifact     | Where                                 | Use                                                     |
-| ------------ | ------------------------------------- | ------------------------------------------------------- |
-| Skills       | `skills/` in the dpad repository      | Task-level guidance, loaded when the task matches       |
-| `AGENTS.md`  | Your project root (template below)    | Project rules every agent session sees                  |
-| Offline docs | `node_modules/@dpad-tv/*/docs/`       | Version-matched pages, no network needed                |
-| `llms.txt`   | Docs site root, with `llms-full.txt`  | Index of every page, and every page in one file         |
-| Errors       | Test output                           | Each error has a code, a hint and a docs link           |
-| MCP server   | [`@dpad-tv/mcp`](../reference/mcp.md) | Explore a running app with the same primitives as tests |
+| Artifact     | Where                                                | Use                                                     |
+| ------------ | ---------------------------------------------------- | ------------------------------------------------------- |
+| Skills       | `skills/` in the dpad repository                     | Task-level guidance, loaded when the task matches       |
+| `AGENTS.md`  | Your project root (template below)                   | Project rules every agent session sees                  |
+| Offline docs | `node_modules/@dpad-tv/*/docs/`                      | Version-matched pages, no network needed                |
+| `llms.txt`   | Docs site root, with `llms-full.txt`                 | Index of every page, and every page in one file         |
+| Errors       | Test output                                          | Each error has a code, a hint and a docs link           |
+| Error codes  | [Error code index](../reference/core/docs/errors.md) | Every `DpadError` code, generated from the sources      |
+| MCP server   | [`@dpad-tv/mcp`](../reference/mcp.md)                | Explore a running app with the same primitives as tests |
 
 ## Skills
 
@@ -45,4 +46,4 @@ Drop this into your project's `AGENTS.md` (or merge it into the one you have) an
 
 - Prefer the offline copy in `node_modules`: it matches the installed version.
 - [`llms.txt`](/llms.txt) indexes every page with a one-line summary; [`llms-full.txt`](/llms-full.txt) is the whole site in one file. Every page is also served as markdown: append `.md` to its URL.
-- Errors are docs too. A `DpadError` prints what happened, the likely cause and fix (`Hint:`) and the page to read (`Docs:`). Agents should act on those before guessing.
+- Errors are docs too. A failing test prints `DpadError: [CODE] what happened`, the likely cause and fix (`Hint:`) and the page to read (`Docs:`, with its offline path in `node_modules`). Agents should act on those before guessing; the [error code index](../reference/core/docs/errors.md) lists every code.

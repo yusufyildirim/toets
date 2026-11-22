@@ -21,8 +21,9 @@ Find out before installing anything:
 
 Follow `getting-started` exactly:
 
-- `@dpad-tv/test` and `@playwright/test`, plus one driver package per targeted platform.
-- `playwright.config.ts` with `defineConfig`: an `app` entry per platform (how to start the app) and a `platforms.*()` project per platform (where tests run).
+- `@dpad-tv/test` and `@playwright/test`, plus one driver package per targeted platform (`@dpad-tv/driver-web`, `-android-tv`, `-tvos`).
+- `playwright.config.ts` with `defineConfig` from `@dpad-tv/test`: an `app` entry per platform (how to start the app) and a `platforms.*()` project per platform (where tests run). Project names are `web`, `android-tv`, `tvos`. Options: `reference/test/docs/config`.
+- dpad does not serve or build the app: use Playwright's `webServer` for the web build; point `app.androidTV.apk` and `app.tvOS.app` at build outputs.
 - App-specific flows (splash, sign-in, consent) go into a fixture in the project, never into dpad config. (`guides/writing-tests`)
 
 ## 3. First test on web
@@ -44,8 +45,8 @@ Tests that fail only on a new platform are often real differences (focus engine,
 
 Each is independent; add only what the tests need.
 
-- **Network mocking**: the app sends API traffic to the launch payload's `mockUrl`. (`concepts/network-mocking`, and the `@dpad-tv/mock` reference)
-- **In-app SDK**: idle sync, focus graph, media state, named states. Debug or test builds only, never production. (`concepts/sdk`, and the `@dpad-tv/sdk` or `@dpad-tv/sdk-react-native` reference)
+- **Network mocking**: `dpad: { mock: true }` in the config, and the app sends API traffic to the launch payload's `mockUrl` with the real origin in a header. (`concepts/network-mocking`, `reference/mock/docs/app-integration`)
+- **In-app SDK**: `dpad: { sdk: true }` in the config, and the app starts the SDK; adds idle sync, focus graph, media state, named states. Debug or test builds only, never production. (`concepts/sdk`, `reference/sdk/docs/overview`, `reference/sdk-react-native/docs/react-native`)
 
 ## 6. Guardrails for agents and humans
 
@@ -59,12 +60,13 @@ Read `ci` first, then the recipe per platform. dpad ships no CI actions; adapt t
 
 - Web: any Linux runner. Android TV: x86_64 Linux with KVM enabled. tvOS: macOS with a pinned Xcode. (`ci/android`, `ci/tvos`)
 - Build the app once per platform and pass it to test jobs as an artifact.
-- Cache system images, AVD snapshots, Appium drivers and WebDriverAgent with exact keys. (`ci/caching`)
-- Always upload `playwright-report/` and `test-results/`, also on failure. (`ci/artifacts`)
+- Cache system images, AVD snapshots and WebDriverAgent with exact keys. (`ci/caching`)
+- Always upload `playwright-report/`, `test-results/` and `dpad-report/` (parity matrix), also on failure. (`ci/artifacts`)
 
 ## Done when
 
-- `npx playwright test` passes, or skips with reasons, on every targeted platform locally.
+- `npx playwright test` passes, or skips with reasons (see `dpad-report/parity.md`), on every targeted platform locally.
+- A setup error (`DpadError: [CODE] ...`) was fixed from its `Hint:`; unknown codes are in `reference/core/docs/errors`.
 - CI runs every targeted platform and keeps the report.
 - The project's `AGENTS.md` has the dpad section.
 

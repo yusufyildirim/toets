@@ -11,7 +11,7 @@ dpad ships no CI actions: these pages are recipes to adapt to your provider. The
 - **One job per platform host.** Web runs anywhere, Android TV needs Linux with KVM (or macOS), tvOS needs macOS. Split by `--project`.
 - **Build the app once.** Build the web bundle, APK and simulator `.app` in their own jobs, pass them as artifacts, and point the `app` config at them.
 - **Size workers to devices.** Each worker leases one emulator or simulator. An Android TV emulator wants about 2 vCPUs and 3 GB of RAM; set `workers` to what the runner can host and shard across jobs for more.
-- **Cache what is slow and deterministic.** System images, AVD snapshots, Appium drivers, WebDriverAgent, browsers. See [Caching](./caching.md).
+- **Cache what is slow and deterministic.** System images, AVD snapshots, WebDriverAgent, browsers. See [Caching](./caching.md).
 - **Always keep the report**, especially when the job fails. See [Artifacts and reports](./artifacts.md).
 - **Retries are a signal, not a fix.** Allow at most one retry in CI, and treat tests the report marks flaky as bugs.
 

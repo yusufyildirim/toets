@@ -47,11 +47,11 @@ test('opens details from home', async ({ app }) => {
 ## Rules
 
 - **Take `app`, nothing else from the runner.** The same page object then works on every platform and in serial flows.
-- **Expose locators and actions, not assertions.** Tests decide what is checked. The one exception is waiting until the screen is ready (`waitUntilLoaded` above), which is a precondition, not a check.
+- **Expose locators and actions, not assertions.** Tests decide what is checked. The one exception is waiting until the screen is ready to be driven (`waitUntilLoaded` above) with a stability matcher: `toBeVisible`, `toBeInViewport`, `toBeFocused`, `toHaveFocusWithin`, `toBeBusy`.
 - **Actions are user intents.** `openCard`, `toggleSubtitles`; not `pressRightThreeTimes`.
 - **No sleeps, no platform branches.** Adapt through capabilities (`app.platform.has(...)`) if a page object must do something differently.
 
-The [ESLint plugin](../reference/eslint-plugin.md) enforces these rules.
+The [ESLint plugin](../reference/eslint-plugin/docs/setup.md) enforces the assertion rule in page object files (by default anything under `pages/` or named `*Page.*`; see [`page-object-assertions`](../reference/eslint-plugin/docs/rules/page-object-assertions.md)) and rejects sleeps everywhere.
 
 ## Traps
 

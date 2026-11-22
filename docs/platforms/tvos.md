@@ -23,7 +23,9 @@ export default defineConfig({
 | Focus     | the element with focus, or the SDK's focus when connected                              |
 | Keys      | Siri Remote buttons only                                                               |
 | Launch    | launch payload as the `-__dpad` launch argument; the simulator shares the host network |
-| Artifacts | simulator logs, screen recording, screenshots per step                                 |
+| Artifacts | simulator logs, screen recording (`dpad.video`)                                        |
+
+`osVersion` is a tvOS version prefix (`18` matches 18.x); `model` an Apple TV device type name. Options: [tvOS setup](../reference/driver-tvos/docs/setup.md) and [simulators](../reference/driver-tvos/docs/simulators.md).
 
 ## Keys
 
@@ -32,5 +34,5 @@ The remote has up, down, left, right, select, back (the Menu button), play/pause
 ## Traps
 
 - **The focus engine is strict.** tvOS only focuses elements the app marks focusable, and moves by its own geometry rules. A test that passes on web can fail here for real reasons.
-- **First run builds WebDriverAgent.** It takes minutes once; cache it in CI.
+- **First run builds WebDriverAgent.** It takes about a minute once per Xcode version (cached in `~/Library/Caches/dpad/tvos-wda`); cache that folder in CI.
 - **`BACK` on the home screen leaves the app.** As on a real Apple TV.
