@@ -44,6 +44,21 @@ ruleTester.run('prefer-semantic-keys', preferSemanticKeys, {
       errors: [{ messageId: 'rawKeycode', data: { raw: '19' } }],
     },
     { code: 'await remote.repeat("Foo", 3);', errors: [{ messageId: 'unknownKey' }] },
+    {
+      code: 'await tvRemote.press("select");',
+      errors: [
+        {
+          messageId: 'unknownKey',
+          suggestions: [
+            {
+              messageId: 'useKey',
+              data: { key: 'SELECT' },
+              output: 'await tvRemote.press(Key.SELECT);',
+            },
+          ],
+        },
+      ],
+    },
     { code: 'await app.remote.press(`UP`);', errors: [{ messageId: 'unknownKey' }] },
     {
       code: 'await app.remote.sequence([Key.DOWN, "KEYCODE_DPAD_CENTER", 4]);',

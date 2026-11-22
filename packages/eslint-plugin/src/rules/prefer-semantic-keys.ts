@@ -33,9 +33,7 @@ const ALIASES: Readonly<Record<string, Key>> = {
   KEYCODE_HOME: Key.HOME,
   KEYCODE_MENU: Key.MENU,
   KEYCODE_MEDIA_PLAY_PAUSE: Key.PLAY_PAUSE,
-  menu: Key.BACK,
   playPause: Key.PLAY_PAUSE,
-  select: Key.SELECT,
 };
 
 const KEYS = new Set<string>(Object.values(Key));
@@ -75,7 +73,8 @@ export const preferSemanticKeys: Rule.RuleModule = {
         return;
       }
       if (typeof node.value !== 'string') return;
-      const key = KEYS.has(node.value) ? (node.value as Key) : ALIASES[node.value];
+      const upper = node.value.toUpperCase();
+      const key = KEYS.has(upper) ? (upper as Key) : ALIASES[node.value];
       if (!key) {
         context.report({ node, messageId: 'unknownKey', data: { raw } });
         return;
