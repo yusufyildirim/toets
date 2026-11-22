@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>dpad selector parity</title>
+    <style>
+      div,
+      p {
+        display: block;
+        min-height: 4px;
+      }
+    </style>
+  </head>
+  <!-- Mirrored by PARITY_SCREEN in parity.test.ts: keep both in sync. Block elements only, so
+       text concatenates with spaces exactly like the core tree model. -->
+  <body>
+    <div data-testid="screen">
+      <div data-testid="rail">
+        <div id="c1" data-testid="card" tabindex="0">
+          <div>Alpha</div>
+          <div>One</div>
+        </div>
+        <div id="c2" data-testid="card" tabindex="0"><div>Beta</div></div>
+        <div id="c3" data-testid="card" tabindex="0">
+          Gamma
+          <div>Beta</div>
+        </div>
+      </div>
+      <div data-testid="rail">
+        <div id="c4" data-testid="card"><div>Beta Max</div></div>
+        <div data-testid="inner"><div id="c5" data-testid="card">Delta</div></div>
+      </div>
+      <p>alpha one</p>
+    </div>
+  </body>
+</html>
