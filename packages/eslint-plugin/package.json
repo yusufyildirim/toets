@@ -1,0 +1,30 @@
+{
+  "name": "@dpad-tv/eslint-plugin",
+  "version": "0.0.0",
+  "description": "ESLint rules for writing good dpad tests.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "peerDependencies": {
+    "eslint": ">=9"
+  }
+}

@@ -1,0 +1,30 @@
+{
+  "name": "@dpad-tv/mcp",
+  "version": "0.0.0",
+  "description": "dpad MCP server: drive TV apps and read dpad docs from agents with the same primitives tests use.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@dpad-tv/core": "workspace:^"
+  }
+}

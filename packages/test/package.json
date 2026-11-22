@@ -1,0 +1,31 @@
+{
+  "name": "@dpad-tv/test",
+  "version": "0.0.0",
+  "description": "dpad test runner: Playwright Test fixtures, config and matchers for cross-platform TV E2E tests.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@dpad-tv/core": "workspace:^",
+    "@dpad-tv/protocol": "workspace:^"
+  }
+}

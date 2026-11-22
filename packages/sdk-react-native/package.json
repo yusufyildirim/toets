@@ -1,0 +1,31 @@
+{
+  "name": "@dpad-tv/sdk-react-native",
+  "version": "0.0.0",
+  "description": "dpad in-app SDK adapter for React Native (incl. react-native-tvos and react-native-web).",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@dpad-tv/sdk": "workspace:^",
+    "@dpad-tv/protocol": "workspace:^"
+  }
+}

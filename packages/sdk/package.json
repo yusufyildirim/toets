@@ -1,0 +1,30 @@
+{
+  "name": "@dpad-tv/sdk",
+  "version": "0.0.0",
+  "description": "dpad in-app SDK core (framework neutral) and web adapter.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@dpad-tv/protocol": "workspace:^"
+  }
+}

@@ -1,0 +1,31 @@
+{
+  "name": "@dpad-tv/mock",
+  "version": "0.0.0",
+  "description": "dpad network mocking: MSW handlers served by a host-side mock server with upstream proxying.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@dpad-tv/core": "workspace:^",
+    "@dpad-tv/protocol": "workspace:^"
+  }
+}

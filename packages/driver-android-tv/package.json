@@ -1,0 +1,30 @@
+{
+  "name": "@dpad-tv/driver-android-tv",
+  "version": "0.0.0",
+  "description": "dpad driver for Android TV / Fire TV emulators, built on Appium UiAutomator2.",
+  "license": "MIT",
+  "type": "module",
+  "exports": {
+    ".": {
+      "source": "./src/index.ts",
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "docs"
+  ],
+  "scripts": {
+    "build": "tsdown",
+    "test": "vitest run --passWithNoTests",
+    "typecheck": "tsc --noEmit"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "dependencies": {
+    "@dpad-tv/core": "workspace:^"
+  }
+}

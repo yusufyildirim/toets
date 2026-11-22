@@ -1,0 +1,265 @@
+/**
+ * In-memory driver for unit tests across all dpad packages. Models a TV screen as a tree of
+ * nodes with real focus movement (explicit neighbors, otherwise nearest node in the pressed
+ * direction), key handlers and a press log. Not a platform: never ship it to users.
+ */
+import type { Capability } from '../capabilities.js';
+import type { Driver, DriverLaunchOptions } from '../driver.js';
+import { DIRECTION_KEY, type Direction, type Key, type PressOptions } from '../keys.js';
+import type { SelectorChain } from '../selectors.js';
+import type { ElementRef, ElementSnapshot, LogEntry, Rect, UINode, UITree } from '../snapshot.js';
+
+export interface FakeNodeSpec {
+  readonly id?: string;
+  readonly testId?: string;
+  readonly text?: string;
+  readonly bounds?: Rect;
+  readonly visible?: boolean;
+  readonly focusable?: boolean;
+  readonly enabled?: boolean;
+  readonly selected?: boolean;
+  readonly busy?: boolean;
+  /** Explicit focus neighbors by node id; missing directions fall back to geometry. */
+  readonly neighbors?: Partial<Record<Direction, string>>;
+  readonly children?: readonly FakeNodeSpec[];
+}
+
+export interface FakeScreen {
+  readonly root: FakeNodeSpec;
+  /** Node id focused initially. */
+  readonly initialFocus?: string;
+  readonly viewport?: { width: number; height: number };
+}
+
+interface FakeNode {
+  id: string;
+  spec: FakeNodeSpec;
+  parent: FakeNode | null;
+  children: FakeNode[];
+}
+
+const DIRECTION_OF: Partial<Record<Key, Direction>> = Object.fromEntries(
+  Object.entries(DIRECTION_KEY).map(([d, k]) => [k, d as Direction]),
+);
+
+export class FakeDriver implements Driver {
+  readonly platform = 'web' as const;
+  readonly capabilities: ReadonlySet<Capability>;
+  /** Every key press, in order. */
+  readonly presses: { key: Key; opts: PressOptions | undefined }[] = [];
+  /** Handlers for non-directional keys; receive the focused node id. */
+  readonly keyHandlers = new Map<Key, (focusedId: string | null, driver: FakeDriver) => void>();
+  launched = false;
+
+  private nodes = new Map<string, FakeNode>();
+  private rootNode!: FakeNode;
+  private focusedId: string | null = null;
+  private logs: LogEntry[] = [];
+  private viewport = { width: 1920, height: 1080 };
+  private counter = 0;
+
+  constructor(screen: FakeScreen, capabilities: Iterable<Capability> = []) {
+    this.capabilities = new Set(capabilities);
+    this.setScreen(screen);
+  }
+
+  /** Replaces the whole screen (simulates navigation). */
+  setScreen(screen: FakeScreen): void {
+    this.nodes.clear();
+    this.rootNode = this.build(screen.root, null);
+    this.focusedId = screen.initialFocus ?? null;
+    if (screen.viewport) this.viewport = screen.viewport;
+  }
+
+  focus(id: string | null): void {
+    this.focusedId = id;
+  }
+
+  log(level: LogEntry['level'], message: string): void {
+    this.logs.push({ level, message, timestamp: Date.now(), source: 'app' });
+  }
+
+  async start(): Promise<void> {}
+  async stop(): Promise<void> {}
+  async launch(_opts: DriverLaunchOptions): Promise<void> {
+    this.launched = true;
+  }
+  async terminate(): Promise<void> {
+    this.launched = false;
+  }
+  async reset(): Promise<void> {}
+
+  async query(chain: SelectorChain): Promise<readonly ElementSnapshot[]> {
+    // `null` scope = the whole document, root included; later steps search descendants only.
+    let current: (FakeNode | null)[] = [null];
+    for (const step of chain) {
+      if (step.kind === 'nth') {
+        const picked = current[step.index];
+        current = picked ? [picked] : [];
+        continue;
+      }
+      const next: FakeNode[] = [];
+      for (const scope of current) {
+        const candidates = scope ? this.descendants(scope) : this.allNodes();
+        for (const n of candidates) {
+          if (this.matches(n, step) && !next.includes(n)) next.push(n);
+        }
+      }
+      current = next;
+    }
+    return current.filter((n): n is FakeNode => n !== null).map((n) => this.snapshotOf(n));
+  }
+
+  async focused(): Promise<ElementSnapshot | null> {
+    const n = this.focusedId ? this.nodes.get(this.focusedId) : undefined;
+    return n ? this.snapshotOf(n) : null;
+  }
+
+  async tree(): Promise<UITree> {
+    return { root: this.uiNode(this.rootNode), viewport: this.viewport };
+  }
+
+  async press(key: Key, opts?: PressOptions): Promise<void> {
+    this.presses.push({ key, opts });
+    const direction = DIRECTION_OF[key];
+    if (direction) {
+      const next = this.neighbor(direction);
+      if (next) this.focusedId = next;
+      return;
+    }
+    this.keyHandlers.get(key)?.(this.focusedId, this);
+  }
+
+  async screenshot(): Promise<Uint8Array> {
+    return new Uint8Array();
+  }
+
+  async drainLogs(): Promise<readonly LogEntry[]> {
+    const out = this.logs;
+    this.logs = [];
+    return out;
+  }
+
+  escapeHatch(): unknown {
+    return this;
+  }
+
+  private build(spec: FakeNodeSpec, parent: FakeNode | null): FakeNode {
+    const id = spec.id ?? spec.testId ?? `n${this.counter++}`;
+    const node: FakeNode = { id, spec, parent, children: [] };
+    this.nodes.set(id, node);
+    node.children = (spec.children ?? []).map((c) => this.build(c, node));
+    return node;
+  }
+
+  private *allNodes(): Generator<FakeNode> {
+    yield this.rootNode;
+    yield* this.descendants(this.rootNode);
+  }
+
+  private *descendants(n: FakeNode): Generator<FakeNode> {
+    for (const c of n.children) {
+      yield c;
+      yield* this.descendants(c);
+    }
+  }
+
+  private matches(n: FakeNode, step: SelectorChain[number]): boolean {
+    switch (step.kind) {
+      case 'testId':
+        return n.spec.testId === step.value;
+      case 'focused':
+        return n.id === this.focusedId;
+      case 'text':
+        // Like Playwright: the deepest elements whose text matches, not their ancestors.
+        return (
+          this.textMatches(n, step.value, step.exact) &&
+          !n.children.some((c) => this.textMatches(c, step.value, step.exact))
+        );
+      default:
+        return false;
+    }
+  }
+
+  private textMatches(n: FakeNode, value: string | RegExp, exact: boolean | undefined): boolean {
+    const text = this.textOf(n);
+    if (text === null) return false;
+    if (value instanceof RegExp) return value.test(text);
+    return exact ? text === value : text.toLowerCase().includes(value.toLowerCase());
+  }
+
+  private textOf(n: FakeNode): string | null {
+    const parts = [n.spec.text, ...n.children.map((c) => this.textOf(c))].filter(
+      (p): p is string => !!p,
+    );
+    return parts.length ? parts.join(' ').replace(/\s+/g, ' ').trim() : null;
+  }
+
+  private isVisible(n: FakeNode): boolean {
+    for (let cur: FakeNode | null = n; cur; cur = cur.parent) {
+      if (cur.spec.visible === false) return false;
+    }
+    return true;
+  }
+
+  private boundsOf(n: FakeNode): Rect {
+    return n.spec.bounds ?? { x: 0, y: 0, width: 0, height: 0 };
+  }
+
+  private snapshotOf(n: FakeNode): ElementSnapshot {
+    const b = this.boundsOf(n);
+    const focusWithin =
+      this.focusedId !== null &&
+      (n.id === this.focusedId || [...this.descendants(n)].some((d) => d.id === this.focusedId));
+    const busy = !!n.spec.busy || [...this.descendants(n)].some((d) => !!d.spec.busy);
+    const visible = this.isVisible(n) && (b.width > 0 || b.height > 0 || !n.spec.bounds);
+    return {
+      ref: n.id as ElementRef,
+      testId: n.spec.testId ?? null,
+      text: this.textOf(n),
+      label: null,
+      bounds: b,
+      visible,
+      inViewport:
+        visible &&
+        b.x < this.viewport.width &&
+        b.y < this.viewport.height &&
+        b.x + b.width > 0 &&
+        b.y + b.height > 0,
+      focusable: !!n.spec.focusable,
+      focused: n.id === this.focusedId,
+      focusWithin,
+      enabled: n.spec.enabled !== false,
+      selected: !!n.spec.selected,
+      busy,
+    };
+  }
+
+  private uiNode(n: FakeNode): UINode {
+    return { ...this.snapshotOf(n), children: n.children.map((c) => this.uiNode(c)) };
+  }
+
+  private neighbor(direction: Direction): string | null {
+    const from = this.focusedId ? this.nodes.get(this.focusedId) : undefined;
+    if (!from) return null;
+    const explicit = from.spec.neighbors?.[direction];
+    if (explicit) return explicit;
+    const a = this.boundsOf(from);
+    const ax = a.x + a.width / 2;
+    const ay = a.y + a.height / 2;
+    let best: { id: string; score: number } | null = null;
+    for (const n of this.nodes.values()) {
+      if (n === from || !n.spec.focusable || !this.isVisible(n) || n.spec.enabled === false)
+        continue;
+      const b = this.boundsOf(n);
+      const dx = b.x + b.width / 2 - ax;
+      const dy = b.y + b.height / 2 - ay;
+      const primary = { up: -dy, down: dy, left: -dx, right: dx }[direction];
+      if (primary <= 0) continue;
+      const secondary = direction === 'up' || direction === 'down' ? Math.abs(dx) : Math.abs(dy);
+      const score = primary + secondary * 2;
+      if (!best || score < best.score) best = { id: n.id, score };
+    }
+    return best?.id ?? null;
+  }
+}
