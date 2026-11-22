@@ -1,5 +1,10 @@
+import { existsSync } from 'node:fs';
+import { dirname, join, relative } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 import { DpadError } from '../src/errors.js';
+
+const here = dirname(fileURLToPath(import.meta.url));
 
 describe('DpadError', () => {
   const error = new DpadError('ELEMENT_NOT_FOUND', 'Nothing matched.', {
@@ -8,13 +13,15 @@ describe('DpadError', () => {
   });
 
   it('prints code, hint and docs with the offline path of package pages', () => {
+    const offline = relative(process.cwd(), join(here, '../docs/locators.md'));
     expect(error.toString()).toBe(
       [
         'DpadError [ELEMENT_NOT_FOUND]: Nothing matched.',
         'Hint: Check the test ID.',
-        'Docs: reference/core/docs/locators (offline: node_modules/@dpad-tv/core/docs/locators.md)',
+        `Docs: reference/core/docs/locators (offline: ${offline})`,
       ].join('\n'),
     );
+    expect(existsSync(offline)).toBe(true);
   });
 
   it('leads the stack with the same text, so runners that print stacks show it', () => {
