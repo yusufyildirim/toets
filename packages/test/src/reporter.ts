@@ -7,7 +7,10 @@ import { dirname, join, relative, resolve } from 'node:path';
 import type { FullConfig, Reporter, Suite, TestCase } from '@playwright/test/reporter';
 
 export interface ParityReporterOptions {
-  /** Markdown matrix path; a `.json` twin is written next to it. Default `dpad-report/parity.md`. */
+  /**
+   * Markdown matrix path, relative to the config file's directory like Playwright's own reporter
+   * paths; a `.json` twin is written next to it. Default `dpad-report/parity.md`.
+   */
   readonly outputFile?: string;
   /** Print the one-line summary and diverging tests to stdout. Default true. */
   readonly summary?: boolean;
@@ -141,6 +144,7 @@ export function summarizeParity(matrix: ParityMatrix): string {
 
 export default class ParityReporter implements Reporter {
   private root: Suite | null = null;
+  private baseDir = process.cwd();
 
   constructor(private readonly options: ParityReporterOptions = {}) {}
 
@@ -148,15 +152,16 @@ export default class ParityReporter implements Reporter {
     return false;
   }
 
-  onBegin(_config: FullConfig, suite: Suite): void {
+  onBegin(config: FullConfig, suite: Suite): void {
     this.root = suite;
+    if (config.configFile) this.baseDir = dirname(config.configFile);
   }
 
   onEnd(): void {
     if (!this.root) return;
     const matrix = buildParityMatrix(this.root);
     if (!matrix.projects.length) return;
-    const out = resolve(this.options.outputFile ?? join('dpad-report', 'parity.md'));
+    const out = resolve(this.baseDir, this.options.outputFile ?? join('dpad-report', 'parity.md'));
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(out, formatParityMatrix(matrix));
     writeFileSync(out.replace(/\.md$/, '') + '.json', JSON.stringify(matrix, null, 2) + '\n');
