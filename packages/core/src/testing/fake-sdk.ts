@@ -2,15 +2,18 @@
  * In-memory SDK host and session for unit tests. The session answers protocol requests from a
  * {@link FakeDriver} screen, so the same fake drives both the black-box and the SDK path.
  */
-import type {
-  AppToHostNotifications,
-  BusyResource,
-  Domain,
-  HelloParams,
-  HostToAppRequests,
-  MediaInfo,
-  SdkHost,
-  SdkSession,
+import {
+  METHOD_DOMAIN,
+  ProtocolError,
+  type AppToHostNotifications,
+  type BusyResource,
+  type Domain,
+  type HelloParams,
+  type HostToAppMethod,
+  type HostToAppRequests,
+  type MediaInfo,
+  type SdkHost,
+  type SdkSession,
 } from '@dpad-tv/protocol';
 import type { FakeDriver } from './fake-driver.js';
 
@@ -68,17 +71,24 @@ export class FakeSdkSession implements SdkSession {
     this.closed = new Promise((resolve) => (this.resolveClosed = resolve));
   }
 
+  has(method: HostToAppMethod): boolean {
+    return this.domains.has(METHOD_DOMAIN[method]);
+  }
+
   async request<M extends keyof HostToAppRequests>(
     method: M,
     params: HostToAppRequests[M]['params'],
   ): Promise<HostToAppRequests[M]['result']> {
+    if (!this.has(method)) {
+      throw new ProtocolError('sdk.method-unsupported', `The SDK does not support ${method}.`);
+    }
     this.requests.push({ method, params });
-    if (this.isClosed) throw new Error('session closed');
+    if (this.isClosed) throw new ProtocolError('sdk.closed', 'The SDK session is closed.');
     if (this.failing.has(method)) throw new Error(`fake ${method} failure`);
     const answer = (): unknown => {
       switch (method) {
         case 'tree.get':
-          return { root: this.driver.protocolTree() };
+          return { root: this.driver.protocolTree(), viewport: this.driver.viewportSize };
         case 'focus.get': {
           const find = (n: ReturnType<FakeDriver['protocolTree']>): typeof n | null =>
             n.focused ? n : (n.children.map(find).find((c) => c !== null) ?? null);
@@ -92,6 +102,8 @@ export class FakeSdkSession implements SdkSession {
         }
         case 'media.get':
           return { media: this.media };
+        case 'media.list':
+          return { media: this.media ? [this.media] : [] };
         case 'state.apply':
           return {};
         default:

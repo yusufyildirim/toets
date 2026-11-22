@@ -178,7 +178,7 @@ export class Session {
           ...(model !== undefined && { model }),
           ...(osVersion !== undefined && { osVersion }),
         },
-        { workerIndex: 0 },
+        { workerIndex: 0, parallelIndex: 0 },
       );
     }
 

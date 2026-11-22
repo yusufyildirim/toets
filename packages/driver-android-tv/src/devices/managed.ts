@@ -1,4 +1,9 @@
-import type { DeviceLease, DeviceProvider, DeviceSpec } from '@dpad-tv/core';
+import type {
+  DeviceAcquireOptions,
+  DeviceLease,
+  DeviceProvider,
+  DeviceSpec,
+} from '@dpad-tv/core';
 import { existsSync, readdirSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -81,7 +86,7 @@ export class ManagedDeviceProvider implements DeviceProvider {
     this.env = deps.env ?? process.env;
   }
 
-  async acquire(spec: DeviceSpec, opts: { readonly workerIndex: number }): Promise<DeviceLease> {
+  async acquire(spec: DeviceSpec, opts: DeviceAcquireOptions): Promise<DeviceLease> {
     const image = this.resolveImage(spec);
     const avd = avdName(image.model, image.api, image.tag);
 
@@ -92,7 +97,7 @@ export class ManagedDeviceProvider implements DeviceProvider {
     }
 
     await this.ensureCleanSnapshot(avd, image);
-    const device = await this.bootOrAdopt(avd, opts.workerIndex);
+    const device = await this.bootOrAdopt(avd, opts.parallelIndex);
     return this.lease(device, image.api);
   }
 
@@ -237,12 +242,12 @@ export class ManagedDeviceProvider implements DeviceProvider {
     }
   }
 
-  private async bootOrAdopt(avd: string, workerIndex: number): Promise<ManagedDevice> {
+  private async bootOrAdopt(avd: string, slot: number): Promise<ManagedDevice> {
     if (this.options.reuse) {
       const adopted = await this.adoptRunning(avd);
       if (adopted) return adopted;
     }
-    const port = await this.findPort(workerIndex);
+    const port = await this.findPort(slot);
     const proc = this.spawnEmulator(avd, port, [
       '-read-only',
       '-snapshot',
@@ -281,14 +286,14 @@ export class ManagedDeviceProvider implements DeviceProvider {
       .map(([serial]) => serial!);
   }
 
-  private async findPort(workerIndex: number): Promise<number> {
+  private async findPort(slot: number): Promise<number> {
     const base = this.options.basePort ?? 5554;
     const taken = new Set([
       ...(await this.runningEmulators()),
       ...this.devices.map((d) => d.serial),
     ]);
     const isFree = this.deps.isPortFree ?? isPortFree;
-    for (let port = base + 2 * workerIndex; port <= MAX_PORT; port += 2) {
+    for (let port = base + 2 * slot; port <= MAX_PORT; port += 2) {
       if (taken.has(`emulator-${port}`)) continue;
       if ((await isFree(port)) && (await isFree(port + 1))) return port;
     }

@@ -39,7 +39,7 @@ describe('managed device provider', () => {
   it('creates and boots one simulator per worker on the newest tvOS runtime', async () => {
     const runner = managedRunner();
     const provider = createManagedDeviceProvider({}, { runner });
-    const lease = await provider.acquire({ platform: 'tvos' }, { workerIndex: 2 });
+    const lease = await provider.acquire({ platform: 'tvos' }, { workerIndex: 2, parallelIndex: 2 });
 
     const name = 'dpad-apple-tv-4k-3rd-generation-at-1080p-27.2-w2';
     expect(runner.lines()).toContain(`xcrun simctl create ${name} ${ATV_1080P} ${TVOS_RUNTIME}`);
@@ -61,7 +61,7 @@ describe('managed device provider', () => {
     const name = 'dpad-apple-tv-4k-3rd-generation-at-1080p-27.2-w0';
     const runner = managedRunner({ [TVOS_RUNTIME]: [{ udid: 'OLD', name, state: 'Booted' }] });
     const provider = createManagedDeviceProvider({}, { runner });
-    const lease = await provider.acquire({ platform: 'tvos' }, { workerIndex: 0 });
+    const lease = await provider.acquire({ platform: 'tvos' }, { workerIndex: 0, parallelIndex: 0 });
     await lease.release();
     await provider.dispose();
 
@@ -73,13 +73,13 @@ describe('managed device provider', () => {
   it('shuts down simulators it booted on dispose unless keepBooted', async () => {
     const runner = managedRunner();
     const provider = createManagedDeviceProvider({}, { runner });
-    await provider.acquire({ platform: 'tvos' }, { workerIndex: 0 });
+    await provider.acquire({ platform: 'tvos' }, { workerIndex: 0, parallelIndex: 0 });
     await provider.dispose();
     expect(runner.lines()).toContain('xcrun simctl shutdown NEW-UDID');
 
     const keep = managedRunner();
     const kept = createManagedDeviceProvider({ keepBooted: true }, { runner: keep });
-    await kept.acquire({ platform: 'tvos' }, { workerIndex: 0 });
+    await kept.acquire({ platform: 'tvos' }, { workerIndex: 0, parallelIndex: 0 });
     await kept.dispose();
     expect(keep.lines().some((l) => l.includes('shutdown'))).toBe(false);
   });
@@ -92,7 +92,7 @@ describe('managed device provider', () => {
     );
     const lease = await provider.acquire(
       { platform: 'tvos', model: 'Apple TV 4K (3rd generation)', osVersion: '18' },
-      { workerIndex: 1 },
+      { workerIndex: 1, parallelIndex: 1 },
     );
     expect(runner.lines()).toContain(
       `xcrun simctl --set /sets/dpad create ci-apple-tv-4k-3rd-generation-18.4-w1 ${ATV_4K} com.apple.CoreSimulator.SimRuntime.tvOS-18-4`,
@@ -103,14 +103,14 @@ describe('managed device provider', () => {
   it('explains a missing runtime or model', async () => {
     const provider = createManagedDeviceProvider({}, { runner: managedRunner() });
     await expect(
-      provider.acquire({ platform: 'tvos', osVersion: '19' }, { workerIndex: 0 }),
+      provider.acquire({ platform: 'tvos', osVersion: '19' }, { workerIndex: 0, parallelIndex: 0 }),
     ).rejects.toMatchObject({
       code: 'TVOS_RUNTIME_MISSING',
       message: expect.stringContaining('installed: 27.2, 18.4'),
       hint: expect.stringContaining('xcodebuild -downloadPlatform tvOS'),
     });
     await expect(
-      provider.acquire({ platform: 'tvos', model: 'Apple TV 9' }, { workerIndex: 0 }),
+      provider.acquire({ platform: 'tvos', model: 'Apple TV 9' }, { workerIndex: 0, parallelIndex: 0 }),
     ).rejects.toMatchObject({
       code: 'TVOS_DEVICE_TYPE_MISSING',
       hint: expect.stringContaining('Apple TV 4K (3rd generation) (at 1080p)'),
@@ -120,7 +120,7 @@ describe('managed device provider', () => {
   it('reports a failed boot with a timeout hint', async () => {
     const runner = managedRunner().on('xcrun simctl bootstatus', { exitCode: 1, stderr: 'boom' });
     const provider = createManagedDeviceProvider({ bootTimeoutMs: 5 }, { runner });
-    await expect(provider.acquire({ platform: 'tvos' }, { workerIndex: 0 })).rejects.toMatchObject({
+    await expect(provider.acquire({ platform: 'tvos' }, { workerIndex: 0, parallelIndex: 0 })).rejects.toMatchObject({
       code: 'TVOS_BOOT_FAILED',
       hint: expect.stringContaining('5ms'),
     });

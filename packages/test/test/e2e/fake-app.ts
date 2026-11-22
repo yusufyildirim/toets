@@ -96,6 +96,7 @@ export class FakeTvApp extends FakeDriver {
       if (!session) return;
       const playing = session.media?.state === 'playing';
       session.media = {
+        id: 'main',
         state: playing ? 'paused' : 'playing',
         position: 3,
         duration: 60,

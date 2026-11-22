@@ -82,7 +82,10 @@ function walkToward(
   return null;
 }
 
-/** First step of a shortest path through the SDK focus graph, or `null`. */
+/**
+ * First step of a shortest path through the SDK focus graph, or `null`. Only known edges are
+ * followed: `null` (focus does not move) and absent (unknown) edges are not.
+ */
 export function nextStepInGraph(
   graph: readonly FocusGraphNode[],
   from: string,
@@ -212,6 +215,13 @@ export class FocusImpl implements Focus {
     const here = visits.get(from) as Visit;
     const graph = await this.ctx.target.focusGraph();
     if (graph) {
+      // A `null` edge is known not to move focus: never spend a press on it.
+      const node = graph.find((n) => n.id === from);
+      for (const d of DIRECTIONS) {
+        if (node?.[d] !== null || here.tried.has(d)) continue;
+        here.tried.add(d);
+        here.edges.set(d, from);
+      }
       const step = nextStepInGraph(graph, from, goals);
       if (step && !here.tried.has(step)) return step;
       this.ctx.log('the focus graph has no untried path from here; using geometry');

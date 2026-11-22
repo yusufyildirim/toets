@@ -2,7 +2,7 @@
  * Pure helpers over UI trees. Exported so drivers that fetch a whole page source per snapshot
  * (Appium) and the SDK path evaluate selectors with exactly the same semantics.
  */
-import type { ProtocolNode } from '@dpad-tv/protocol';
+import type { ProtocolNode, Viewport } from '@dpad-tv/protocol';
 import type { Selector, SelectorChain } from '../selectors.js';
 import type { ElementRef, ElementSnapshot, Rect, UINode, UITree } from '../snapshot.js';
 
@@ -108,11 +108,13 @@ function intersects(a: Rect, viewport: { width: number; height: number }): boole
 
 /**
  * Converts an SDK tree into the core tree shape: descendant text is concatenated from visible
- * nodes, `focusWithin` and `busy` propagate up, visibility requires visible ancestors, and the
- * viewport is the root's size.
+ * nodes, `focusWithin` and `busy` propagate up and visibility requires visible ancestors.
+ * `viewport` is the one reported with the tree (default: the root's size).
  */
-export function protocolToTree(root: ProtocolNode): UITree {
-  const viewport = { width: root.bounds.width, height: root.bounds.height };
+export function protocolToTree(root: ProtocolNode, reported?: Viewport): UITree {
+  const viewport = reported
+    ? { width: reported.width, height: reported.height }
+    : { width: root.bounds.width, height: root.bounds.height };
   const convert = (node: ProtocolNode, parentVisible: boolean): UINode => {
     const visible =
       parentVisible && node.visible && (node.bounds.width > 0 || node.bounds.height > 0);

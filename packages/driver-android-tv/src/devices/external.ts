@@ -53,7 +53,8 @@ export interface ExternalDeviceOptions extends PrepareDeviceOptions {
 }
 
 /**
- * Hands out devices you started yourself: worker `n` gets the `n`-th free serial. Nothing is
+ * Hands out devices you started yourself: worker slot `n` (`parallelIndex`) gets the `n`-th
+ * free serial. Nothing is
  * booted or killed; devices are only checked to be online and booted.
  */
 export function createExternalDeviceProvider(opts: ExternalDeviceOptions = {}): DeviceProvider {
@@ -66,8 +67,8 @@ export function createExternalDeviceProvider(opts: ExternalDeviceOptions = {}): 
       .filter(Boolean);
   const held = new Set<string>();
   return {
-    async acquire(_spec: DeviceSpec, { workerIndex }): Promise<DeviceLease> {
-      const preferred = addresses[workerIndex % Math.max(1, addresses.length)];
+    async acquire(_spec: DeviceSpec, { parallelIndex }): Promise<DeviceLease> {
+      const preferred = addresses[parallelIndex % Math.max(1, addresses.length)];
       const serial =
         preferred && !held.has(preferred) ? preferred : addresses.find((a) => !held.has(a));
       if (!serial) {

@@ -1,4 +1,10 @@
-import type { Domain, FocusGraphNode, MediaInfo, SdkSession } from '@dpad-tv/protocol';
+import type {
+  Domain,
+  FocusGraphNode,
+  HostToAppMethod,
+  MediaInfo,
+  SdkSession,
+} from '@dpad-tv/protocol';
 import type { Capability } from '../capabilities.js';
 import type { Driver } from '../driver.js';
 import type { SelectorChain } from '../selectors.js';
@@ -15,6 +21,17 @@ export const DOMAIN_CAPABILITIES: Readonly<Record<Domain, readonly Capability[]>
   state: ['app.state'],
   logs: ['logs'],
   metrics: [],
+};
+
+/**
+ * The request a capability depends on. A capability counts only when the session can answer it
+ * (`SdkSession.has`): its domain is announced and the SDK's protocol version has the method.
+ */
+const CAPABILITY_METHOD: Partial<Record<Capability, HostToAppMethod>> = {
+  'focus.graph': 'focus.graph',
+  'sync.idle': 'sync.waitForIdle',
+  'media.state': 'media.get',
+  'app.state': 'state.apply',
 };
 
 /** Every capability an SDK can add; assumed for `requires` checks when the SDK is enabled. */
@@ -58,35 +75,43 @@ export class Target {
     if (!session || this.session === session) this.session = null;
   }
 
-  /** Driver capabilities plus the connected SDK's domains. */
+  /** Driver capabilities plus what the connected SDK can answer. */
   get capabilities(): ReadonlySet<Capability> {
     const caps = new Set(this.driver.capabilities);
-    for (const domain of this.session?.domains ?? []) {
-      for (const cap of DOMAIN_CAPABILITIES[domain] ?? []) caps.add(cap);
+    const session = this.session;
+    for (const domain of session?.domains ?? []) {
+      for (const cap of DOMAIN_CAPABILITIES[domain] ?? []) {
+        const method = CAPABILITY_METHOD[cap];
+        if (!method || session?.has(method)) caps.add(cap);
+      }
     }
     return caps;
   }
 
-  has(domain: Domain): boolean {
-    return this.session?.domains.has(domain) ?? false;
+  /** Whether the connected SDK can answer `method`. */
+  has(method: HostToAppMethod): boolean {
+    return this.session?.has(method) ?? false;
   }
 
   private async viaSdk<T>(
-    domain: Domain,
+    method: HostToAppMethod,
     run: (s: SdkSession) => Promise<T>,
   ): Promise<T | undefined> {
     const session = this.session;
-    if (!session || !session.domains.has(domain)) return undefined;
+    if (!session?.has(method)) return undefined;
     try {
       return await run(session);
     } catch (e) {
-      this.opts.log(`SDK ${domain} request failed, using the driver instead: ${String(e)}`);
+      this.opts.log(`SDK ${method} failed, using the driver instead: ${String(e)}`);
       return undefined;
     }
   }
 
   private sdkTree(): Promise<UITree | undefined> {
-    return this.viaSdk('tree', async (s) => protocolToTree((await s.request('tree.get', {})).root));
+    return this.viaSdk('tree.get', async (s) => {
+      const { root, viewport } = await s.request('tree.get', {});
+      return protocolToTree(root, viewport);
+    });
   }
 
   async tree(): Promise<UITree> {
@@ -108,20 +133,21 @@ export class Target {
   /** The SDK focus graph, or `null` without the `focus` domain. */
   async focusGraph(): Promise<readonly FocusGraphNode[] | null> {
     return (
-      (await this.viaSdk('focus', async (s) => (await s.request('focus.graph', {})).nodes)) ?? null
+      (await this.viaSdk('focus.graph', async (s) => (await s.request('focus.graph', {})).nodes)) ??
+      null
     );
   }
 
   /** Media state from the SDK; `undefined` when the `media` domain is unavailable. */
   async media(): Promise<MediaInfo | null | undefined> {
     const session = this.session;
-    if (!session || !session.domains.has('media')) return undefined;
+    if (!session?.has('media.get')) return undefined;
     return (await session.request('media.get', {})).media;
   }
 
   async waitForIdle(budgetMs: number): Promise<IdleCheck> {
     const session = this.session;
-    if (!session || !session.domains.has('sync')) return { supported: false };
+    if (!session?.has('sync.waitForIdle')) return { supported: false };
     try {
       const result = await session.request(
         'sync.waitForIdle',

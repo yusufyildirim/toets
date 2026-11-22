@@ -44,7 +44,7 @@ export interface TvosSimulator {
 
 /**
  * The `managed` provider: creates (once) and boots one Apple TV simulator per worker, named
- * `<prefix>-<model>-<os>-w<workerIndex>`, and reuses it on later runs. `spec.model` is an
+ * `<prefix>-<model>-<os>-w<parallelIndex>`, and reuses it on later runs. `spec.model` is an
  * exact simulator device type name; `spec.osVersion` a tvOS version prefix (`18` matches
  * `18.4`). The newest matching runtime wins.
  */
@@ -58,7 +58,7 @@ export function createManagedDeviceProvider(
   const bootedByUs = new Set<string>();
 
   return {
-    async acquire(spec: DeviceSpec, { workerIndex }): Promise<DeviceLease> {
+    async acquire(spec: DeviceSpec, { parallelIndex }): Promise<DeviceLease> {
       const [types, runtimes, devices] = await Promise.all([
         simctl.listDeviceTypes(),
         simctl.listRuntimes(),
@@ -66,7 +66,7 @@ export function createManagedDeviceProvider(
       ]);
       const runtime = pickRuntime(runtimes, spec.osVersion);
       const type = pickDeviceType(types, runtime, spec.model);
-      const name = `${prefix}-${slug(type.name)}-${runtime.version}-w${workerIndex}`;
+      const name = `${prefix}-${slug(type.name)}-${runtime.version}-w${parallelIndex}`;
       const existing = devices.find(
         (d) => d.name === name && d.runtimeId === runtime.identifier && d.isAvailable,
       );

@@ -101,7 +101,7 @@ describe('SDK composition', () => {
 
     host!.session!.failing.add('tree.get');
     expect(await app.getByTestId('menu_settings').text()).toBe('Settings');
-    expect(logs.some((l) => l.includes('SDK tree request failed'))).toBe(true);
+    expect(logs.some((l) => l.includes('SDK tree.get failed'))).toBe(true);
     expect((await runtime.takeLogs()).some((l) => l.source === 'driver')).toBe(true);
   });
 

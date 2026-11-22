@@ -27,6 +27,12 @@ describe('nextStepInGraph', () => {
     expect(nextStepInGraph(graph, 'a', new Set(['c']))).toBe('down');
     expect(nextStepInGraph(graph, 'd', new Set(['a']))).toBeNull();
   });
+
+  it('follows only known edges: null (no move) and absent (unknown) edges are skipped', () => {
+    const graph = [{ id: 'a', right: null, down: 'c' }, { id: 'b' }, { id: 'c', right: 'b' }];
+    expect(nextStepInGraph(graph, 'a', new Set(['b']))).toBe('down');
+    expect(nextStepInGraph([{ id: 'a', right: null }], 'a', new Set(['b']))).toBeNull();
+  });
 });
 
 describe('focus.navigateTo', () => {
@@ -150,6 +156,40 @@ describe('focus.navigateTo', () => {
     await app.focus.navigateTo(app.getByTestId('trending_2'));
     expect(graphRequests()).toBeGreaterThan(0);
     expect(await app.focus.current().testId()).toBe('trending_2');
+  });
+
+  it('never presses toward a null graph edge when falling back to geometry', async () => {
+    // b is right of a, but focus cannot move right from a: the way is down, right, up.
+    const node = (id: string, x: number, y: number, neighbors = {}) => ({
+      id,
+      testId: id,
+      focusable: true,
+      bounds: { x, y, width: 100, height: 100 },
+      neighbors,
+    });
+    const { app, driver } = setup({
+      sdk: true,
+      screen: {
+        initialFocus: 'a',
+        root: {
+          children: [
+            node('a', 0, 0, { right: null }),
+            node('b', 300, 0),
+            node('c', 0, 300),
+            node('d', 300, 300),
+          ],
+        },
+      },
+    });
+    // The SDK knows only a's edges: unknown elsewhere, so geometry drives the rest.
+    const full = driver.focusGraph.bind(driver);
+    driver.focusGraph = () => full().map((n) => (n.id === 'a' ? n : { id: n.id }));
+    await app.launch();
+    await app.focus.navigateTo(app.getByTestId('b'));
+    expect(await app.focus.current().testId()).toBe('b');
+    // Geometry alone would press RIGHT from a first; the null edge rules it out.
+    expect(driver.presses[0]?.key).toBe('DOWN');
+    expect(driver.presses.slice(-2).map((p) => p.key)).toEqual(['RIGHT', 'UP']);
   });
 });
 

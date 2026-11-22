@@ -153,7 +153,7 @@ describe('media matchers', () => {
     const sdk = setup({ runtime: { sdkHost: host } });
     await sdk.app.launch();
     const session = host.session!;
-    session.media = { state: 'playing', position: 12, duration: 60, rate: 1 };
+    session.media = { id: 'main', state: 'playing', position: 12, duration: 60, rate: 1 };
     expect((await mediaMatchers.toBePlaying(pos, sdk.app.media)).pass).toBe(true);
     expect((await mediaMatchers.toHavePosition(pos, sdk.app.media, 11.5)).pass).toBe(true);
     const r = await mediaMatchers.toBePaused(pos, sdk.app.media);

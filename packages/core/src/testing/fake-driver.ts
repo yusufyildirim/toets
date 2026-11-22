@@ -23,8 +23,11 @@ export interface FakeNodeSpec {
   readonly enabled?: boolean;
   readonly selected?: boolean;
   readonly busy?: boolean;
-  /** Explicit focus neighbors by node id; missing directions fall back to geometry. */
-  readonly neighbors?: Partial<Record<Direction, string>>;
+  /**
+   * Explicit focus neighbors by node id; `null` = focus does not move that way. Missing
+   * directions fall back to geometry.
+   */
+  readonly neighbors?: Partial<Record<Direction, string | null>>;
   readonly children?: readonly FakeNodeSpec[];
 }
 
@@ -217,7 +220,15 @@ export class FakeDriver implements Driver {
     return { x, y, width: right - x, height: bottom - y };
   }
 
-  /** The focus graph an SDK would report (`focus.graph`): the neighbor of every focusable node. */
+  /** Viewport size in the screen's coordinate space. */
+  get viewportSize(): { readonly width: number; readonly height: number } {
+    return this.viewport;
+  }
+
+  /**
+   * The focus graph an SDK would report (`focus.graph`): the neighbor of every focusable node,
+   * `null` where focus does not move.
+   */
   focusGraph(): FocusGraphNode[] {
     const saved = this.focusedId;
     try {
@@ -227,8 +238,7 @@ export class FakeDriver implements Driver {
           this.focusedId = n.id;
           const node: { -readonly [K in keyof FocusGraphNode]: FocusGraphNode[K] } = { id: n.id };
           for (const d of ['up', 'down', 'left', 'right'] as const) {
-            const next = this.neighbor(d);
-            if (next) node[d] = next;
+            node[d] = this.neighbor(d);
           }
           return node;
         });
@@ -346,7 +356,7 @@ export class FakeDriver implements Driver {
     const from = this.focusedId ? this.nodes.get(this.focusedId) : undefined;
     if (!from) return null;
     const explicit = from.spec.neighbors?.[direction];
-    if (explicit) return explicit;
+    if (explicit !== undefined) return explicit;
     const a = this.boundsOf(from);
     const ax = a.x + a.width / 2;
     const ay = a.y + a.height / 2;

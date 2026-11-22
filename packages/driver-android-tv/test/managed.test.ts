@@ -63,7 +63,7 @@ const spec = { platform: 'android-tv' as const, model: 'tv_1080p', osVersion: '3
 describe('ManagedDeviceProvider', () => {
   it('creates the AVD and its clean snapshot once, then boots read-only instances from it', async () => {
     const t = setup();
-    const lease = await t.provider.acquire(spec, { workerIndex: 0 });
+    const lease = await t.provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
 
     const create = t.runner.calls.find((c) => c.file.endsWith('avdmanager'))!;
     expect(create.args).toEqual([
@@ -95,7 +95,7 @@ describe('ManagedDeviceProvider', () => {
       meta: { avd: AVD, port: 5554, api: '33', snapshot: CLEAN_SNAPSHOT },
     });
 
-    const second = await t.provider.acquire(spec, { workerIndex: 1 });
+    const second = await t.provider.acquire(spec, { workerIndex: 1, parallelIndex: 1 });
     expect(second.address).toBe('emulator-5556');
     expect(t.runner.calls.filter((c) => c.file.endsWith('avdmanager'))).toHaveLength(1);
     expect(t.emulatorSpawns()).toHaveLength(3);
@@ -103,16 +103,16 @@ describe('ManagedDeviceProvider', () => {
 
   it('skips ports used by other emulators or processes', async () => {
     const t = setup({}, { running: ['emulator-5554'], busyPorts: [5557] });
-    const lease = await t.provider.acquire(spec, { workerIndex: 0 });
+    const lease = await t.provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
     expect(lease.address).toBe('emulator-5558');
   });
 
   it('reuses a released emulator after restoring the clean snapshot', async () => {
     const t = setup();
-    const lease = await t.provider.acquire(spec, { workerIndex: 0 });
+    const lease = await t.provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
     await lease.release();
     await lease.release();
-    const again = await t.provider.acquire(spec, { workerIndex: 3 });
+    const again = await t.provider.acquire(spec, { workerIndex: 3, parallelIndex: 3 });
     expect(again.address).toBe(lease.address);
     expect(t.emulatorSpawns()).toHaveLength(2);
     expect(t.runner.lines('run').at(-3)).toBe(
@@ -122,7 +122,7 @@ describe('ManagedDeviceProvider', () => {
 
   it('kills the emulators it booted on dispose', async () => {
     const t = setup();
-    await t.provider.acquire(spec, { workerIndex: 0 });
+    await t.provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
     await t.provider.dispose();
     expect(t.runner.lines('run').at(-1)).toBe('adb -s emulator-5554 emu kill');
     await expect(t.runner.processes[1]!.exited).resolves.toBe(0);
@@ -135,7 +135,7 @@ describe('ManagedDeviceProvider', () => {
     t.runner.on('emu avd name', (args) =>
       args[1] === 'emulator-5600' ? `${AVD}\nOK\n` : 'someone_else\nOK\n',
     );
-    const lease = await t.provider.acquire(spec, { workerIndex: 0 });
+    const lease = await t.provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
     expect(lease.address).toBe('emulator-5600');
     expect(t.emulatorSpawns()).toEqual([]);
     expect(t.runner.lines('run')).toContain(
@@ -151,7 +151,7 @@ describe('ManagedDeviceProvider', () => {
       headless: false,
       emulatorArgs: ['-gpu', 'swiftshader_indirect'],
     });
-    await t.provider.acquire(spec, { workerIndex: 0 });
+    await t.provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
     const boot = t.runner.calls.filter((c) => c.kind === 'spawn').at(-1)!;
     expect(boot.opts).toMatchObject({ detached: true });
     expect(boot.args).not.toContain('-no-window');
@@ -161,7 +161,7 @@ describe('ManagedDeviceProvider', () => {
   it('explains a missing system image', async () => {
     const t = setup();
     const err = await t.provider
-      .acquire({ ...spec, osVersion: '34' }, { workerIndex: 0 })
+      .acquire({ ...spec, osVersion: '34' }, { workerIndex: 0, parallelIndex: 0 })
       .catch((e: unknown) => e);
     expect(err).toMatchObject({ code: 'ANDROID_SYSTEM_IMAGE_MISSING' });
     expect((err as Error & { hint: string }).hint).toContain(
@@ -183,7 +183,7 @@ describe('ManagedDeviceProvider', () => {
     mkdirSync(join(t.avdHome, `${AVD}.avd`, 'snapshots', CLEAN_SNAPSHOT), { recursive: true });
     writeFileSync(join(t.avdHome, `${AVD}.ini`), '');
     t.runner.on('get-state', { exitCode: 1, stderr: 'offline' });
-    const pending = t.provider.acquire(spec, { workerIndex: 0 });
+    const pending = t.provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
     await new Promise((r) => setTimeout(r, 10));
     t.runner.processes[0]!.exit(1);
     await expect(pending).rejects.toMatchObject({ code: 'ANDROID_EMULATOR_FAILED' });
@@ -196,7 +196,7 @@ describe('ManagedDeviceProvider', () => {
       stderr: 'Error: Invalid --device tv_9000',
     });
     await expect(
-      t.provider.acquire({ ...spec, model: 'tv_9000' }, { workerIndex: 0 }),
+      t.provider.acquire({ ...spec, model: 'tv_9000' }, { workerIndex: 0, parallelIndex: 0 }),
     ).rejects.toMatchObject({
       code: 'ANDROID_AVD_FAILED',
     });

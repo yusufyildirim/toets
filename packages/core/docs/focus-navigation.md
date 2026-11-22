@@ -11,7 +11,7 @@ await app.focus.waitForChange(() => app.remote.press(Key.RIGHT));
 
 ## How it chooses
 
-1. With the SDK focus graph (`focus.graph`), it follows the app's own next-focus map.
+1. With the SDK focus graph (`focus.graph`), it follows the app's own next-focus map. An edge is a node id (focus moves there), `null` (focus does not move: never pressed) or absent (unknown: geometry decides).
 2. Otherwise it uses geometry: directions toward the target first, then detours. It learns which press moved focus where, never repeats a failed press from the same element, and backtracks over known moves to reach untried directions.
 3. It stops after `maxPresses` (default 50) and fails with the reason, the focused element and the path tried.
 
