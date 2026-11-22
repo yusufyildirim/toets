@@ -15,7 +15,7 @@
 
 ## Tuning
 
-```ts
+```ts nocheck
 startDpad({
   idle: {
     quietMs: 150,

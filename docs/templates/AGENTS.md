@@ -13,7 +13,7 @@ TV end-to-end tests live in `e2e/` and run with dpad on Playwright Test.
 - No click. Move focus with `app.focus.navigateTo(locator)` or `app.remote.press(Key.X)`, assert `toBeFocused()`, then press `Key.SELECT`.
 - Locate by test ID (`app.getByTestId`). Add a missing test ID to the app instead of matching layout or volatile text.
 - Never sleep or poll by hand: assertions retry. Anchor a negative assertion on a positive one first.
-- Platform gaps are capabilities: `test(name, { requires: ['key.color'] }, fn)`, never `if (platform === ...)`.
+- Platform gaps are capabilities: `test(name, requires('key.color'), fn)`, never `if (platform === ...)`.
 - Page objects live in `e2e/pages/`, take `app`, expose locators and actions, and do not assert beyond waiting until loaded.
 - Data-dependent tests mock the network with `app.network.use(...)` before `app.launch()`.
 - When a test fails, read the error's hint, its docs link and the failure dump before changing the test.

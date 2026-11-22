@@ -2,7 +2,7 @@
 
 `createSdkHost()` (from `@dpad-tv/protocol/host`, Node only) is the host side of the [protocol](./spec.md): a loopback WebSocket server that issues one-time tokens and turns each app connection into an `SdkSession`. The dpad core owns one per run; drivers only put its URL and a token into the launch payload.
 
-```ts
+```ts nocheck
 import { createSdkHost } from '@dpad-tv/protocol/host';
 
 const host = await createSdkHost();

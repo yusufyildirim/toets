@@ -6,7 +6,7 @@ Exclude the SDK from builds that ship: inert code still costs bytes, and on Andr
 
 Include the SDK only when Metro runs for e2e builds:
 
-```js
+```js nocheck
 // metro.config.js
 const { getDefaultConfig } = require('@react-native/metro-config');
 

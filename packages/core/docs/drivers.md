@@ -2,7 +2,7 @@
 
 A driver connects dpad to one platform. It is a package whose default export is a `DriverModule`; `@dpad-tv/test` imports it by name only when a project uses it.
 
-```ts
+```ts nocheck
 import type { DriverModule } from '@dpad-tv/core';
 
 const module: DriverModule = {

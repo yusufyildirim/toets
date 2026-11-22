@@ -13,6 +13,8 @@ dpad creates, boots, snapshots and resets emulators itself.
 - **Reuse across runs**: with `reuse: true`, emulators stay up after the run and the next run adopts them.
 
 ```ts
+import { platforms } from '@dpad-tv/test';
+
 platforms.androidTV({
   model: 'tv_1080p',
   osVersion: '34',

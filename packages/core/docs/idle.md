@@ -3,7 +3,9 @@
 With the in-app SDK connected (`sync.idle`), the app reports when it is idle: no pending network, animations, short timers or focus transitions for about 100 ms. Assertions wait for idle before checking, so they check a settled screen and negative assertions resolve quickly.
 
 ```ts
-// dpad.config.ts
+// playwright.config.ts
+import { defineConfig } from '@dpad-tv/test';
+
 export default defineConfig({
   dpad: { sdk: true, idle: { quietMs: 100, budgetMs: 2000 } },
   // ...

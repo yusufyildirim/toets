@@ -2,7 +2,7 @@
 
 An adapter connects a UI framework to the runtime. The runtime owns the protocol, the connection, idle tracking, logs, state and media; the adapter answers what only the framework knows: the tree and focus.
 
-```ts
+```ts nocheck
 import { createDpad } from '@dpad-tv/sdk';
 
 export function startDpad(options = {}) {

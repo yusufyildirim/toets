@@ -2,12 +2,9 @@
  * Type-checks (and, for `run` blocks, executes) code blocks in the docs site, package docs
  * and skills, so examples can not rot. Usage:
  *
- *   node scripts/check-examples.ts [--resolve=auto|contract|real] [--list-pending]
+ *   node scripts/check-examples.ts [--list-pending]
  *
- * `--resolve` picks what `@dpad-tv/test` and `@dpad-tv/mock` resolve to:
- * - `contract`: the phase 1 stand-ins in `scripts/examples/contract/`.
- * - `real`: the workspace packages (source).
- * - `auto` (default): `real` for packages that export something, `contract` otherwise.
+ * Packages resolve to the workspace sources (`@dpad-tv/source` condition).
  */
 import { spawnSync } from 'node:child_process';
 import { globSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
@@ -19,19 +16,10 @@ import { extractBlocks, type CodeBlock, type ExtractedPage } from './examples/ex
 const docsDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const repoDir = dirname(docsDir);
 const cacheDir = join(docsDir, '.vitepress/cache/examples');
-const contractDir = join(docsDir, 'scripts/examples/contract');
 
 /** Markdown checked by this script, relative to the repo root. */
 const SOURCES = ['docs/**/*.md', 'packages/*/docs/**/*.md', 'skills/**/*.md'];
 const IGNORED = ['**/node_modules/**', 'docs/.vitepress/**'];
-
-/** Packages that may resolve to a contract stand-in, by stub file. */
-const STUBBED: Readonly<Record<string, { stub: string; source: string }>> = {
-  '@dpad-tv/test': { stub: 'test.d.ts', source: 'packages/test/src/index.ts' },
-  '@dpad-tv/mock': { stub: 'mock.d.ts', source: 'packages/mock/src/index.ts' },
-};
-
-type Resolve = 'auto' | 'contract' | 'real';
 
 interface Failure {
   readonly block: CodeBlock;
@@ -42,16 +30,9 @@ interface Failure {
 
 function main(): void {
   const args = process.argv.slice(2);
-  const resolve = (args.find((a) => a.startsWith('--resolve='))?.split('=')[1] ??
-    'auto') as Resolve;
-  if (!['auto', 'contract', 'real'].includes(resolve)) {
-    fail(`Unknown --resolve=${resolve}. Use auto, contract or real.`);
-  }
-
   const pages = collectPages();
   const blocks = pages.flatMap((p) => p.blocks);
   const checked = blocks.filter((b) => b.mode === 'check' || b.mode === 'run');
-  const stubs = stubbedModules(resolve);
 
   rmSync(cacheDir, { recursive: true, force: true });
   const files = new Map<string, CodeBlock>();
@@ -68,7 +49,7 @@ function main(): void {
     files.set(file, block);
   }
 
-  failures.push(...typecheck(files, stubs));
+  failures.push(...typecheck(files));
 
   const failedBlocks = new Set(failures.map((f) => f.block));
   let ran = 0;
@@ -78,7 +59,7 @@ function main(): void {
     ran++;
   }
 
-  report(pages, blocks, failures, ran, stubs, args.includes('--list-pending'));
+  report(pages, blocks, failures, ran, args.includes('--list-pending'));
   if (failures.length > 0) process.exitCode = 1;
 }
 
@@ -89,22 +70,7 @@ function collectPages(): ExtractedPage[] {
     .map((file) => extractBlocks(readFileSync(join(repoDir, file), 'utf8'), file));
 }
 
-function stubbedModules(resolve: Resolve): string[] {
-  if (resolve === 'real') return [];
-  return Object.entries(STUBBED)
-    .filter(([, { source }]) => resolve === 'contract' || !exportsAnything(join(repoDir, source)))
-    .map(([name]) => name);
-}
-
-function exportsAnything(file: string): boolean {
-  const code = readFileSync(file, 'utf8')
-    .replace(/\/\*[\s\S]*?\*\//g, '')
-    .replace(/\/\/.*$/gm, '')
-    .replace(/\s+/g, '');
-  return code !== '' && code !== 'export{};';
-}
-
-function compilerOptions(stubs: readonly string[]): ts.CompilerOptions {
+function compilerOptions(): ts.CompilerOptions {
   const base = ts.readConfigFile(join(repoDir, 'tsconfig.base.json'), ts.sys.readFile);
   const { options } = ts.parseJsonConfigFileContent(base.config, ts.sys, repoDir);
   return {
@@ -120,15 +86,12 @@ function compilerOptions(stubs: readonly string[]): ts.CompilerOptions {
     customConditions: ['@dpad-tv/source'],
     types: ['node'],
     typeRoots: [join(docsDir, 'node_modules/@types')],
-    paths: Object.fromEntries(
-      stubs.map((name) => [name, [join(contractDir, STUBBED[name]?.stub ?? '')]]),
-    ),
   };
 }
 
-function typecheck(files: ReadonlyMap<string, CodeBlock>, stubs: readonly string[]): Failure[] {
+function typecheck(files: ReadonlyMap<string, CodeBlock>): Failure[] {
   if (files.size === 0) return [];
-  const program = ts.createProgram([...files.keys()], compilerOptions(stubs));
+  const program = ts.createProgram([...files.keys()], compilerOptions());
   const failures: Failure[] = [];
   for (const [file, block] of files) {
     const source = program.getSourceFile(file);
@@ -186,7 +149,6 @@ function report(
   blocks: readonly CodeBlock[],
   failures: readonly Failure[],
   ran: number,
-  stubs: readonly string[],
   listPending: boolean,
 ): void {
   const count = (mode: CodeBlock['mode']) => blocks.filter((b) => b.mode === mode).length;
@@ -205,22 +167,14 @@ function report(
       );
     }
   }
-  const resolved =
-    stubs.length > 0 ? `contract stand-ins for ${stubs.join(', ')}` : 'real packages';
   console.log(
     [
       `examples: ${count('check') + count('run')} checked (${ran} run), ${count('pending')} pending on ${pendingPages.length} pages, ${count('skip')} nocheck`,
-      `resolved against ${resolved}`,
       failures.length === 0
         ? 'ok'
         : `${failures.length} problem${failures.length === 1 ? '' : 's'}`,
     ].join(' | '),
   );
-}
-
-function fail(message: string): never {
-  console.error(message);
-  process.exit(2);
 }
 
 main();

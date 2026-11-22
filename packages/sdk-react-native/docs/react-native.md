@@ -4,7 +4,7 @@
 
 ## Setup
 
-```ts
+```ts nocheck
 // index.js
 import { startDpad } from '@dpad-tv/sdk-react-native';
 startDpad(); // first: before the app's modules run

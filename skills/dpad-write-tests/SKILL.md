@@ -57,7 +57,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 | Check content              | `toBeVisible`, `toHaveText`, `toContainText`, `toHaveCount`        |
 | Check playback             | `expect(app.media).toBePlaying()`, `toBePaused()`                  |
 | Mock data                  | `app.network.use(http.get(...))` before `launch()`                 |
-| Needs a capability         | `test(name, { requires: ['key.color'] }, fn)`                      |
+| Needs a capability         | `test(name, requires('key.color'), fn)`                            |
 | Run in order, shared `app` | `test.describe.serial(...)`                                        |
 
 ## Rules

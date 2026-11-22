@@ -2,7 +2,7 @@
 
 A capability is something a target can do: press color keys (`key.color`), report media state (`media.state`), mock the network (`network.mock`). The available set is the driver's capabilities, plus the SDK's when the app embeds it, plus `network.mock` when mocking is on.
 
-```ts
+```ts nocheck
 test('the guide opens with the green key', requires('key.color'), async ({ app }) => {
   await app.launch();
   await app.remote.press(Key.GREEN);

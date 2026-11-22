@@ -224,7 +224,7 @@ export class WebDriver implements Driver {
       const capability = KEY_CAPABILITY[key];
       throw new DpadError('web.key-unmapped', `Key ${key} has no web key mapping.`, {
         hint: `Map it in the web config, e.g. \`keys: { ${key}: { key: '...', keyCode: 0 } }\`.${
-          capability ? ` Tests pressing it should declare \`requires: ['${capability}']\`.` : ''
+          capability ? ` Tests pressing it should declare \`requires('${capability}')\`.` : ''
         }`,
         docs: packageDocsLink('driver-web', 'keys'),
       });

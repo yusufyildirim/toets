@@ -4,7 +4,7 @@ The `media` domain reports players (state, position, duration, rate, error) with
 
 Pull (the SDK reads the player when asked):
 
-```ts
+```ts nocheck
 import { registerMedia } from '@dpad-tv/sdk';
 
 const unregister = registerMedia('main', {
@@ -19,7 +19,7 @@ const unregister = registerMedia('main', {
 
 Push (from player events; emits `media.changed`):
 
-```ts
+```ts nocheck
 import { createMediaReporter } from '@dpad-tv/sdk';
 
 const media = createMediaReporter('main');

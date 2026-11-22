@@ -9,7 +9,7 @@ dpad configures the app at launch through one launch payload from `@dpad-tv/prot
 
 Both carry the same value, `encodeLaunchPayloadParam` from `@dpad-tv/protocol`; `decodeLaunchPayload` decodes and validates it. The dpad SDK reads both, so most apps never touch this.
 
-```js
+```js nocheck
 // Reading it without the SDK:
 const param = new URLSearchParams(location.search).get('__dpad') ?? window.__DPAD__;
 const json =

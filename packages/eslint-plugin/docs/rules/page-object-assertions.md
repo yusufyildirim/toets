@@ -6,7 +6,7 @@ In page object files, allows only **stability matchers**: `toBeVisible`, `toBeIn
 
 A page object describes how to reach and operate a screen. Stability matchers belong there because they wait until the screen is ready to be driven. Behavior checks (`toHaveText`, `toBePlaying`, `toHaveCount`, ...) belong in the test: hidden in a page object they make tests pass or fail for reasons the test does not show, and they get re-run by every test that reuses the page object.
 
-```ts
+```ts nocheck
 // Bad: e2e/pages/home.ts
 async open() {
   await this.app.launch();
@@ -29,7 +29,7 @@ await expect(home.title).toHaveText('Home');
 - `files` (`string[]`): globs (relative to the ESLint working directory) that identify page objects. Default: `**/pages/**`, `**/page-objects/**`, `**/pageObjects/**`, `**/*.page.*`, `**/*-page.*`, `**/*Page.*`. Other files are ignored by this rule.
 - `allowedMatchers` (`string[]`): matchers allowed in page objects. Default: the stability matchers above.
 
-```js
+```js nocheck
 '@dpad-tv/page-object-assertions': ['error', { files: ['e2e/screens/**'] }]
 ```
 

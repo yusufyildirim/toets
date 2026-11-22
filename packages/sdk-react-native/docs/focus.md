@@ -16,7 +16,7 @@ Focusable means what the native focus engine uses: `focusable` (Android), `isTVS
 
 Engines such as react-tv-space-navigation or Norigin Spatial Navigation never move native focus. Report it instead:
 
-```ts
+```ts nocheck
 startDpad({ nativeFocus: false, isFocusable: (props) => props.testID?.startsWith('card-') });
 
 function Card({ testID }) {

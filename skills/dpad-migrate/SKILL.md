@@ -31,7 +31,7 @@ Docs are referenced by slug, for example `guides/migrating/from-appium`: the doc
 | sleeps, `waitUntil`, `waitForDisplayed`          | `await expect(locator).toBeVisible()` and other retrying matchers             |
 | CSS, XPath, UiSelector, accessibility-id strings | `app.getByTestId(id)`; add one test ID per element for all platforms          |
 | raw keycodes, `keyboard.press('ArrowRight')`     | `app.remote.press(Key.RIGHT)`                                                 |
-| `if (platform === ...)`, per-platform files      | one test; `requires: [...]` for real capability gaps                          |
+| `if (platform === ...)`, per-platform files      | one test; `requires(...)` for real capability gaps                            |
 | shell commands (`adb shell dumpsys`, `simctl`)   | capabilities: `media.state`, `app.state`, `platform.events`                   |
 | clicking through onboarding in every test        | `app.launch({ state })` with the SDK, or a project fixture                    |
 | per-request interception in the browser          | `app.network.use(http.get('*/path', ...))` before `launch()`                  |

@@ -28,6 +28,8 @@ HOME and MENU are unmapped because TV operating systems keep them for themselves
 Map what your app listens to. A spec replaces the default; `null` removes the key and, with it, the capability (tests requiring it are skipped):
 
 ```ts
+import { platforms } from '@dpad-tv/test';
+
 // A Tizen build that reads keyCodes:
 platforms.web({
   keys: {

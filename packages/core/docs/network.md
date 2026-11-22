@@ -2,8 +2,8 @@
 
 With `dpad: { mock: true }`, a host-side mock server runs per worker. The app learns its address (`mockUrl`) from the launch payload and sends API traffic there; handlers decide what to answer and everything else is proxied upstream. No certificates, no device proxy settings, same on every platform.
 
-```ts
-import { http, HttpResponse } from 'msw';
+```ts nocheck
+import { http, HttpResponse } from '@dpad-tv/test';
 
 app.network.use(http.get('*/api/home', () => HttpResponse.json({ rails: [] })));
 await app.launch();

@@ -4,7 +4,7 @@ Proves that an SDK speaks the [protocol](./spec.md) correctly, over the wire onl
 
 ## From code
 
-```ts
+```ts nocheck
 import { formatConformanceReport, runConformance } from '@dpad-tv/protocol/conformance';
 
 const report = await runConformance({

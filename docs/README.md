@@ -54,7 +54,7 @@ Packages own `packages/<pkg>/docs/`. Those pages ship in the npm package, so:
 
 `--list-pending` lists what waits. Enable a page by removing its marker once its API is implemented.
 
-**Resolution.** `@dpad-tv/test` and `@dpad-tv/mock` resolve to the workspace packages once their source exports something, and to the contract stand-ins in `scripts/examples/contract/` until then (`--resolve=auto`, the default). Force either with `--resolve=contract` or `--resolve=real`. When both packages are implemented, delete the stand-ins.
+**Resolution.** `@dpad-tv/*` imports resolve to the workspace sources; every package an example imports must be a dev dependency of `docs/`. Third-party imports the docs do not install (`axios`, Metro) belong in `nocheck` blocks.
 
 `run` blocks import packages as Node resolves them, so build the workspace first (`pnpm build`). Keep them free of devices and network.
 

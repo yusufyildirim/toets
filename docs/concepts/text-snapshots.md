@@ -4,8 +4,6 @@ description: Text snapshots are focus-aware YAML views of the screen - determini
 
 # Text snapshots
 
-<!-- examples: pending -->
-
 A **text snapshot** is a YAML rendering of the screen or one element: test IDs, text and state, with the focused element marked. It is deterministic and comparable across platforms, so it serves three purposes:
 
 - **Failure context.** Every failure dump includes one; an agent reads it instead of a screenshot.

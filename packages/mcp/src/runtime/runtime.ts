@@ -169,7 +169,7 @@ export class DriverRuntime implements ScreenRuntime {
         'KEY_UNSUPPORTED',
         `${key} needs the \`${needed}\` capability, which ${this.platform} does not have.`,
         {
-          hint: `Use \`capabilities\` to list the keys this target supports. In tests, gate on it with \`requires: ['${needed}']\`.`,
+          hint: `Use \`capabilities\` to list the keys this target supports. In tests, gate on it with \`requires('${needed}')\`.`,
           docs: docsLink('concepts/remote-and-keys'),
         },
       );

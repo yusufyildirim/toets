@@ -32,7 +32,7 @@ test('shows an empty state when there are no rails', async ({ app }) => {
 
 Two helpers build handlers for the unhappy path. They work on mocked and proxied traffic alike.
 
-```ts
+```ts nocheck
 import { failure, latency } from '@dpad-tv/mock';
 
 app.network.use(latency(3000, { url: '/v1/rails' })); // slow, then normal response

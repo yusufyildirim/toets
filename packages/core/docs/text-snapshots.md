@@ -2,7 +2,7 @@
 
 A text snapshot is a small YAML outline of what the user sees: visible, on-screen elements, their text and their state. It is the cheapest way to assert a whole screen, and the format AI agents read best.
 
-```ts
+```ts nocheck
 await expect(app.getByTestId('rail')).toMatchTextSnapshot(`
   - rail:
     - card_1 "Movie 1" [focused]

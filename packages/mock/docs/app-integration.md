@@ -12,6 +12,8 @@ Rules:
 ## fetch
 
 ```ts
+declare function getMockUrl(): string | undefined; // from the launch payload
+
 const MOCK_HEADER = 'x-dpad-original-origin';
 
 /** Rewrites a real API URL to the mock server when the launch payload has a mockUrl. */
@@ -34,7 +36,7 @@ export function apiFetch(url: string, init: RequestInit = {}): Promise<Response>
 
 ## axios
 
-```ts
+```ts nocheck
 import axios from 'axios';
 
 export const api = axios.create({ baseURL: 'https://api.tv.example/v2' });

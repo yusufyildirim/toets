@@ -10,7 +10,7 @@ General rules: `@dpad-tv/sdk` docs, `idle.md`. What the adapter adds:
 | `InteractionManager` | Handles count as busy on React Native versions that still ship it.                                                          |
 | Navigation           | `navigationIdleListeners()` for React Navigation stacks (below).                                                            |
 
-```tsx
+```tsx nocheck
 <Stack.Navigator screenListeners={navigationIdleListeners()}>
 ```
 

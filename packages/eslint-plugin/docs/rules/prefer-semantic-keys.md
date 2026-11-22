@@ -6,7 +6,7 @@ Requires `Key` values in `remote.press`, `remote.longPress`, `remote.repeat` and
 
 Keycodes are platform-specific: `19` is D-pad up on Android only, `'ArrowUp'` is a web key, `menu` is a tvOS button that means back. dpad drivers map each semantic `Key` to what the platform's remote really has, and refuse keys a platform lacks with a clear error. Raw values bypass both the mapping and the capability check.
 
-```ts
+```ts nocheck
 // Bad
 await app.remote.press(19);
 await app.remote.press('ArrowUp');

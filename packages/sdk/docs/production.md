@@ -6,7 +6,7 @@ The SDK is inert without a launch payload, but it must not ship in production: a
 
 `@dpad-tv/sdk/noop` (and `@dpad-tv/sdk-react-native/noop`) export the same app-facing API doing nothing, so app calls like `markBusy()` and `onState()` stay in place.
 
-```js
+```js nocheck
 // vite.config.js
 export default defineConfig(({ mode }) => ({
   resolve: {

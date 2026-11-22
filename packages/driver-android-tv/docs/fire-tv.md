@@ -3,6 +3,8 @@
 Fire OS (Fire TV sticks and cubes before Vega OS) is Android, so the Android TV driver runs Fire TV apps unchanged. Amazon ships no Fire OS emulator: test on an Android TV emulator and set `remote: 'fire-tv'` so the capabilities match the Alexa Voice Remote.
 
 ```ts
+import { platforms } from '@dpad-tv/test';
+
 platforms.androidTV({ remote: 'fire-tv' });
 ```
 

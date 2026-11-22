@@ -2,7 +2,7 @@
 
 Tests should start where they need to be, not click through onboarding. The launch payload carries `state` and `flags`; the app applies them in an `onState` handler, which also serves `state.apply` from tests later.
 
-```ts
+```ts nocheck
 import { onState } from '@dpad-tv/sdk';
 
 onState(async (state, flags) => {

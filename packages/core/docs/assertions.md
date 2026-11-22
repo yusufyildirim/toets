@@ -2,7 +2,7 @@
 
 Every dpad matcher retries until it passes or the timeout elapses (`expect.timeout`, default 5000 ms). There are no sleeps in a dpad test.
 
-```ts
+```ts nocheck
 await app.remote.press(Key.SELECT);
 await expect(app.getByTestId('details_title')).toHaveText('The Matrix');
 await expect(app.getByTestId('play')).toBeFocused({ timeout: 10_000 });

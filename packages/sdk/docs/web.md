@@ -20,7 +20,7 @@ The web driver passes the payload as `?__dpad=<base64url>` (also read inside has
 
 Many TV web apps move a "focused" class instead of DOM focus. Tell the adapter:
 
-```ts
+```ts nocheck
 startDpad({
   focusedElement: () => document.querySelector('.focused'),
   isFocusable: (el) => el.classList.contains('focusable') || undefined,

@@ -48,14 +48,14 @@ Pressing a key the platform lacks throws an error naming the capability. Tests t
 
 Some apps define their own gesture for a key the remote lacks, for example "hold right to fast-forward" on Apple TV. Declare it once in the config instead of branching in tests; overridden presses are flagged in the report.
 
-```ts pending
+```ts
 import { defineConfig, platforms, Key } from '@dpad-tv/test';
 
 export default defineConfig({
   app: { tvOS: { app: './build/Example.app', bundleId: 'com.example.tv' } },
   projects: [
     platforms.tvOS({
-      keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } },
+      dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } },
     }),
   ],
 });

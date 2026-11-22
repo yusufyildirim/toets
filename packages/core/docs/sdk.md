@@ -2,8 +2,8 @@
 
 The SDK is an optional library inside the app. It connects back to the test host when the app is launched by dpad and answers questions only the app can answer quickly: the element tree, the focus graph, idle state, media state, app state and logs.
 
-```ts
-// dpad.config.ts
+```ts nocheck
+// playwright.config.ts
 export default defineConfig({ dpad: { sdk: true } /* ... */ });
 
 // a test

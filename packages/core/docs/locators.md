@@ -2,7 +2,7 @@
 
 A locator describes how to find an element, not the element itself. It is resolved again on every action and assertion, so it never goes stale when the screen re-renders.
 
-```ts
+```ts nocheck
 const rail = app.getByTestId('rail_trending');
 const card = rail.getByText(/the matrix/i).first();
 

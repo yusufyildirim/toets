@@ -29,7 +29,7 @@ TypeScript files need a TS parser (for example `typescript-eslint`) configured a
 
 Override levels or options per rule as with any plugin:
 
-```js
+```js nocheck
 {
   files: ['e2e/**'],
   ...dpad.configs.recommended,

@@ -3,6 +3,8 @@
 Device platforms need a device per worker. A project picks how it gets one with `devices`; web needs none.
 
 ```ts
+import { platforms } from '@dpad-tv/test';
+
 platforms.androidTV({ devices: 'managed', model: 'tv_1080p', osVersion: '34' });
 platforms.androidTV({
   devices: { mode: 'external', addresses: ['emulator-5554', 'emulator-5556'] },

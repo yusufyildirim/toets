@@ -48,7 +48,7 @@ Security: an SDK MUST stay inert (install no hooks, open no connection) without 
 
 ## Handshake
 
-```json
+```json nocheck
 → {"jsonrpc":"2.0","id":1,"method":"dpad.hello","params":{"protocol":"1.0.0","token":"9f2c...","sdk":"@dpad-tv/sdk@0.1.0","framework":"web","domains":["tree","focus","sync","media","state","logs"]}}
 ← {"jsonrpc":"2.0","id":1,"result":{"protocol":"1.0.0","sessionId":"5b0e..."}}
 ```

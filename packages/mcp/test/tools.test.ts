@@ -91,7 +91,7 @@ describe('dpad MCP tools over FakeDriver', () => {
     const out = await h.err('press', { keys: ['RIGHT', 'PLAY_PAUSE'] });
     expect(out).toContain('KEY_UNSUPPORTED');
     expect(out).toContain('key.media.toggle');
-    expect(out).toContain("requires: ['key.media.toggle']");
+    expect(out).toContain("requires('key.media.toggle')");
     expect(h.driver.presses).toEqual([]);
     expect(await h.err('press', { keys: ['RIGHT'], holdMs: 500 })).toContain('key.longpress');
   });

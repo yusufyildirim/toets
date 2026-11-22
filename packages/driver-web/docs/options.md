@@ -24,6 +24,8 @@ Set in `app.web` or `platforms.web({...})` (platform wins). Invalid values fail 
 Spatial navigation libraries often never move DOM focus: they mark the focused element with a class. Tell the driver how to see it:
 
 ```ts
+import { platforms } from '@dpad-tv/test';
+
 platforms.web({ focus: { focused: '.is-focused', focusable: '.focusable' } });
 ```
 

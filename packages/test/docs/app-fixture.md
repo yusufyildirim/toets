@@ -20,6 +20,8 @@ test('opens details', async ({ app }) => {
 - **Serial blocks share one app.** Tests in a `test.describe.serial` block run in order on the same app: no isolation between them, so step 2 continues where step 1 left off. The next test outside the block is isolated again.
 
 ```ts
+import { test } from '@dpad-tv/test';
+
 test.describe.serial('onboarding', () => {
   test('pick a profile', async ({ app }) => {
     await app.launch(); /* ... */

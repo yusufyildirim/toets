@@ -2,7 +2,7 @@
 
 `useDpadMedia(id)` registers a react-native-video player for the `media` domain while the component is mounted and returns event props to spread on `<Video>`:
 
-```tsx
+```tsx nocheck
 import { useDpadMedia } from '@dpad-tv/sdk-react-native';
 
 function Player({ source }) {

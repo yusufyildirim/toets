@@ -1,6 +1,6 @@
 # Screenshots
 
-```ts
+```ts nocheck
 await expect(app).toMatchScreenshot({ mask: [app.getByTestId('hero_video')] });
 await expect(app.getByTestId('rail')).toMatchScreenshot({ maxDiffPixelRatio: 0.01 });
 

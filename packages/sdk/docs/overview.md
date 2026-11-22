@@ -14,7 +14,7 @@ The adapter's `startDpad()` looks for the launch payload. Without one (a normal 
 
 Safe to call unconditionally, before or without the SDK running:
 
-```ts
+```ts nocheck
 import { getDpad, markBusy, onState } from '@dpad-tv/sdk';
 
 onState(async (state, flags) => {

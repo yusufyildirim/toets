@@ -2,17 +2,17 @@
 
 Every device tool maps to a dpad test API and answers with the matching test code, so what works in exploration pastes into a test. Elements are addressed with a **target**: `{ testId?, text?, exact?, nth? }`, the same selectors tests use (`app.getByTestId(id).getByText(text)`). Prefer test IDs.
 
-| Tool           | Does                                                                                | In a test                               |
-| -------------- | ----------------------------------------------------------------------------------- | --------------------------------------- |
-| `launch`       | Starts or restarts the app on a target. Needed first.                               | `await app.launch()`                    |
-| `snapshot`     | YAML text snapshot of the screen (or a subtree), focus-aware.                       | `await app.snapshot()`                  |
-| `press`        | Presses remote keys in order; reports where focus landed.                           | `app.remote.press / repeat / sequence`  |
-| `navigate_to`  | Moves focus to a target with real D-pad presses; reports the path.                  | `await app.focus.navigateTo(locator)`   |
-| `query`        | Lists current matches of a target with state and bounds.                            | `app.getByTestId(...)`                  |
-| `assert`       | `toBeVisible`, `toBeFocused`, `toHaveText`, `toContainText`, retried until timeout. | `await expect(locator).toBeFocused()`   |
-| `screenshot`   | PNG of the screen (or one element with `screenshot.element`).                       | `await app.screenshot()`                |
-| `capabilities` | Platform, capabilities, supported keys, configured targets.                         | `requires: [...]`, `app.platform.has()` |
-| `docs_search`  | Searches the docs shipped in installed `@dpad-tv/*` packages.                       |                                         |
+| Tool           | Does                                                                                | In a test                              |
+| -------------- | ----------------------------------------------------------------------------------- | -------------------------------------- |
+| `launch`       | Starts or restarts the app on a target. Needed first.                               | `await app.launch()`                   |
+| `snapshot`     | YAML text snapshot of the screen (or a subtree), focus-aware.                       | `await app.snapshot()`                 |
+| `press`        | Presses remote keys in order; reports where focus landed.                           | `app.remote.press / repeat / sequence` |
+| `navigate_to`  | Moves focus to a target with real D-pad presses; reports the path.                  | `await app.focus.navigateTo(locator)`  |
+| `query`        | Lists current matches of a target with state and bounds.                            | `app.getByTestId(...)`                 |
+| `assert`       | `toBeVisible`, `toBeFocused`, `toHaveText`, `toContainText`, retried until timeout. | `await expect(locator).toBeFocused()`  |
+| `screenshot`   | PNG of the screen (or one element with `screenshot.element`).                       | `await app.screenshot()`               |
+| `capabilities` | Platform, capabilities, supported keys, configured targets.                         | `requires(...)`, `app.platform.has()`  |
+| `docs_search`  | Searches the docs shipped in installed `@dpad-tv/*` packages.                       |                                        |
 
 ## Text snapshot
 

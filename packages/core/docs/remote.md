@@ -2,7 +2,7 @@
 
 `app.remote` sends real key events, the same way a user's remote does. Keys are semantic (`Key.SELECT`, `Key.BACK`, `Key.PLAY_PAUSE`); each driver maps them to its platform.
 
-```ts
+```ts nocheck
 await app.remote.press(Key.DOWN);
 await app.remote.repeat(Key.RIGHT, 3);
 await app.remote.sequence([Key.DOWN, Key.SELECT]);
@@ -14,7 +14,7 @@ await app.remote.longPress(Key.SELECT, 800);
 - **Capabilities, not platform checks.** D-pad and `SELECT` work everywhere. Other keys need a capability (`BACK` needs `key.back`, color keys need `key.color`, ...). Pressing an unsupported key fails with `KEY_UNSUPPORTED`. Declare it with `requires('key.color')` so the test is skipped on platforms without it.
 - **Key overrides describe the app, not the platform.** When an app maps a semantic key to another gesture, configure it once instead of branching in tests:
 
-  ```ts
+  ```ts nocheck
   dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } }
   ```
 
