@@ -10,6 +10,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./reporter": {
+      "source": "./src/reporter.ts",
+      "types": "./dist/reporter.d.ts",
+      "default": "./dist/reporter.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -30,5 +35,8 @@
   },
   "devDependencies": {
     "@playwright/test": "^1.65.1"
+  },
+  "peerDependencies": {
+    "@playwright/test": "^1.65.0"
   }
 }

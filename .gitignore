@@ -8,3 +8,7 @@ test-results
 .vitepress/cache
 .vitepress/dist
 .env*
+
+# dpad
+.out
+dpad-report
