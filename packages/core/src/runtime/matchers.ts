@@ -142,7 +142,7 @@ interface StateMatcher {
 }
 
 function stateMatcher(def: StateMatcher) {
-  return (ctx: MatchContext, subject: Locator): Promise<MatchResult> => {
+  return async (ctx: MatchContext, subject: Locator): Promise<MatchResult> => {
     const locator = asLocator(def.name, subject);
     return runMatcher(ctx, {
       name: def.name,
@@ -171,7 +171,11 @@ const displayValue = (v: string | RegExp): string =>
   v instanceof RegExp ? String(v) : JSON.stringify(v);
 
 function textMatcher(name: 'toHaveText' | 'toContainText') {
-  return (ctx: MatchContext, subject: Locator, expected: string | RegExp): Promise<MatchResult> => {
+  return async (
+    ctx: MatchContext,
+    subject: Locator,
+    expected: string | RegExp,
+  ): Promise<MatchResult> => {
     const locator = asLocator(name, subject);
     if (typeof expected !== 'string' && !(expected instanceof RegExp)) {
       throw new DpadError('INVALID_ARGUMENT', `${name}() expects a string or RegExp.`, {
@@ -265,7 +269,7 @@ export const locatorMatchers = {
   }),
   toHaveText: textMatcher('toHaveText'),
   toContainText: textMatcher('toContainText'),
-  toHaveCount(ctx: MatchContext, subject: Locator, count: number): Promise<MatchResult> {
+  async toHaveCount(ctx: MatchContext, subject: Locator, count: number): Promise<MatchResult> {
     const locator = asLocator('toHaveCount', subject);
     if (!Number.isInteger(count) || count < 0) {
       throw new DpadError(
@@ -353,7 +357,7 @@ const describeMedia = (m: MediaInfo | null): string =>
     ? `${m.state} at ${m.position.toFixed(1)}s${m.duration === null ? '' : ` / ${m.duration.toFixed(1)}s`}${m.error ? ` (error: ${m.error})` : ''}`
     : 'no active media';
 
-function mediaMatcher(
+async function mediaMatcher(
   name: string,
   subject: unknown,
   ctx: MatchContext,
@@ -421,7 +425,7 @@ const describeRequest = (r: RecordedRequest): string =>
 /** Assertions on `app.network` (`network.mock`). */
 export const networkMatchers = {
   /** At least one matching request, or exactly `times` when given. */
-  toHaveRequested(
+  async toHaveRequested(
     ctx: MatchContext,
     network: Network,
     filter: RequestFilter,

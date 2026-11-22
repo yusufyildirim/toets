@@ -27,14 +27,14 @@ export function lineDiff(expected: string, received: string): string {
       i++;
       j++;
     } else if (
-      j < b.length &&
-      (i >= a.length || (lcs[i]?.[j + 1] ?? 0) >= (lcs[i + 1]?.[j] ?? 0))
+      i < a.length &&
+      (j >= b.length || (lcs[i + 1]?.[j] ?? 0) >= (lcs[i]?.[j + 1] ?? 0))
     ) {
-      out.push(`+ ${b[j]}`);
-      j++;
-    } else {
       out.push(`- ${a[i]}`);
       i++;
+    } else {
+      out.push(`+ ${b[j]}`);
+      j++;
     }
   }
   return out.join('\n');

@@ -38,6 +38,50 @@ export function rankDirections(from: Rect, to: Rect): Direction[] {
   return ranked;
 }
 
+/** Directions that reduce the distance to `to`, best first (a prefix of {@link rankDirections}). */
+export function towardDirections(from: Rect, to: Rect): Direction[] {
+  const a = center(from);
+  const b = center(to);
+  return rankDirections(from, to).filter(
+    (d) =>
+      (d === 'up' && b.y < a.y) ||
+      (d === 'down' && b.y > a.y) ||
+      (d === 'left' && b.x < a.x) ||
+      (d === 'right' && b.x > a.x),
+  );
+}
+
+interface Visit {
+  bounds: Rect;
+  readonly tried: Set<Direction>;
+  /** Observed transitions; a press that did not move focus maps to the element itself. */
+  readonly edges: Map<Direction, ElementRef>;
+}
+
+/** First step along learned transitions to the nearest other element satisfying `wanted`. */
+function walkToward(
+  visits: ReadonlyMap<ElementRef, Visit>,
+  from: ElementRef,
+  wanted: (v: Visit) => boolean,
+): Direction | null {
+  const firstStep = new Map<ElementRef, Direction>();
+  const queue: ElementRef[] = [from];
+  const seen = new Set([from]);
+  while (queue.length) {
+    const ref = queue.shift() as ElementRef;
+    for (const [d, next] of visits.get(ref)?.edges ?? []) {
+      if (seen.has(next)) continue;
+      seen.add(next);
+      const step = ref === from ? d : (firstStep.get(ref) as Direction);
+      const visit = visits.get(next);
+      if (!visit || wanted(visit)) return step; // unvisited elements are unexplored
+      firstStep.set(next, step);
+      queue.push(next);
+    }
+  }
+  return null;
+}
+
 /** First step of a shortest path through the SDK focus graph, or `null`. */
 export function nextStepInGraph(
   graph: readonly FocusGraphNode[],
@@ -88,9 +132,16 @@ export class FocusImpl implements Focus {
     );
   }
 
+  /**
+   * Online search with real presses. Every observed transition is learned; each (element,
+   * direction) pair is tried at most once, so the search always ends. Order of preference:
+   * the SDK focus graph; an untried direction toward the target; walking known transitions back
+   * to the nearest element that still has one; an untried detour; walking to any element with
+   * an untried direction.
+   */
   private async navigate(goal: LocatorImpl, maxPresses: number): Promise<readonly Direction[]> {
     const path: Direction[] = [];
-    const tried = new Map<ElementRef, Set<Direction>>();
+    const visits = new Map<ElementRef, Visit>();
     let goals: ReadonlySet<string> | null = null;
 
     for (;;) {
@@ -102,16 +153,22 @@ export class FocusImpl implements Focus {
       if (path.length >= maxPresses) {
         throw this.unreachable(goal, focused, path, `gave up after ${maxPresses} presses`);
       }
-      const triedHere = tried.get(focused.ref) ?? new Set<Direction>();
-      tried.set(focused.ref, triedHere);
-      const direction = await this.chooseDirection(focused, el, goals, triedHere);
-      if (!direction) {
-        throw this.unreachable(goal, focused, path, 'every direction from here was tried');
-      }
-      triedHere.add(direction);
+      const visit = visits.get(focused.ref) ?? {
+        bounds: focused.bounds,
+        tried: new Set(),
+        edges: new Map(),
+      };
+      visit.bounds = focused.bounds;
+      visits.set(focused.ref, visit);
+
+      const direction = await this.chooseDirection(focused.ref, el.bounds, goals, visits);
+      if (!direction) throw this.unreachable(goal, focused, path, 'no untried direction is left');
+      visit.tried.add(direction);
       await this.remote.press(DIRECTION_KEY[direction]);
       path.push(direction);
       await this.settle(focused.ref);
+      const after = await this.ctx.target.focused();
+      visit.edges.set(direction, after?.ref ?? focused.ref);
     }
   }
 
@@ -147,20 +204,26 @@ export class FocusImpl implements Focus {
   }
 
   private async chooseDirection(
-    focused: ElementSnapshot,
-    goal: ElementSnapshot,
+    from: ElementRef,
+    goal: Rect,
     goals: ReadonlySet<string>,
-    tried: ReadonlySet<Direction>,
+    visits: ReadonlyMap<ElementRef, Visit>,
   ): Promise<Direction | null> {
+    const here = visits.get(from) as Visit;
     const graph = await this.ctx.target.focusGraph();
     if (graph) {
-      const step = nextStepInGraph(graph, focused.ref, goals);
-      if (step && !tried.has(step)) return step;
-      this.ctx.log(
-        `focus graph has no untried path from ${describeElement(focused)}; using geometry`,
-      );
+      const step = nextStepInGraph(graph, from, goals);
+      if (step && !here.tried.has(step)) return step;
+      this.ctx.log('the focus graph has no untried path from here; using geometry');
     }
-    return rankDirections(focused.bounds, goal.bounds).find((d) => !tried.has(d)) ?? null;
+    const toward = (v: Visit) => towardDirections(v.bounds, goal).filter((d) => !v.tried.has(d));
+    const any = (v: Visit) => rankDirections(v.bounds, goal).filter((d) => !v.tried.has(d));
+    return (
+      toward(here)[0] ??
+      walkToward(visits, from, (v) => toward(v).length > 0) ??
+      any(here)[0] ??
+      walkToward(visits, from, (v) => any(v).length > 0)
+    );
   }
 
   /** Waits until focus leaves `from`, the app is idle, or the settle time passes. */
