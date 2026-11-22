@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import {
   canGoBack,
   initialNavigationState,
+  launchStateActions,
   MENU_SCOPE,
   navigationReducer,
   routeScope,
@@ -38,5 +39,22 @@ describe('navigationReducer', () => {
     expect(navigationReducer(initialNavigationState, { type: 'back' })).toBe(
       initialNavigationState,
     );
+  });
+});
+
+describe('launchStateActions', () => {
+  it('opens details, and the player on top of its details', () => {
+    expect(run(...launchStateActions('details:new-2')).stack).toEqual([
+      { name: 'details', itemId: 'new-2' },
+    ]);
+    expect(run(...launchStateActions('player:new-2')).stack).toEqual([
+      { name: 'details', itemId: 'new-2' },
+      { name: 'player', itemId: 'new-2' },
+    ]);
+  });
+
+  it('rejects unknown states', () => {
+    expect(() => launchStateActions('details')).toThrow(/Unknown launch state "details"/);
+    expect(() => launchStateActions('nowhere:1')).toThrow(/Unknown launch state/);
   });
 });

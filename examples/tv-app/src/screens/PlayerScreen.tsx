@@ -8,6 +8,7 @@ import { useRequest } from '../api/useRequest';
 import { Button } from '../components/Button';
 import { Screen } from '../components/Screen';
 import { StatusView } from '../components/StatusView';
+import { usePlayerMedia } from '../dpad';
 import { FocusGroup } from '../focus/FocusGroup';
 import type { MediaKey } from '../remote/keys';
 import { useMediaKeys } from '../remote/useMediaKeys';
@@ -54,6 +55,7 @@ function Player({ item }: { item: ItemDetails }) {
   const player = useVideoPlayer(item.streamUrl, (p) => {
     p.timeUpdateEventInterval = 0.5;
   });
+  usePlayerMedia(player);
   // After mount rather than in the setup callback: on web, play() needs the mounted <video>.
   useEffect(() => {
     if (autoplay) player.play();

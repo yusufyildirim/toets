@@ -1,20 +1,25 @@
 import { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { LogBox, StyleSheet, View } from 'react-native';
 
 import { SideMenu } from './components/SideMenu';
+import { isLaunchedByDpad, useLaunchState } from './dpad';
 import { installSpatialNavigation } from './focus/spatialNavigation';
-import { canGoBack, routeScope } from './navigation/navigation';
+import { canGoBack, launchStateActions, routeScope } from './navigation/navigation';
 import { NavigationProvider, useNavigation } from './navigation/NavigationContext';
 import { useBackKey } from './remote/useBackKey';
 import { DetailsScreen } from './screens/DetailsScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { PlayerScreen } from './screens/PlayerScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
-import { SettingsProvider } from './settings/SettingsContext';
+import { SettingsProvider, useSettings } from './settings/SettingsContext';
 import { colors } from './theme';
 
 export function App() {
   useEffect(() => installSpatialNavigation(), []);
+  // Under test, dev-mode warning toasts would cover the UI being asserted on.
+  useEffect(() => {
+    if (isLaunchedByDpad()) LogBox.ignoreAllLogs();
+  }, []);
   return (
     <SettingsProvider>
       <NavigationProvider>
@@ -30,6 +35,11 @@ function Navigator() {
   const { tab, stack } = navigation.state;
   const atRoot = stack.length === 0;
   useBackKey(navigation.back, canGoBack(navigation.state));
+  const { setAutoplay } = useSettings();
+  useLaunchState((state, flags) => {
+    if (flags.autoplay !== undefined) setAutoplay(flags.autoplay);
+    if (state !== undefined) navigation.apply(launchStateActions(state));
+  });
 
   return (
     <View testID="app_root" style={styles.root}>

@@ -1,5 +1,5 @@
 import type { ExpoConfig } from 'expo/config';
-import { withAppBuildGradle, type ConfigPlugin } from 'expo/config-plugins';
+import { withAppBuildGradle, withMainActivity, type ConfigPlugin } from 'expo/config-plugins';
 
 /**
  * Embeds the JS bundle in debug APKs too (React Native skips it by default), so the debug
@@ -13,6 +13,35 @@ const withEmbeddedDebugBundle: ConfigPlugin = (config) =>
       throw new Error('withEmbeddedDebugBundle: react { } block not found in app/build.gradle');
     }
     mod.modResults.contents = mod.modResults.contents.replace(marker, 'debuggableVariants = []');
+    return mod;
+  });
+
+/**
+ * dpad SDK glue for Android: hands the `__dpad` launch intent extra to JS as the root
+ * component's `__dpad` initial prop, where `@dpad-tv/sdk-react-native` reads it. Only in e2e
+ * builds (`DPAD_E2E=1`), the same switch that keeps the SDK out of other bundles (metro.config.ts).
+ */
+const withDpadLaunchOptions: ConfigPlugin = (config) =>
+  withMainActivity(config, (mod) => {
+    if (process.env.DPAD_E2E !== '1') return mod;
+    const delegate = /(object\s*:\s*DefaultReactActivityDelegate\([^)]*\)\s*)\{\s*\}/;
+    if (mod.modResults.language !== 'kt' || !delegate.test(mod.modResults.contents)) {
+      throw new Error(
+        'withDpadLaunchOptions: DefaultReactActivityDelegate not found in MainActivity',
+      );
+    }
+    const contents = mod.modResults.contents.replace(
+      delegate,
+      `$1{
+              // dpad: pass the launch payload (intent extra) to JS. E2E builds only.
+              override fun getLaunchOptions(): Bundle? =
+                this@MainActivity.intent?.getStringExtra("__dpad")
+                  ?.let { Bundle().apply { putString("__dpad", it) } }
+          }`,
+    );
+    mod.modResults.contents = contents.includes('import android.os.Bundle\n')
+      ? contents
+      : contents.replace(/^(package [^\n]+\n)/, '$1\nimport android.os.Bundle\n');
     return mod;
   });
 
@@ -33,4 +62,4 @@ const config: ExpoConfig = {
   ],
 };
 
-export default withEmbeddedDebugBundle(config);
+export default withDpadLaunchOptions(withEmbeddedDebugBundle(config));

@@ -107,6 +107,9 @@ importers:
 
   examples/tv-app:
     dependencies:
+      '@dpad-tv/sdk-react-native':
+        specifier: workspace:^
+        version: link:../../packages/sdk-react-native
       '@expo/metro-runtime':
         specifier: ~58.0.17
         version: 58.0.17(@expo/log-box@58.0.15)(expo@58.0.26)(react-dom@19.3.0(react@19.3.0))(react-native-tvos@0.88.1-0)(react@19.3.0)
@@ -129,6 +132,21 @@ importers:
         specifier: ~0.21.4
         version: 0.21.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
+      '@dpad-tv/driver-android-tv':
+        specifier: workspace:^
+        version: link:../../packages/driver-android-tv
+      '@dpad-tv/driver-tvos':
+        specifier: workspace:^
+        version: link:../../packages/driver-tvos
+      '@dpad-tv/driver-web':
+        specifier: workspace:^
+        version: link:../../packages/driver-web
+      '@dpad-tv/test':
+        specifier: workspace:^
+        version: link:../../packages/test
+      '@playwright/test':
+        specifier: ^1.65.1
+        version: 1.65.1
       '@react-native-tvos/config-tv':
         specifier: ^0.1.7
         version: 0.1.7(expo@58.0.26)
