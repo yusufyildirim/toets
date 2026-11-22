@@ -4,7 +4,8 @@ import { picksApi } from './data/catalog.js';
 import { DetailsPage } from './pages/DetailsPage.js';
 import { HomePage } from './pages/HomePage.js';
 
-// Inline snapshots with mocked data: the same text on every platform is the parity claim.
+// Inline snapshots with mocked data: the same text on every platform is the parity claim. A rail
+// keeps its children in every tree; a whole screen nests like the tree it is read from.
 test.describe('text snapshots', requires('network.mock'), () => {
   test('a rail with the first card focused', async ({ app }) => {
     const home = new HomePage(app);
@@ -23,7 +24,11 @@ test.describe('text snapshots', requires('network.mock'), () => {
     `);
   });
 
-  test('the details screen', async ({ app }) => {
+  test('the details screen', async ({ app, dpad }) => {
+    test.skip(
+      dpad?.platform === 'android-tv' && !dpad.options.sdk,
+      "React Native's Android accessibility tree lists a plain View's children as its siblings",
+    );
     const home = new HomePage(app);
     const details = new DetailsPage(app);
     app.network.use(...picksApi);
