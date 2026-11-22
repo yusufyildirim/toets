@@ -2,13 +2,13 @@
 
 Handlers are standard [MSW `http` handlers](https://mswjs.io/docs/api/http). In tests, import the helpers on this page from `@dpad-tv/test`, which re-exports them from `@dpad-tv/mock` so the server and your handlers share one MSW copy.
 
-```ts
+```ts run
 import { test, expect, http, HttpResponse } from '@dpad-tv/test';
 
 test('shows an empty state when there are no rails', async ({ app }) => {
   app.network.use(http.get('/v1/rails', () => HttpResponse.json([])));
   await app.launch();
-  await expect(app.getByTestId('empty_state')).toBeVisible();
+  await expect(app.getByTestId('rails-empty')).toBeVisible();
 });
 ```
 

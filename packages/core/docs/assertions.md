@@ -4,7 +4,7 @@ Every dpad matcher retries until it passes or the timeout elapses (`expect.timeo
 
 ```ts nocheck
 await app.remote.press(Key.SELECT);
-await expect(app.getByTestId('details_title')).toHaveText('The Matrix');
+await expect(app.getByTestId('details-title')).toHaveText('The Matrix');
 await expect(app.getByTestId('play')).toBeFocused({ timeout: 10_000 });
 ```
 

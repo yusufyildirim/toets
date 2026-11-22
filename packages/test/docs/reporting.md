@@ -10,7 +10,7 @@ Parity matrix: dpad-report/parity.md
 
 ## Steps and attachments
 
-- **Steps:** `launch`, `press SELECT`, `navigateTo getByTestId('card_2')`, `repeat RIGHT x3`, `platformOnly web`. Overridden keys read `press FAST_FORWARD (override: hold RIGHT 800ms)`.
+- **Steps:** `launch`, `press SELECT`, `navigateTo getByTestId('rail-0-card-2')`, `repeat RIGHT x3`, `platformOnly web`. Overridden keys read `press FAST_FORWARD (override: hold RIGHT 800ms)`.
 - **On failure:** `dpad-failure` (the [failure dump](../../core/docs/failure-dumps.md)) and `dpad-screenshot`.
 - **Always, when present:** `dpad-logs` (app and driver logs) and `dpad-network.har` (the test's mock server traffic as HAR 1.2, failed requests included).
 - **Optional per step:** `steps: { screenshot: true, snapshot: true }` attaches the screen after every action.

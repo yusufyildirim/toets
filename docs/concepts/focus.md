@@ -6,7 +6,7 @@ description: Focus is the primary state of a TV app. Move it with real remote pr
 
 On TV, exactly one element holds **focus** and the remote moves it. Focus is what the user sees as "where I am", so it is what dpad tests act through and assert on. There is no pointer: to activate something, focus it, then press `SELECT`.
 
-```ts
+```ts run
 import { test, expect, Key } from '@dpad-tv/test';
 
 test('remembers the focused card when returning to a rail', async ({ app }) => {

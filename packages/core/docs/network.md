@@ -5,10 +5,10 @@ With `dpad: { mock: true }`, a host-side mock server runs per worker. The app le
 ```ts nocheck
 import { http, HttpResponse } from '@dpad-tv/test';
 
-app.network.use(http.get('*/api/home', () => HttpResponse.json({ rails: [] })));
+app.network.use(http.get('*/v1/rails', () => HttpResponse.json([])));
 await app.launch();
-await expect(app.getByTestId('empty_state')).toBeVisible();
-await expect(app.network).toHaveRequested({ method: 'GET', url: '/api/home' }, { times: 1 });
+await expect(app.getByTestId('rails-empty')).toBeVisible();
+await expect(app.network).toHaveRequested({ method: 'GET', url: '/v1/rails' }, { times: 1 });
 ```
 
 ## Principles

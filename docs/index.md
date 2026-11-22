@@ -19,7 +19,7 @@ hero:
 
 <div class="vp-doc" style="max-width: 760px; margin: 0 auto; padding: 0 24px">
 
-```ts
+```ts run
 import { test, expect, Key } from '@dpad-tv/test';
 
 test('opens details from the first rail', async ({ app }) => {

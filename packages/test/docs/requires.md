@@ -2,7 +2,7 @@
 
 `requires(...capabilities)` declares what a test needs. On a platform without it, the test is skipped with the reason instead of failing, and the parity report shows where and why.
 
-```ts
+```ts run
 import { test, expect, requires, Key } from '@dpad-tv/test';
 
 test('green key opens the guide', requires('key.color'), async ({ app }) => {

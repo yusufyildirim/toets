@@ -27,7 +27,7 @@ A good dpad test drives the app the way a user does with a remote, checks what t
 
 dpad knows nothing about your splash screen, sign-in or consent dialogs. Put that in a Playwright fixture in your project and build tests on it:
 
-```ts
+```ts run
 import { test as base, expect, type App } from '@dpad-tv/test';
 
 /** The app launched and past the splash screen. */

@@ -5,7 +5,7 @@ description: Screenshot assertions that settle animated TV screens - stable fram
 # Screenshots
 
 ```ts nocheck
-await expect(app).toMatchScreenshot({ mask: [app.getByTestId('hero_video')] });
+await expect(app).toMatchScreenshot({ mask: [app.getByTestId('hero-video')] });
 await expect(app.getByTestId('rail')).toMatchScreenshot({ maxDiffPixelRatio: 0.01 });
 
 const shot = await app.screenshot(); // opaque; screenshotPng(shot) gives the PNG bytes

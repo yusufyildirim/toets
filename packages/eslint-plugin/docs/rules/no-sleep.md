@@ -13,7 +13,7 @@ await sleep(500);
 
 // Good
 await app.remote.press(Key.RIGHT);
-await expect(app.getByTestId('card_2')).toBeFocused();
+await expect(app.getByTestId('rail-0-card-2')).toBeFocused();
 ```
 
 Not reported: `test.setTimeout(ms)` (test timeout) and MSW's `delay()` inside mock handlers (simulated latency).

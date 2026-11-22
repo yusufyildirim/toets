@@ -6,7 +6,7 @@ description: Semantic remote keys that each platform maps honestly, with capabil
 
 Tests press **semantic keys** (`Key.SELECT`, `Key.PLAY_PAUSE`), never platform keycodes. Each driver maps a key to real input on its platform: an Android keycode, an Apple TV remote button, a browser keyboard event. Input is always real platform input, never an event injected into the app, so the app's own focus engine and key handling are what get tested.
 
-```ts
+```ts run
 import { test, expect, Key } from '@dpad-tv/test';
 
 test('toggles playback from the remote', async ({ app }) => {

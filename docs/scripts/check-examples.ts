@@ -1,14 +1,25 @@
 /**
  * Type-checks (and, for `run` blocks, executes) code blocks in the docs site, package docs
- * and skills, so examples can not rot. Usage:
+ * and skills, so examples can not rot. `run` blocks that import `@dpad-tv/test` are Playwright
+ * tests: they run in one Playwright Test invocation against the demo app (an in-memory TV app on
+ * the core's FakeDriver, see `examples/demo-app/`); other `run` blocks run with Node. Usage:
  *
  *   node scripts/check-examples.ts [--list-pending]
  *
  * Packages resolve to the workspace sources (`@dpad-tv/source` condition).
  */
 import { spawnSync } from 'node:child_process';
-import { globSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import {
+  existsSync,
+  globSync,
+  mkdirSync,
+  readFileSync,
+  rmSync,
+  unlinkSync,
+  writeFileSync,
+} from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 import { extractBlocks, type CodeBlock, type ExtractedPage } from './examples/extract.ts';
@@ -16,6 +27,12 @@ import { extractBlocks, type CodeBlock, type ExtractedPage } from './examples/ex
 const docsDir = dirname(dirname(fileURLToPath(import.meta.url)));
 const repoDir = dirname(docsDir);
 const cacheDir = join(docsDir, '.vitepress/cache/examples');
+const demoConfig = join(docsDir, 'scripts/examples/demo-app/playwright.config.ts');
+
+/** A `run` block that is a Playwright test file: it imports `@dpad-tv/test`. */
+function isTestExample(block: CodeBlock): boolean {
+  return block.mode === 'run' && /from ['"]@dpad-tv\/test['"]/.test(block.code);
+}
 
 /** Markdown checked by this script, relative to the repo root. */
 const SOURCES = ['docs/**/*.md', 'packages/*/docs/**/*.md', 'skills/**/*.md'];
@@ -43,7 +60,10 @@ function main(): void {
       failures.push(...checkJson(block));
       continue;
     }
-    const file = join(cacheDir, block.file.replace(/\.md$/, ''), `L${block.line}.${block.lang}`);
+    const name = isTestExample(block)
+      ? `L${block.line}.spec.${block.lang}`
+      : `L${block.line}.${block.lang}`;
+    const file = join(cacheDir, block.file.replace(/\.md$/, ''), name);
     mkdirSync(dirname(file), { recursive: true });
     writeFileSync(file, block.code + '\n');
     files.set(file, block);
@@ -53,10 +73,23 @@ function main(): void {
 
   const failedBlocks = new Set(failures.map((f) => f.block));
   let ran = 0;
+  const tests = new Map<string, CodeBlock>();
   for (const [file, block] of files) {
-    if (block.mode !== 'run' || failedBlocks.has(block)) continue;
+    if (block.mode !== 'run') continue;
+    if (failedBlocks.has(block)) {
+      if (isTestExample(block)) unlinkSync(file);
+      continue;
+    }
+    if (isTestExample(block)) {
+      tests.set(file, block);
+      continue;
+    }
     failures.push(...execute(file, block));
     ran++;
+  }
+  if (tests.size > 0) {
+    failures.push(...runTests(tests));
+    ran += tests.size;
   }
 
   report(pages, blocks, failures, ran, args.includes('--list-pending'));
@@ -142,6 +175,80 @@ function execute(file: string, block: CodeBlock): Failure[] {
       message: `run failed (${reason})\n${output}`,
     },
   ];
+}
+
+interface PlaywrightReport {
+  readonly suites?: readonly ReportSuite[];
+  readonly errors?: readonly ReportError[];
+}
+interface ReportSuite {
+  readonly file: string;
+  readonly specs?: readonly {
+    readonly title: string;
+    readonly tests: readonly {
+      readonly results: readonly {
+        readonly status: string;
+        readonly errors: readonly ReportError[];
+      }[];
+    }[];
+  }[];
+  readonly suites?: readonly ReportSuite[];
+}
+interface ReportError {
+  readonly message?: string;
+  readonly location?: { readonly file: string; readonly line: number; readonly column: number };
+}
+
+/** Runs the test examples with Playwright Test against the demo app; one failure per test. */
+function runTests(tests: ReadonlyMap<string, CodeBlock>): Failure[] {
+  const cli = createRequire(import.meta.url).resolve('@playwright/test/cli');
+  const reportFile = join(cacheDir, '.results', 'report.json');
+  const result = spawnSync(process.execPath, [cli, 'test', '--config', demoConfig], {
+    cwd: docsDir,
+    encoding: 'utf8',
+    timeout: 300_000,
+    env: { ...process.env, DPAD_EXAMPLES_DIR: cacheDir, CI: '' },
+  });
+  const blockOf = (file: string) => tests.get(resolve(cacheDir, file)) ?? tests.get(file);
+  /** At the error's line in the markdown when Playwright located it in the example. */
+  const failure = (block: CodeBlock, message: string, error?: ReportError): Failure => {
+    const at = error?.location && blockOf(error.location.file) === block ? error.location : null;
+    return {
+      block,
+      line: at ? block.line + at.line - 1 : block.line,
+      column: block.indent + (at ? at.column : 1),
+      message: message.split('\n').slice(0, 20).join('\n'),
+    };
+  };
+  if (!existsSync(reportFile)) {
+    const output = `${result.stderr}${result.stdout}`.trim();
+    return [...tests.values()].map((b) => failure(b, `Playwright did not run: ${output}`));
+  }
+  const report = JSON.parse(readFileSync(reportFile, 'utf8')) as PlaywrightReport;
+  const failures: Failure[] = [];
+  for (const error of report.errors ?? []) {
+    const block = error.location ? blockOf(error.location.file) : undefined;
+    const message = `test run failed: ${error.message ?? 'unknown error'}`;
+    if (block) failures.push(failure(block, message, error));
+    else failures.push(...[...tests.values()].map((b) => failure(b, message)));
+  }
+  const visit = (suite: ReportSuite, file: string): void => {
+    const block = blockOf(file);
+    for (const spec of suite.specs ?? []) {
+      for (const test of spec.tests) {
+        const bad = test.results.find((r) => r.status !== 'passed' && r.status !== 'skipped');
+        if (bad && block) {
+          const why = bad.errors.map((e) => e.message ?? '').join('\n') || bad.status;
+          failures.push(
+            failure(block, `test "${spec.title}" ${bad.status}: ${why}`, bad.errors[0]),
+          );
+        }
+      }
+    }
+    for (const child of suite.suites ?? []) visit(child, file);
+  };
+  for (const suite of report.suites ?? []) visit(suite, suite.file);
+  return failures;
 }
 
 function report(

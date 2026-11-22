@@ -20,7 +20,7 @@ A **text snapshot** is a YAML rendering of the screen or one element: test IDs, 
 
 One line per visible element: its test ID (else its text), its text in quotes and its state in brackets. Exact rules: [text snapshots reference](../reference/core/docs/text-snapshots.md).
 
-```ts
+```ts run
 import { test, expect } from '@dpad-tv/test';
 
 test('home rail lists the mocked titles', async ({ app }) => {
@@ -29,6 +29,8 @@ test('home rail lists the mocked titles', async ({ app }) => {
     - rail-0:
       - rail-0-card-0 "Big Buck Bunny" [focused]
       - rail-0-card-1 "Sintel"
+      - rail-0-card-2 "Tears of Steel"
+      - rail-0-card-3 "Elephants Dream"
   `);
 });
 ```

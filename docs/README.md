@@ -47,7 +47,7 @@ Packages own `packages/<pkg>/docs/`. Those pages ship in the npm package, so:
 | Marker                                 | Effect                                             |
 | -------------------------------------- | -------------------------------------------------- |
 | none                                   | type-checked                                       |
-| fence meta `run`                       | type-checked, then executed with Node              |
+| fence meta `run`                       | type-checked, then executed (see below)            |
 | fence meta `nocheck`                   | never checked: fragments, sketches, output samples |
 | fence meta `pending`                   | not checked until the API it shows exists          |
 | `<!-- examples: pending -->` on a page | every block on the page is pending                 |
@@ -56,7 +56,12 @@ Packages own `packages/<pkg>/docs/`. Those pages ship in the npm package, so:
 
 **Resolution.** `@dpad-tv/*` imports resolve to the workspace sources; every package an example imports must be a dev dependency of `docs/`. Third-party imports the docs do not install (`axios`, Metro) belong in `nocheck` blocks.
 
-`run` blocks import packages as Node resolves them, so build the workspace first (`pnpm build`). Keep them free of devices and network.
+**Running.** `run` blocks import packages as Node resolves them, so build the workspace first (`pnpm build`). Keep them free of devices and network.
+
+- A `run` block that imports `@dpad-tv/test` is a test file. All of them run in one Playwright Test invocation against the **demo app** (`scripts/examples/demo-app/`): an in-memory TV app built on the core's `FakeDriver`, with the config's mock handlers as its backend and a `FakeSdkHost` for media and launch state. Failures point at the markdown line of the failing assertion.
+- Other `run` blocks execute with Node.
+
+Make a test example `run` whenever the demo app can show it. The demo app implements the screens the docs talk about (side menu, hero with play and like buttons, rails `rail-0`, `rail-1` and `rail-popular`, details, guide, watchlist, first-run terms and profile picker) with kebab-case test IDs; write new examples against those IDs, or extend the app (`app.ts`) and its baseline data (`playwright.config.ts`) together with the example. Leave a test example check-only only when it needs what a fake cannot show (a real device, pixels, platform-specific behavior).
 
 ## Skills
 

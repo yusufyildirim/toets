@@ -8,7 +8,7 @@ Tests that depend on data mock it. dpad runs [MSW](https://mswjs.io) handlers in
 
 Turn it on in the config with `dpad: { mock: true }` (the `network.mock` capability):
 
-```ts
+```ts run
 import { test, expect, http, HttpResponse } from '@dpad-tv/test';
 
 test('shows an empty state without favorites', async ({ app }) => {

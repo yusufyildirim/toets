@@ -79,7 +79,7 @@ dpad finds elements by test ID or text. The test ID is `data-testid` on web, the
 
 `e2e/home.spec.ts`:
 
-```ts
+```ts run
 import { test, expect, Key } from '@dpad-tv/test';
 
 test('opens details from the first rail', async ({ app }) => {
