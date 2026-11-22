@@ -1,5 +1,5 @@
 ---
-description: Screenshot assertions that settle animated TV screens: stable frames, masks, thresholds and per-platform baselines.
+description: Screenshot assertions that settle animated TV screens - stable frames, masks, thresholds and per-platform baselines.
 ---
 
 # Screenshots
