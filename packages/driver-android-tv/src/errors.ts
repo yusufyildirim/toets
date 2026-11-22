@@ -21,13 +21,16 @@ export type AndroidTvErrorCode =
   | 'ANDROID_EMULATOR_FAILED'
   | 'ANDROID_RECORDING_FAILED';
 
-/** Docs page slugs of this package (`node_modules/@dpad-tv/driver-android-tv/docs/<slug>.md`). */
+/**
+ * Docs pages of this package. Slug `driver-android-tv/<page>` is shipped as
+ * `node_modules/@dpad-tv/driver-android-tv/docs/<page>.md`.
+ */
 export const DOCS = {
-  setup: docsLink('android-tv/setup'),
-  devices: docsLink('android-tv/devices'),
-  keys: docsLink('android-tv/keys'),
-  capabilities: docsLink('android-tv/capabilities'),
-  traps: docsLink('android-tv/traps'),
+  setup: docsLink('driver-android-tv/setup'),
+  devices: docsLink('driver-android-tv/devices'),
+  keys: docsLink('driver-android-tv/keys'),
+  capabilities: docsLink('driver-android-tv/capabilities'),
+  traps: docsLink('driver-android-tv/traps'),
 } as const;
 
 export function androidError(

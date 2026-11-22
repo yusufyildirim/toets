@@ -279,7 +279,12 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
       await timed('press', () => driver.press(i % 2 ? Key.RIGHT : Key.LEFT));
     }
     for (let i = 0; i < 5; i++) await timed('screenshot', () => driver.screenshot());
-    for (let i = 0; i < 3; i++) await timed('launch', () => driver.launch({ payload: { v: 1 } }));
+    for (let i = 0; i < 3; i++) {
+      await timed('press (hold 500ms)', () =>
+        driver.press(i % 2 ? Key.RIGHT : Key.LEFT, { holdMs: 500 }),
+      );
+    }
+    for (let i = 0; i < 5; i++) await timed('launch', () => driver.launch({ payload: { v: 1 } }));
   }, 180_000);
 
   it('resets app data and terminates', async () => {
