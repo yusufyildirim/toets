@@ -71,6 +71,8 @@ export interface RequestFilter {
 /** Mutable internal state of one exchange; exposed only through immutable snapshots. */
 export class Exchange {
   mocked = false;
+  /** True once a response body started streaming. */
+  streaming = false;
   error: RecordedMockError | null = null;
   status: number | null = null;
   statusText = '';

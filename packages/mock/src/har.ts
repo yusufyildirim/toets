@@ -153,7 +153,9 @@ function toResponse(e: Exchange): HarResponse {
       redirectURL: '',
       headersSize: -1,
       bodySize: -1,
-      ...(e.error ? { _error: `${e.error.code}: ${e.error.message}` } : !e.done && { _error: 'in flight' }),
+      ...(e.error
+        ? { _error: `${e.error.code}: ${e.error.message}` }
+        : !e.done && { _error: 'in flight' }),
     };
   }
   const headers = e.responseHeaders.map(([name, value]) => ({ name, value }));
@@ -175,7 +177,8 @@ function toResponse(e: Exchange): HarResponse {
       ...(size !== bodySize && { compression: size - bodySize }),
       mimeType: find('content-type') ?? 'x-unknown',
       ...(decoded?.text != null && { text: decoded.text }),
-      ...(decoded?.encoding === 'base64' && decoded.text != null && { encoding: 'base64' as const }),
+      ...(decoded?.encoding === 'base64' &&
+        decoded.text != null && { encoding: 'base64' as const }),
       ...(capture?.truncated && { comment: 'Body truncated to maxRecordedBodyBytes (raw bytes).' }),
     },
     redirectURL: find('location') ?? '',

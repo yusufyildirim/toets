@@ -16,6 +16,7 @@ import {
   invalidHandlerError,
   invalidOptionError,
   listenError,
+  messageOf,
   noOriginError,
   portInUseError,
   unhandledError,
@@ -291,7 +292,10 @@ class MockServerImpl implements MockServer {
       this.bodyLimit,
     );
     this.exchanges.push(exchange);
-    const onAbort = () => exchange.finish(abortError(signal));
+    // While a body streams, pipeBody() owns the outcome (it can tell an app abort from a failure).
+    const onAbort = () => {
+      if (!exchange.streaming) exchange.finish(abortError(signal));
+    };
     signal.addEventListener('abort', onAbort, { once: true });
     if (signal.aborted) onAbort();
 
@@ -437,12 +441,29 @@ class MockServerImpl implements MockServer {
   ): Promise<void> {
     const capture = new BodyCapture(this.bodyLimit);
     exchange.responseBody = capture;
+    exchange.streaming = true;
     let written = 0;
+    let bodyError: Error | null = null;
+    // Record a body failure the moment it happens, before the app observes the dropped socket.
+    const failBody = (error: Error): Error => {
+      if (!bodyError) {
+        bodyError = error;
+        exchange.finish({
+          code: MockErrorCode.RESPONSE_FAILED,
+          message: `The response body failed after headers were sent: ${messageOf(error)}`,
+        });
+      }
+      return error;
+    };
+    source?.once('error', (error) => {
+      // When the app hangs up, pipeline() destroys the source too; that is not a body failure.
+      if (!signal.aborted) failBody(error);
+    });
     const tap = new Transform({
       transform(chunk: Buffer, _encoding, callback) {
         written += chunk.byteLength;
         if (declaredLength !== null && written > declaredLength) {
-          callback(lengthError(declaredLength, written, 'more'));
+          callback(failBody(lengthError(declaredLength, written, 'more')));
           return;
         }
         capture.push(chunk);
@@ -450,7 +471,7 @@ class MockServerImpl implements MockServer {
       },
       flush(callback) {
         if (declaredLength !== null && written < declaredLength) {
-          callback(lengthError(declaredLength, written, 'fewer'));
+          callback(failBody(lengthError(declaredLength, written, 'fewer')));
           return;
         }
         callback();
@@ -460,14 +481,8 @@ class MockServerImpl implements MockServer {
       await pipeline(source ?? Readable.from([]), tap, res);
       exchange.finish();
     } catch (error) {
-      exchange.finish(
-        signal.aborted
-          ? abortError(signal)
-          : {
-              code: MockErrorCode.RESPONSE_FAILED,
-              message: `The response body failed after headers were sent: ${String((error as Error).message ?? error)}`,
-            },
-      );
+      if (signal.aborted && !bodyError) exchange.finish(abortError(signal));
+      else failBody(error as Error);
       res.destroy();
     }
   }
@@ -531,7 +546,12 @@ function assertHandlers(handlers: readonly unknown[]): RequestHandler[] {
   for (const handler of handlers) {
     // Duck-typed so handlers from another copy of msw still work.
     const h = handler as { kind?: unknown; run?: unknown } | null;
-    if (typeof h !== 'object' || h === null || typeof h.run !== 'function' || h.kind !== 'request') {
+    if (
+      typeof h !== 'object' ||
+      h === null ||
+      typeof h.run !== 'function' ||
+      h.kind !== 'request'
+    ) {
       throw invalidHandlerError(handler);
     }
   }
