@@ -16,7 +16,9 @@ interface Binding<T> {
 }
 
 const stateHandlers: Array<Binding<StateHandler>> = [];
-const mediaSources: Array<Binding<{ id: string; source: MediaSource; onAttach?: (d: Dpad) => void }>> = [];
+const mediaSources: Array<
+  Binding<{ id: string; source: MediaSource; onAttach?: (d: Dpad) => void }>
+> = [];
 
 /**
  * Creates the runtime. With a valid payload it becomes the active runtime that
@@ -69,7 +71,10 @@ export function markBusy(description: string, kind = 'custom'): () => void {
  * });
  */
 export function onState(handler: StateHandler): () => void {
-  const binding: Binding<StateHandler> = { value: handler, detach: current ? current.onState(handler) : null };
+  const binding: Binding<StateHandler> = {
+    value: handler,
+    detach: current ? current.onState(handler) : null,
+  };
   stateHandlers.push(binding);
   return () => {
     binding.detach?.();
@@ -92,7 +97,10 @@ export function registerMedia(id: string, source: MediaSource): () => void {
  * player.on('playing', () => media.update({ state: 'playing' }));
  * player.on('timeupdate', (t) => media.update({ position: t }));
  */
-export function createMediaReporter(id: string, initial: Partial<MediaSnapshot> = {}): MediaReporter {
+export function createMediaReporter(
+  id: string,
+  initial: Partial<MediaSnapshot> = {},
+): MediaReporter {
   let snapshot: MediaSnapshot = { state: 'idle', position: 0, duration: null, rate: 1, ...initial };
   let dpad: Dpad | null = null;
   const dispose = bindMedia(id, { getSnapshot: () => snapshot }, (d) => (dpad = d));

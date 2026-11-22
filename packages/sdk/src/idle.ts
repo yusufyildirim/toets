@@ -99,7 +99,13 @@ export class IdleTracker {
 
   isIgnored(resource: BusyResource): boolean {
     for (const rule of this.ignoreRules) {
-      if (typeof rule === 'string' ? resource.description.indexOf(rule) >= 0 : rule instanceof RegExp ? rule.test(resource.description) : safe(() => rule(resource), false))
+      if (
+        typeof rule === 'string'
+          ? resource.description.indexOf(rule) >= 0
+          : rule instanceof RegExp
+            ? rule.test(resource.description)
+            : safe(() => rule(resource), false)
+      )
         return true;
     }
     return false;
@@ -126,7 +132,9 @@ export class IdleTracker {
   busy(): BusyResource[] {
     const t = now();
     const out: BusyResource[] = [];
-    this.entries.forEach((e) => out.push({ kind: e.kind, description: e.description, durationMs: t - e.since }));
+    this.entries.forEach((e) =>
+      out.push({ kind: e.kind, description: e.description, durationMs: t - e.since }),
+    );
     for (const probe of this.probes.slice()) {
       for (const r of safe(probe, [] as readonly BusyResource[])) {
         if (!this.isIgnored(r)) out.push(r);
@@ -186,7 +194,8 @@ export class IdleTracker {
       out.push({ kind: r.kind, description: `${r.description} (recently)` });
     }
     if (out.length === 0 && lastBusy.length > 0) return lastBusy;
-    if (out.length === 0) out.push({ kind: 'settling', description: 'activity within the quiet window' });
+    if (out.length === 0)
+      out.push({ kind: 'settling', description: 'activity within the quiet window' });
     return out;
   }
 }

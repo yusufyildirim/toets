@@ -51,7 +51,8 @@ export function parseArgs(argv: readonly string[]): CliOptions {
     else if (arg === '--fixture') fixture = true;
     else if (arg === '--timeout') {
       connectTimeoutMs = Number(value());
-      if (!Number.isFinite(connectTimeoutMs) || connectTimeoutMs <= 0) throw new Error('--timeout must be a positive number');
+      if (!Number.isFinite(connectTimeoutMs) || connectTimeoutMs <= 0)
+        throw new Error('--timeout must be a positive number');
     } else if (arg === '--help' || arg === '-h') throw new Error(USAGE);
     else throw new Error(`Unknown argument ${arg}\n\n${USAGE}`);
   }

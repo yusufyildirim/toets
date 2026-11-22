@@ -76,7 +76,11 @@ export async function listenWebSocket(opts: {
     throw new ProtocolError(
       'sdk.listen-failed',
       `The dpad SDK host could not listen: ${(error as Error).message}`,
-      { hint: 'Pick another port or free the requested one.', docs: 'docs/protocol/host', cause: error },
+      {
+        hint: 'Pick another port or free the requested one.',
+        docs: 'docs/protocol/host',
+        cause: error,
+      },
     );
   }
 
@@ -116,6 +120,7 @@ async function listenLoopbackPair(
 }
 
 function urlHost(host: string): string {
-  if (host === '127.0.0.1' || host === '::1' || host === '0.0.0.0' || host === '::') return 'localhost';
+  if (host === '127.0.0.1' || host === '::1' || host === '0.0.0.0' || host === '::')
+    return 'localhost';
   return host.includes(':') ? `[${host}]` : host;
 }

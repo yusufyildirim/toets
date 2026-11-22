@@ -11,7 +11,10 @@ const open: Array<{ host: SdkHost; dpad?: Dpad }> = [];
 
 /** Starts a real host and an SDK runtime connected to it. */
 export async function connect(
-  options: Partial<DpadOptions> & { setup?: (dpad: Dpad) => void; extra?: Record<string, unknown> } = {},
+  options: Partial<DpadOptions> & {
+    setup?: (dpad: Dpad) => void;
+    extra?: Record<string, unknown>;
+  } = {},
 ): Promise<Harness> {
   const host = await createSdkHost();
   const entry: { host: SdkHost; dpad?: Dpad } = { host };

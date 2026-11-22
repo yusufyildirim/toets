@@ -84,10 +84,9 @@ describe('SdkHost', () => {
     await first.hello();
     const second = await connectFakeApp(host.url, { token });
     await expect(second.hello()).rejects.toMatchObject({ code: RpcErrorCode.Unauthorized });
-    expect(events.filter((e) => e.type === 'rejected').map((e) => e.type === 'rejected' && e.reason)).toEqual([
-      'unauthorized',
-      'unauthorized',
-    ]);
+    expect(
+      events.filter((e) => e.type === 'rejected').map((e) => e.type === 'rejected' && e.reason),
+    ).toEqual(['unauthorized', 'unauthorized']);
   });
 
   it('rejects an incompatible protocol major', async () => {
@@ -150,7 +149,8 @@ describe('SdkHost', () => {
       token,
       onRequest: (method, params) => {
         if (method === 'tree.get') {
-          if ((params as { rootId?: string }).rootId) throw new RpcError(RpcErrorCode.NotFound, 'no node');
+          if ((params as { rootId?: string }).rootId)
+            throw new RpcError(RpcErrorCode.NotFound, 'no node');
           return { root: node, viewport: { width: 1920, height: 1080 } };
         }
         if (method === 'sync.waitForIdle') return new Promise(() => {});
@@ -173,7 +173,9 @@ describe('SdkHost', () => {
     await expect(session.request('media.get', {})).rejects.toMatchObject({
       code: 'sdk.method-unsupported',
     });
-    await expect(session.request('sync.waitForIdle', { timeoutMs: 0 }, { timeoutMs: 30 })).rejects.toMatchObject({
+    await expect(
+      session.request('sync.waitForIdle', { timeoutMs: 0 }, { timeoutMs: 30 }),
+    ).rejects.toMatchObject({
       code: 'sdk.request-timeout',
     });
   });
@@ -259,7 +261,9 @@ describe('SdkHost', () => {
 
   it('rejects waiters and closes sessions on host close', async () => {
     const { host } = await start();
-    const waiting = host.waitForSession(host.issueToken(), { timeoutMs: 5000 }).catch((e: unknown) => e);
+    const waiting = host
+      .waitForSession(host.issueToken(), { timeoutMs: 5000 })
+      .catch((e: unknown) => e);
     const token = host.issueToken();
     const app = await connectFakeApp(host.url, { token });
     await app.hello();

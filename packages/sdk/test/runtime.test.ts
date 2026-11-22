@@ -75,7 +75,10 @@ describe('inert runtime', () => {
   });
 
   it('fails without connecting when the payload host is remote', () => {
-    const dpad = createDpad({ framework: 'test', payload: { v: 1, sdkUrl: 'ws://evil.example:1', token: 't' } });
+    const dpad = createDpad({
+      framework: 'test',
+      payload: { v: 1, sdkUrl: 'ws://evil.example:1', token: 't' },
+    });
     dpad.start();
     expect(dpad.status).toBe('failed');
   });
@@ -119,10 +122,16 @@ describe('connected runtime', () => {
 
   it('answers unknown methods and unavailable domains with the right codes', async () => {
     const { session } = await connect();
-    await expect(session.request('tree.get', {})).rejects.toMatchObject({ code: 'sdk.method-unsupported' });
+    await expect(session.request('tree.get', {})).rejects.toMatchObject({
+      code: 'sdk.method-unsupported',
+    });
     const raw = session as unknown as { requestRaw(m: string, p: unknown): Promise<unknown> };
-    await expect(raw.requestRaw('tree.get', {})).rejects.toMatchObject({ rpcCode: RpcErrorCode.DomainUnavailable });
-    await expect(raw.requestRaw('nope.nope', {})).rejects.toMatchObject({ rpcCode: RpcErrorCode.MethodNotFound });
+    await expect(raw.requestRaw('tree.get', {})).rejects.toMatchObject({
+      rpcCode: RpcErrorCode.DomainUnavailable,
+    });
+    await expect(raw.requestRaw('nope.nope', {})).rejects.toMatchObject({
+      rpcCode: RpcErrorCode.MethodNotFound,
+    });
     await expect(raw.requestRaw('sync.waitForIdle', { timeoutMs: 'x' })).rejects.toMatchObject({
       rpcCode: RpcErrorCode.InvalidParams,
     });
@@ -130,31 +139,47 @@ describe('connected runtime', () => {
 
   it('reports idle, and names custom, timer and network work while busy', async () => {
     const { session, dpad } = await connect();
-    await expect(session.request('sync.waitForIdle', { timeoutMs: 1000 })).resolves.toEqual({ idle: true, busy: [] });
+    await expect(session.request('sync.waitForIdle', { timeoutMs: 1000 })).resolves.toEqual({
+      idle: true,
+      busy: [],
+    });
 
     const done = markBusy('hero image');
     const busy = await session.request('sync.waitForIdle', { timeoutMs: 50 });
     expect(busy.idle).toBe(false);
-    expect(busy.busy).toEqual([expect.objectContaining({ kind: 'custom', description: 'hero image' })]);
+    expect(busy.busy).toEqual([
+      expect.objectContaining({ kind: 'custom', description: 'hero image' }),
+    ]);
     done();
 
     setTimeout(() => {}, 300);
     setTimeout(() => {}, 5000); // long timers are not tracked
     const timer = await session.request('sync.waitForIdle', { timeoutMs: 50 });
-    expect(timer.busy).toEqual([expect.objectContaining({ kind: 'timer', description: 'setTimeout 300ms' })]);
-    await expect(session.request('sync.waitForIdle', { timeoutMs: 2000 })).resolves.toMatchObject({ idle: true });
+    expect(timer.busy).toEqual([
+      expect.objectContaining({ kind: 'timer', description: 'setTimeout 300ms' }),
+    ]);
+    await expect(session.request('sync.waitForIdle', { timeoutMs: 2000 })).resolves.toMatchObject({
+      idle: true,
+    });
 
     const request = fetch(`${baseUrl}/api/home?delay=300`);
     const network = await session.request('sync.waitForIdle', { timeoutMs: 50 });
     // (The in-process test server's own delay timer shows up too.)
     expect(network.busy).toContainEqual(
-      expect.objectContaining({ kind: 'network', description: `GET ${baseUrl}/api/home?delay=300` }),
+      expect.objectContaining({
+        kind: 'network',
+        description: `GET ${baseUrl}/api/home?delay=300`,
+      }),
     );
     await request;
-    await expect(session.request('sync.waitForIdle', { timeoutMs: 2000 })).resolves.toMatchObject({ idle: true });
+    await expect(session.request('sync.waitForIdle', { timeoutMs: 2000 })).resolves.toMatchObject({
+      idle: true,
+    });
 
     dpad.idle.untracked(() => setTimeout(() => {}, 300));
-    await expect(session.request('sync.waitForIdle', { timeoutMs: 1000 })).resolves.toMatchObject({ idle: true });
+    await expect(session.request('sync.waitForIdle', { timeoutMs: 1000 })).resolves.toMatchObject({
+      idle: true,
+    });
   });
 
   it('honors ignore rules', async () => {
@@ -163,7 +188,9 @@ describe('connected runtime', () => {
     const a = fetch(`${baseUrl}/poll?delay=200`);
     const b = fetch(`${baseUrl}/beacon?delay=200`);
     await sleep(20);
-    await expect(session.request('sync.waitForIdle', { timeoutMs: 50 })).resolves.toMatchObject({ idle: true });
+    await expect(session.request('sync.waitForIdle', { timeoutMs: 50 })).resolves.toMatchObject({
+      idle: true,
+    });
     await Promise.all([a, b]);
   });
 
@@ -176,9 +203,13 @@ describe('connected runtime', () => {
     });
     try {
       const { session } = await connect({ extra: { state: 'home', flags: { beta: true } } });
-      await expect(session.request('sync.waitForIdle', { timeoutMs: 2000 })).resolves.toMatchObject({ idle: true });
+      await expect(session.request('sync.waitForIdle', { timeoutMs: 2000 })).resolves.toMatchObject(
+        { idle: true },
+      );
       expect(seen).toEqual([['home', { beta: true }]]);
-      await expect(session.request('state.apply', { state: 'details', flags: {} })).resolves.toEqual({});
+      await expect(
+        session.request('state.apply', { state: 'details', flags: {} }),
+      ).resolves.toEqual({});
       expect(seen.at(-1)).toEqual(['details', {}]);
       await expect(session.request('state.apply', { state: 'broken' })).rejects.toMatchObject({
         rpcCode: RpcErrorCode.HandlerFailed,
@@ -237,7 +268,9 @@ describe('connected runtime', () => {
         media: { id: 'pull', state: 'paused', position: 3, duration: 10, rate: 1 },
       });
       media.update({ state: 'playing' });
-      await expect(session.request('media.get', {})).resolves.toMatchObject({ media: { id: 'push' } });
+      await expect(session.request('media.get', {})).resolves.toMatchObject({
+        media: { id: 'push' },
+      });
       await expect(session.request('media.get', { id: 'none' })).resolves.toEqual({ media: null });
     } finally {
       pull();
@@ -280,7 +313,10 @@ describe('connected runtime', () => {
     const events: string[] = [];
     const host = await createSdkHost({ onEvent: (e) => events.push(e.type) });
     try {
-      const dpad = createDpad({ framework: 'test', payload: { v: 1, sdkUrl: host.url, token: 'wrong' } });
+      const dpad = createDpad({
+        framework: 'test',
+        payload: { v: 1, sdkUrl: host.url, token: 'wrong' },
+      });
       dpad.start();
       await sleep(800);
       expect(dpad.status).toBe('rejected');
@@ -294,10 +330,49 @@ describe('connected runtime', () => {
     const host = await createSdkHost();
     const url = host.url;
     await host.close();
-    const dpad = createDpad({ framework: 'test', payload: { v: 1, sdkUrl: url, token: 't' }, connectRetries: 2 });
+    const dpad = createDpad({
+      framework: 'test',
+      payload: { v: 1, sdkUrl: url, token: 't' },
+      connectRetries: 2,
+    });
     dpad.start();
     expect(dpad.status).toBe('connecting');
     await sleep(1500);
     expect(dpad.status).toBe('failed');
+  });
+});
+
+describe('core runtime conformance (no adapter)', () => {
+  it('passes the suite for the domains it announces', { timeout: 60_000 }, async () => {
+    const { runConformance, formatConformanceReport } =
+      await import('@dpad-tv/protocol/conformance');
+    let dpad: ReturnType<typeof createDpad> | undefined;
+    const report = await runConformance(
+      {
+        name: 'core runtime in Node',
+        launch: ({ encoded }) => {
+          dpad = createDpad({ framework: 'node', payload: encoded });
+          dpad.start();
+        },
+        terminate: () => dpad?.stop(),
+      },
+      { connectTimeoutMs: 5000 },
+    );
+    expect(report.passed, formatConformanceReport(report)).toBe(true);
+    expect(report.results.find((r) => r.id === 'rpc.domain-unavailable')?.status).toBe('pass');
+  });
+});
+
+describe('noop module', () => {
+  it('mirrors the app-facing API without doing anything', async () => {
+    const noop = await import('../src/noop.js');
+    const dpad = noop.startDpad();
+    expect(dpad.status).toBe('inert');
+    expect(dpad.active).toBe(false);
+    expect(noop.getDpad()).toBeNull();
+    noop.markBusy('x')();
+    noop.onState(() => {})();
+    noop.createMediaReporter('m').update({ state: 'playing' });
+    noop.focusChanged();
   });
 });

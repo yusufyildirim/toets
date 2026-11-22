@@ -16,15 +16,18 @@ function isNum(v: unknown): v is number {
 }
 
 function checkOptionalString(o: Obj, key: string, path: string, out: string[]): void {
-  if (o[key] !== undefined && typeof o[key] !== 'string') out.push(`${path}.${key} must be a string`);
+  if (o[key] !== undefined && typeof o[key] !== 'string')
+    out.push(`${path}.${key} must be a string`);
 }
 
 export function validateHelloParams(value: unknown): string[] {
   const out: string[] = [];
   if (!isObj(value)) return ['params must be an object'];
   if (!parseProtocolVersion(value.protocol)) out.push('params.protocol must be a semver string');
-  if (typeof value.token !== 'string' || !value.token) out.push('params.token must be a non-empty string');
-  if (typeof value.sdk !== 'string' || !value.sdk) out.push('params.sdk must be a non-empty string');
+  if (typeof value.token !== 'string' || !value.token)
+    out.push('params.token must be a non-empty string');
+  if (typeof value.sdk !== 'string' || !value.sdk)
+    out.push('params.sdk must be a non-empty string');
   if (typeof value.framework !== 'string' || !value.framework)
     out.push('params.framework must be a non-empty string');
   if (!Array.isArray(value.domains) || value.domains.some((d) => typeof d !== 'string'))
@@ -52,7 +55,8 @@ export function validateViewport(value: unknown, path = 'viewport'): string[] {
   if (!isObj(value)) return [`${path} must be an object`];
   const out: string[] = [];
   if (!isNum(value.width) || value.width <= 0) out.push(`${path}.width must be a positive number`);
-  if (!isNum(value.height) || value.height <= 0) out.push(`${path}.height must be a positive number`);
+  if (!isNum(value.height) || value.height <= 0)
+    out.push(`${path}.height must be a positive number`);
   if (value.pixelRatio !== undefined && (!isNum(value.pixelRatio) || value.pixelRatio <= 0))
     out.push(`${path}.pixelRatio must be a positive number`);
   return out;
@@ -97,7 +101,8 @@ export function validateMediaInfo(value: unknown, path = 'media'): string[] {
   if (typeof value.id !== 'string' || !value.id) out.push(`${path}.id must be a non-empty string`);
   if (!(MEDIA_STATES as readonly unknown[]).includes(value.state))
     out.push(`${path}.state must be one of ${MEDIA_STATES.join(', ')}`);
-  if (!isNum(value.position) || value.position < 0) out.push(`${path}.position must be a number >= 0`);
+  if (!isNum(value.position) || value.position < 0)
+    out.push(`${path}.position must be a number >= 0`);
   if (value.duration !== null && (!isNum(value.duration) || value.duration < 0))
     out.push(`${path}.duration must be a number >= 0 or null`);
   if (!isNum(value.rate)) out.push(`${path}.rate must be a finite number`);
@@ -161,7 +166,8 @@ export function validateFocusChanged(value: unknown, path = 'params'): string[] 
   if (!isObj(value)) return [`${path} must be an object`];
   const out: string[] = [];
   for (const k of ['from', 'to']) {
-    if (value[k] !== null && typeof value[k] !== 'string') out.push(`${path}.${k} must be a node id or null`);
+    if (value[k] !== null && typeof value[k] !== 'string')
+      out.push(`${path}.${k} must be a node id or null`);
   }
   return out;
 }

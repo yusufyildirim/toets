@@ -10,7 +10,6 @@ export function getGlobal(): AnyGlobal {
   if (typeof globalThis !== 'undefined') return globalThis as unknown as AnyGlobal;
   if (typeof self !== 'undefined') return self as unknown as AnyGlobal;
   if (typeof window !== 'undefined') return window as unknown as AnyGlobal;
-  // eslint-disable-next-line no-new-func
   return Function('return this')() as AnyGlobal;
 }
 

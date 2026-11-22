@@ -74,7 +74,8 @@ export interface DpadOptions {
  * - `rejected`: the host refused the handshake (token or protocol version).
  * - `failed`: the host was unreachable, or the payload was refused locally.
  */
-export type DpadStatus = 'inert' | 'ready' | 'connecting' | 'connected' | 'closed' | 'rejected' | 'failed';
+export type DpadStatus =
+  'inert' | 'ready' | 'connecting' | 'connected' | 'closed' | 'rejected' | 'failed';
 
 type Handler<M extends HostToAppMethod> = (
   params: HostToAppRequests[M]['params'],
@@ -168,7 +169,10 @@ export class Dpad {
   }
 
   /** Sends a notification (queued until the handshake completes; dropped when inert). */
-  notify<N extends keyof AppToHostNotifications>(method: N, params: AppToHostNotifications[N]): void {
+  notify<N extends keyof AppToHostNotifications>(
+    method: N,
+    params: AppToHostNotifications[N],
+  ): void {
     const s = this.statusValue;
     if (s === 'connected') {
       if (this.announced.has(NOTIFICATION_DOMAIN[method])) this.peer?.notify(method, params);
@@ -226,7 +230,11 @@ export class Dpad {
 
   /** Registers cleanup run when the session ends or `stop()` is called. */
   onStop(cleanup: () => void): void {
-    if (this.statusValue === 'closed' || this.statusValue === 'rejected' || this.statusValue === 'failed') {
+    if (
+      this.statusValue === 'closed' ||
+      this.statusValue === 'rejected' ||
+      this.statusValue === 'failed'
+    ) {
       cleanup();
       return;
     }
@@ -257,7 +265,12 @@ export class Dpad {
   /** Closes the session and removes every hook. Idempotent. */
   stop(): void {
     if (this.statusValue === 'inert') return;
-    if (this.statusValue === 'closed' || this.statusValue === 'rejected' || this.statusValue === 'failed') return;
+    if (
+      this.statusValue === 'closed' ||
+      this.statusValue === 'rejected' ||
+      this.statusValue === 'failed'
+    )
+      return;
     this.finish('closed');
   }
 
@@ -266,11 +279,13 @@ export class Dpad {
     this.cleanups.push(instrumentTimers(this.idle, idle.timerThresholdMs ?? 1500));
     if (idle.fetch !== false) this.cleanups.push(instrumentFetch(this.idle));
     if (idle.xhr !== false) this.cleanups.push(instrumentXhr(this.idle));
-    if (this.options.logs !== false) this.cleanups.push(instrumentConsole((entry) => this.notify('logs.entry', entry)));
+    if (this.options.logs !== false)
+      this.cleanups.push(instrumentConsole((entry) => this.notify('logs.entry', entry)));
   }
 
   private connect(url: string): void {
-    const Impl = this.options.WebSocket ?? (getGlobal().WebSocket as WebSocketConstructor | undefined);
+    const Impl =
+      this.options.WebSocket ?? (getGlobal().WebSocket as WebSocketConstructor | undefined);
     if (!Impl) {
       sdkWarn('not connecting: no WebSocket implementation available');
       this.finish('failed');
@@ -353,24 +368,33 @@ export class Dpad {
     const delay = RETRY_DELAYS_MS[Math.min(this.attempt, RETRY_DELAYS_MS.length - 1)] as number;
     this.attempt++;
     setNativeTimeout(() => {
-      if (this.statusValue === 'connecting') this.connect((this.payload as LaunchPayload).sdkUrl as string);
+      if (this.statusValue === 'connecting')
+        this.connect((this.payload as LaunchPayload).sdkUrl as string);
     }, delay);
   }
 
   private computeDomains(): Domain[] {
     const domains: Domain[] = ['sync', 'media', 'state'];
     if (this.handlers['tree.get']) domains.unshift('tree');
-    if (this.handlers['tree.get'] && this.handlers['focus.get'] && this.handlers['focus.graph']) domains.splice(1, 0, 'focus');
+    if (this.handlers['tree.get'] && this.handlers['focus.get'] && this.handlers['focus.graph'])
+      domains.splice(1, 0, 'focus');
     if (this.options.logs !== false) domains.push('logs');
     return domains;
   }
 
   private dispatch(method: string, params: unknown): unknown {
-    const p = (typeof params === 'object' && params !== null ? params : {}) as Record<string, unknown>;
+    const p = (typeof params === 'object' && params !== null ? params : {}) as Record<
+      string,
+      unknown
+    >;
     const domain = METHOD_DOMAIN[method as HostToAppMethod];
-    if (domain === undefined) throw new RpcError(RpcErrorCode.MethodNotFound, `Method not found: ${method}`);
+    if (domain === undefined)
+      throw new RpcError(RpcErrorCode.MethodNotFound, `Method not found: ${method}`);
     if (!this.announced.has(domain)) {
-      throw new RpcError(RpcErrorCode.DomainUnavailable, `Domain "${domain}" is not available in this SDK`);
+      throw new RpcError(
+        RpcErrorCode.DomainUnavailable,
+        `Domain "${domain}" is not available in this SDK`,
+      );
     }
     switch (method as HostToAppMethod) {
       case 'sync.waitForIdle': {
@@ -389,12 +413,15 @@ export class Dpad {
       case 'state.apply': {
         if (p.state !== undefined && typeof p.state !== 'string')
           throw new RpcError(RpcErrorCode.InvalidParams, 'state must be a string');
-        const flags = (typeof p.flags === 'object' && p.flags !== null ? p.flags : {}) as LaunchFlags;
+        const flags = (
+          typeof p.flags === 'object' && p.flags !== null ? p.flags : {}
+        ) as LaunchFlags;
         return this.state.apply(p.state as string | undefined, flags).then(() => ({}));
       }
       default: {
         const handler = this.handlers[method as HostToAppMethod];
-        if (!handler) throw new RpcError(RpcErrorCode.DomainUnavailable, `${method} is not available`);
+        if (!handler)
+          throw new RpcError(RpcErrorCode.DomainUnavailable, `${method} is not available`);
         return handler(p as never);
       }
     }

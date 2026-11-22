@@ -28,7 +28,10 @@ describe('RpcPeer', () => {
         return { method, params };
       },
     });
-    const [slow, fast] = await Promise.all([a.request('slow', 1, 1000), a.request('fast', 2, 1000)]);
+    const [slow, fast] = await Promise.all([
+      a.request('slow', 1, 1000),
+      a.request('fast', 2, 1000),
+    ]);
     expect(slow).toEqual({ method: 'slow', params: 1 });
     expect(fast).toEqual({ method: 'fast', params: 2 });
   });
@@ -72,11 +75,31 @@ describe('RpcPeer', () => {
     peer.receive('{"jsonrpc":"2.0","id":4}');
     peer.receive('{"jsonrpc":"2.0","id":5,"method":"x"}');
     expect(out).toEqual([
-      { jsonrpc: '2.0', id: null, error: expect.objectContaining({ code: RpcErrorCode.ParseError }) },
-      { jsonrpc: '2.0', id: null, error: expect.objectContaining({ code: RpcErrorCode.InvalidRequest }) },
-      { jsonrpc: '2.0', id: 3, error: expect.objectContaining({ code: RpcErrorCode.InvalidRequest }) },
-      { jsonrpc: '2.0', id: 4, error: expect.objectContaining({ code: RpcErrorCode.InvalidRequest }) },
-      { jsonrpc: '2.0', id: 5, error: expect.objectContaining({ code: RpcErrorCode.MethodNotFound }) },
+      {
+        jsonrpc: '2.0',
+        id: null,
+        error: expect.objectContaining({ code: RpcErrorCode.ParseError }),
+      },
+      {
+        jsonrpc: '2.0',
+        id: null,
+        error: expect.objectContaining({ code: RpcErrorCode.InvalidRequest }),
+      },
+      {
+        jsonrpc: '2.0',
+        id: 3,
+        error: expect.objectContaining({ code: RpcErrorCode.InvalidRequest }),
+      },
+      {
+        jsonrpc: '2.0',
+        id: 4,
+        error: expect.objectContaining({ code: RpcErrorCode.InvalidRequest }),
+      },
+      {
+        jsonrpc: '2.0',
+        id: 5,
+        error: expect.objectContaining({ code: RpcErrorCode.MethodNotFound }),
+      },
     ]);
   });
 

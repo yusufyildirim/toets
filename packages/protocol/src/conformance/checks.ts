@@ -24,7 +24,7 @@ import {
   validateViewport,
 } from '../validate.js';
 import { parseProtocolVersion } from '../version.js';
-import { CONFORMANCE_FIXTURE } from './types.js';
+import { CONFORMANCE_FIXTURE } from '../fixture.js';
 
 export class CheckFailed extends Error {}
 export class CheckSkipped extends Error {}
@@ -97,8 +97,16 @@ async function rpcCodeOf(promise: Promise<unknown>): Promise<number | 'ok'> {
   }
 }
 
-async function apply(ctx: SessionContext, state: string, flags?: Record<string, string | number | boolean>) {
-  return ctx.session.requestRaw('state.apply', flags ? { state, flags } : { state }, ctx.requestTimeoutMs);
+async function apply(
+  ctx: SessionContext,
+  state: string,
+  flags?: Record<string, string | number | boolean>,
+) {
+  return ctx.session.requestRaw(
+    'state.apply',
+    flags ? { state, flags } : { state },
+    ctx.requestTimeoutMs,
+  );
 }
 
 async function waitIdle(ctx: SessionContext, timeoutMs: number) {
@@ -170,9 +178,11 @@ export const sessionChecks: Check<SessionContext>[] = [
       const v = parseProtocolVersion(hello.protocol);
       if (v?.major !== parseProtocolVersion(PROTOCOL_VERSION)?.major)
         fail(`protocol ${hello.protocol} is not major ${PROTOCOL_VERSION.split('.')[0]}`);
-      if (new Set(hello.domains).size !== hello.domains.length) fail('hello.domains has duplicates');
+      if (new Set(hello.domains).size !== hello.domains.length)
+        fail('hello.domains has duplicates');
       const unknown = unknownDomains(hello.domains);
-      if (unknown.length > 0) fail(`unknown domains for protocol ${PROTOCOL_VERSION}: ${unknown.join(', ')}`);
+      if (unknown.length > 0)
+        fail(`unknown domains for protocol ${PROTOCOL_VERSION}: ${unknown.join(', ')}`);
     },
   },
   {
@@ -218,7 +228,9 @@ export const sessionChecks: Check<SessionContext>[] = [
     title: 'answers unknown methods with -32601',
     scenario: 'session',
     async run(ctx) {
-      const code = await rpcCodeOf(ctx.session.requestRaw('conformance.noSuchMethod', {}, ctx.requestTimeoutMs));
+      const code = await rpcCodeOf(
+        ctx.session.requestRaw('conformance.noSuchMethod', {}, ctx.requestTimeoutMs),
+      );
       if (code !== RpcErrorCode.MethodNotFound) fail(`expected -32601, got ${code}`);
     },
   },
@@ -231,8 +243,11 @@ export const sessionChecks: Check<SessionContext>[] = [
       if (missing.length === 0) skip('every domain with methods is announced');
       for (const domain of missing) {
         const method = firstMethodOf(domain) as HostToAppMethod;
-        const code = await rpcCodeOf(ctx.session.requestRaw(method, PROBE_PARAMS[method], ctx.requestTimeoutMs));
-        if (code !== RpcErrorCode.DomainUnavailable) fail(`${method}: expected -32003, got ${code}`);
+        const code = await rpcCodeOf(
+          ctx.session.requestRaw(method, PROBE_PARAMS[method], ctx.requestTimeoutMs),
+        );
+        if (code !== RpcErrorCode.DomainUnavailable)
+          fail(`${method}: expected -32003, got ${code}`);
       }
     },
   },
@@ -254,7 +269,8 @@ export const sessionChecks: Check<SessionContext>[] = [
         if (r.status === 'rejected') fail(`${calls[i] ?? 'request'} failed: ${String(r.reason)}`);
       });
       const last = results[results.length - 1] as PromiseFulfilledResult<unknown>;
-      if (last.value !== RpcErrorCode.MethodNotFound) fail('interleaved unknown method did not get -32601');
+      if (last.value !== RpcErrorCode.MethodNotFound)
+        fail('interleaved unknown method did not get -32601');
     },
   },
   {
@@ -275,10 +291,12 @@ export const sessionChecks: Check<SessionContext>[] = [
     domains: ['tree'],
     async run(ctx) {
       const { root } = await getTree(ctx);
-      const child = flatten(root).find((n) => n !== root && n.children.length > 0) ?? root.children[0];
+      const child =
+        flatten(root).find((n) => n !== root && n.children.length > 0) ?? root.children[0];
       if (child) {
         const sub = await getTree(ctx, child.id);
-        if (sub.root.id !== child.id) fail(`tree.get({rootId: "${child.id}"}) returned root "${sub.root.id}"`);
+        if (sub.root.id !== child.id)
+          fail(`tree.get({rootId: "${child.id}"}) returned root "${sub.root.id}"`);
         assertValid(validateNodeTree(sub.root), 'invalid subtree');
       }
       const code = await rpcCodeOf(getTree(ctx, 'conformance-no-such-node'));
@@ -292,12 +310,17 @@ export const sessionChecks: Check<SessionContext>[] = [
     domains: ['tree'],
     async run(ctx) {
       const byTestId = (root: ProtocolNode) =>
-        new Map(flatten(root).filter((n) => n.testId).map((n) => [n.testId as string, n.id]));
+        new Map(
+          flatten(root)
+            .filter((n) => n.testId)
+            .map((n) => [n.testId as string, n.id]),
+        );
       const first = byTestId((await getTree(ctx)).root);
       const second = byTestId((await getTree(ctx)).root);
       for (const [testId, id] of first) {
         const again = second.get(testId);
-        if (again !== undefined && again !== id) fail(`node "${testId}" changed id from ${id} to ${again}`);
+        if (again !== undefined && again !== id)
+          fail(`node "${testId}" changed id from ${id} to ${again}`);
       }
     },
   },
@@ -332,7 +355,8 @@ export const sessionChecks: Check<SessionContext>[] = [
       for (const n of nodes as Array<Record<string, unknown>>) {
         for (const key of ['id', 'up', 'down', 'left', 'right']) {
           const v = n[key];
-          if (typeof v === 'string' && !ids.has(v)) fail(`focus.graph references unknown node "${v}"`);
+          if (typeof v === 'string' && !ids.has(v))
+            fail(`focus.graph references unknown node "${v}"`);
         }
       }
     },
@@ -344,7 +368,11 @@ export const sessionChecks: Check<SessionContext>[] = [
     domains: ['sync'],
     async run(ctx) {
       const started = Date.now();
-      const result = (await ctx.session.requestRaw('sync.waitForIdle', { timeoutMs: 3000 }, 3000 + ctx.requestTimeoutMs)) as {
+      const result = (await ctx.session.requestRaw(
+        'sync.waitForIdle',
+        { timeoutMs: 3000 },
+        3000 + ctx.requestTimeoutMs,
+      )) as {
         idle: unknown;
         busy: unknown;
       };
@@ -372,12 +400,22 @@ export const sessionChecks: Check<SessionContext>[] = [
     scenario: 'session',
     domains: ['media'],
     async run(ctx) {
-      const { media } = (await ctx.session.requestRaw('media.get', {}, ctx.requestTimeoutMs)) as { media: unknown };
+      const { media } = (await ctx.session.requestRaw('media.get', {}, ctx.requestTimeoutMs)) as {
+        media: unknown;
+      };
       if (media !== null) assertValid(validateMediaInfo(media), 'invalid media.get');
-      const list = (await ctx.session.requestRaw('media.list', {}, ctx.requestTimeoutMs)) as { media: unknown };
+      const list = (await ctx.session.requestRaw('media.list', {}, ctx.requestTimeoutMs)) as {
+        media: unknown;
+      };
       if (!Array.isArray(list.media)) fail('media.list: media must be an array');
-      list.media.forEach((m, i) => assertValid(validateMediaInfo(m, `media[${i}]`), 'invalid media.list'));
-      const missing = (await ctx.session.requestRaw('media.get', { id: 'conformance-no-such-player' }, ctx.requestTimeoutMs)) as {
+      list.media.forEach((m, i) =>
+        assertValid(validateMediaInfo(m, `media[${i}]`), 'invalid media.list'),
+      );
+      const missing = (await ctx.session.requestRaw(
+        'media.get',
+        { id: 'conformance-no-such-player' },
+        ctx.requestTimeoutMs,
+      )) as {
         media: unknown;
       };
       if (missing.media !== null) fail('media.get with an unknown id must return media: null');
@@ -391,10 +429,12 @@ export const sessionChecks: Check<SessionContext>[] = [
     fixture: true,
     async run(ctx) {
       const nodes = flatten((await getTree(ctx)).root);
-      const find = (id: string) => nodes.find((n) => n.testId === id) ?? fail(`no node with testId "${id}"`);
+      const find = (id: string) =>
+        nodes.find((n) => n.testId === id) ?? fail(`no node with testId "${id}"`);
       for (const id of [testIds.a, testIds.b]) {
         const n = find(id);
-        if (!n.focusable || !n.visible || !n.enabled) fail(`"${id}" must be focusable, visible and enabled`);
+        if (!n.focusable || !n.visible || !n.enabled)
+          fail(`"${id}" must be focusable, visible and enabled`);
         if (n.bounds.width <= 0 || n.bounds.height <= 0) fail(`"${id}" must have a non-empty size`);
       }
       const t = find(testIds.text);
@@ -411,7 +451,12 @@ export const sessionChecks: Check<SessionContext>[] = [
     fixture: true,
     async run(ctx) {
       const result = await apply(ctx, states.focusA);
-      if (typeof result !== 'object' || result === null || Array.isArray(result) || Object.keys(result).length > 0)
+      if (
+        typeof result !== 'object' ||
+        result === null ||
+        Array.isArray(result) ||
+        Object.keys(result).length > 0
+      )
         fail(`expected {}, got ${JSON.stringify(result)}`);
     },
   },
@@ -439,10 +484,16 @@ export const sessionChecks: Check<SessionContext>[] = [
         fail(`focus.get is not "${testIds.a}" after ${states.focusA}`);
       const nodes = flatten((await getTree(ctx)).root);
       const b = nodes.find((n) => n.testId === testIds.b) ?? fail(`no node "${testIds.b}"`);
-      const changed = waitForNotification(ctx, 'focus.changed', (p) => (p as { to?: unknown }).to === b.id, 3000);
+      const changed = waitForNotification(
+        ctx,
+        'focus.changed',
+        (p) => (p as { to?: unknown }).to === b.id,
+        3000,
+      );
       await apply(ctx, states.focusB);
       assertValid(validateFocusChanged(await changed), 'invalid focus.changed');
-      if ((await focusedTestId(ctx)) !== testIds.b) fail(`focus.get is not "${testIds.b}" after ${states.focusB}`);
+      if ((await focusedTestId(ctx)) !== testIds.b)
+        fail(`focus.get is not "${testIds.b}" after ${states.focusB}`);
     },
   },
   {
@@ -456,7 +507,9 @@ export const sessionChecks: Check<SessionContext>[] = [
       const entry = waitForNotification(
         ctx,
         'logs.entry',
-        (p) => typeof (p as { message?: unknown }).message === 'string' && (p as { message: string }).message.includes(marker),
+        (p) =>
+          typeof (p as { message?: unknown }).message === 'string' &&
+          (p as { message: string }).message.includes(marker),
         3000,
       );
       await apply(ctx, states.log, { marker });
@@ -471,13 +524,22 @@ export const sessionChecks: Check<SessionContext>[] = [
     fixture: true,
     async run(ctx) {
       await apply(ctx, states.busy, { ms: 1500 });
-      const busy = (await ctx.session.requestRaw('sync.waitForIdle', { timeoutMs: 300 }, ctx.requestTimeoutMs + 300)) as {
+      const busy = (await ctx.session.requestRaw(
+        'sync.waitForIdle',
+        { timeoutMs: 300 },
+        ctx.requestTimeoutMs + 300,
+      )) as {
         idle: boolean;
         busy: Array<{ kind: string }>;
       };
       if (busy.idle) fail('reported idle while marked busy');
-      if (!busy.busy.some((r) => r.kind === 'custom')) fail('busy does not include a "custom" resource');
-      const idle = (await ctx.session.requestRaw('sync.waitForIdle', { timeoutMs: 5000 }, ctx.requestTimeoutMs + 5000)) as {
+      if (!busy.busy.some((r) => r.kind === 'custom'))
+        fail('busy does not include a "custom" resource');
+      const idle = (await ctx.session.requestRaw(
+        'sync.waitForIdle',
+        { timeoutMs: 5000 },
+        ctx.requestTimeoutMs + 5000,
+      )) as {
         idle: boolean;
         busy: unknown[];
       };
@@ -492,10 +554,13 @@ export const sessionChecks: Check<SessionContext>[] = [
       for (const { method, params } of ctx.notifications) {
         const domain = NOTIFICATION_DOMAIN[method as keyof typeof NOTIFICATION_DOMAIN];
         if (domain === undefined) fail(`unknown notification "${method}"`);
-        if (!ctx.session.domains.has(domain)) fail(`"${method}" sent without announcing "${domain}"`);
+        if (!ctx.session.domains.has(domain))
+          fail(`"${method}" sent without announcing "${domain}"`);
         if (method === 'logs.entry') assertValid(validateLogEntry(params), 'invalid logs.entry');
-        if (method === 'focus.changed') assertValid(validateFocusChanged(params), 'invalid focus.changed');
-        if (method === 'media.changed') assertValid(validateMediaInfo(params, 'params'), 'invalid media.changed');
+        if (method === 'focus.changed')
+          assertValid(validateFocusChanged(params), 'invalid focus.changed');
+        if (method === 'media.changed')
+          assertValid(validateMediaInfo(params, 'params'), 'invalid media.changed');
       }
     },
   },
@@ -535,7 +600,8 @@ function rejectChecks(scenario: Scenario, what: string): Check<RejectContext>[] 
       scenario,
       async run(ctx) {
         if (ctx.connections === 0) fail('the SDK never connected');
-        if (ctx.connections > 1) fail(`the SDK reconnected ${ctx.connections - 1} time(s) after the rejection`);
+        if (ctx.connections > 1)
+          fail(`the SDK reconnected ${ctx.connections - 1} time(s) after the rejection`);
       },
     },
   ];
@@ -586,6 +652,8 @@ function nextFrame(session: Session, timeoutMs: number): Promise<string> {
 }
 
 async function expectAlive(ctx: SessionContext): Promise<void> {
-  const code = await rpcCodeOf(ctx.session.requestRaw('conformance.noSuchMethod', {}, ctx.requestTimeoutMs));
+  const code = await rpcCodeOf(
+    ctx.session.requestRaw('conformance.noSuchMethod', {}, ctx.requestTimeoutMs),
+  );
   if (code !== RpcErrorCode.MethodNotFound) fail('connection unusable after a malformed frame');
 }

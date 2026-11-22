@@ -80,13 +80,7 @@ export interface HelloResult {
 }
 
 export type MediaState =
-  | 'idle'
-  | 'loading'
-  | 'buffering'
-  | 'playing'
-  | 'paused'
-  | 'ended'
-  | 'error';
+  'idle' | 'loading' | 'buffering' | 'playing' | 'paused' | 'ended' | 'error';
 
 /** Every media state, in no particular order. */
 export const MEDIA_STATES: readonly MediaState[] = [

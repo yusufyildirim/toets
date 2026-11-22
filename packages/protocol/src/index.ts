@@ -10,5 +10,6 @@ export * from './jsonrpc.js';
 export * from './messages.js';
 export * from './version.js';
 export * from './errors.js';
+export { CONFORMANCE_FIXTURE } from './fixture.js';
 export { RpcPeer, RpcTimeoutError, type RpcPeerOptions, type PeerTimers } from './peer.js';
 export type * from './host.js';

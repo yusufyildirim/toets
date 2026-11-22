@@ -104,23 +104,19 @@ function utf8Encode(text: string): number[] {
     else if (c < 0x800) out.push(0xc0 | (c >> 6), 0x80 | (c & 63));
     else if (c < 0x10000) out.push(0xe0 | (c >> 12), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
     else
-      out.push(
-        0xf0 | (c >> 18),
-        0x80 | ((c >> 12) & 63),
-        0x80 | ((c >> 6) & 63),
-        0x80 | (c & 63),
-      );
+      out.push(0xf0 | (c >> 18), 0x80 | ((c >> 12) & 63), 0x80 | ((c >> 6) & 63), 0x80 | (c & 63));
   }
   return out;
 }
 
 function utf8Decode(bytes: number[]): string {
   let out = '';
-  for (let i = 0; i < bytes.length; ) {
+  for (let i = 0; i < bytes.length;) {
     const b = bytes[i++] as number;
     let c: number;
     if (b < 0x80) c = b;
-    else if (b >= 0xf0) c = ((b & 7) << 18) | (cont(bytes, i++) << 12) | (cont(bytes, i++) << 6) | cont(bytes, i++);
+    else if (b >= 0xf0)
+      c = ((b & 7) << 18) | (cont(bytes, i++) << 12) | (cont(bytes, i++) << 6) | cont(bytes, i++);
     else if (b >= 0xe0) c = ((b & 15) << 12) | (cont(bytes, i++) << 6) | cont(bytes, i++);
     else if (b >= 0xc0) c = ((b & 31) << 6) | cont(bytes, i++);
     else throw new Error('invalid utf-8');

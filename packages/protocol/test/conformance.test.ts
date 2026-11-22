@@ -66,7 +66,12 @@ function fakeFixtureApp(bugs: Bugs = {}): ConformanceTarget {
       if (state === S.focusA) focus('n1');
       else if (state === S.focusB) focus('n2');
       else if (state === S.log)
-        peer.notify('logs.entry', { level: 'info', message: String(flags.marker), timestamp: Date.now(), kind: 'console' });
+        peer.notify('logs.entry', {
+          level: 'info',
+          message: String(flags.marker),
+          timestamp: Date.now(),
+          kind: 'console',
+        });
       else if (state === S.busy) busyUntil = Date.now() + Number(flags.ms);
       else if (state === S.fail) throw new RpcError(RpcErrorCode.HandlerFailed, 'fixture failure');
     };
@@ -83,15 +88,26 @@ function fakeFixtureApp(bugs: Bugs = {}): ConformanceTarget {
           case 'focus.get':
             return { node: focused ? (find(tree(), focused) ?? null) : null };
           case 'focus.graph':
-            return { nodes: [{ id: 'n1', right: 'n2', left: null }, { id: 'n2', left: 'n1' }] };
+            return {
+              nodes: [
+                { id: 'n1', right: 'n2', left: null },
+                { id: 'n2', left: 'n1' },
+              ],
+            };
           case 'sync.waitForIdle': {
             const end = Date.now() + Number(p.timeoutMs);
-            while (Date.now() < busyUntil && Date.now() < end) await new Promise((r) => setTimeout(r, 20));
+            while (Date.now() < busyUntil && Date.now() < end)
+              await new Promise((r) => setTimeout(r, 20));
             const idle = Date.now() >= busyUntil;
             return { idle, busy: idle ? [] : [{ kind: 'custom', description: 'fixture busy' }] };
           }
           case 'media.get':
-            return { media: p.id && p.id !== 'main' ? null : { id: 'main', state: 'paused', position: 0, duration: 10, rate: 1 } };
+            return {
+              media:
+                p.id && p.id !== 'main'
+                  ? null
+                  : { id: 'main', state: 'paused', position: 0, duration: 10, rate: 1 },
+            };
           case 'media.list':
             return { media: [{ id: 'main', state: 'paused', position: 0, duration: 10, rate: 1 }] };
           case 'state.apply':
@@ -100,7 +116,12 @@ function fakeFixtureApp(bugs: Bugs = {}): ConformanceTarget {
           default:
             if (method.includes('.') && ['metrics'].includes(method.split('.')[0] as string))
               throw new RpcError(RpcErrorCode.DomainUnavailable, 'nope');
-            throw new RpcError(bugs.wrongUnknownMethodCode ? RpcErrorCode.InternalError : RpcErrorCode.MethodNotFound, 'nope');
+            throw new RpcError(
+              bugs.wrongUnknownMethodCode
+                ? RpcErrorCode.InternalError
+                : RpcErrorCode.MethodNotFound,
+              'nope',
+            );
         }
       },
     });
@@ -123,7 +144,8 @@ function fakeFixtureApp(bugs: Bugs = {}): ConformanceTarget {
           () => applyState(payload.state),
           () => {
             socket.close();
-            if (bugs.reconnectOnReject && attempt < 2) setTimeout(() => start(payload, attempt + 1), 100);
+            if (bugs.reconnectOnReject && attempt < 2)
+              setTimeout(() => start(payload, attempt + 1), 100);
           },
         );
     });
@@ -148,14 +170,23 @@ describe('conformance suite', () => {
     expect(report.passed, text).toBe(true);
     expect(report.results.map((r) => r.id)).toEqual(CONFORMANCE_CHECKS);
     // The fake announces every domain, so there is nothing to probe for -32003.
-    expect(report.results.filter((r) => r.status === 'skip').map((r) => r.id)).toEqual(['rpc.domain-unavailable']);
+    expect(report.results.filter((r) => r.status === 'skip').map((r) => r.id)).toEqual([
+      'rpc.domain-unavailable',
+    ]);
     expect(text).toContain('SDK fake@0 (test)');
   });
 
   it('detects broken implementations', { timeout: 30_000 }, async () => {
     const report = await runConformance(
-      fakeFixtureApp({ reconnectOnReject: true, wrongUnknownMethodCode: true, noFocusEvents: true }),
-      { connectTimeoutMs: 3000, only: ['rpc.unknown-method', 'fixture.focus', 'handshake.unauthorized'] },
+      fakeFixtureApp({
+        reconnectOnReject: true,
+        wrongUnknownMethodCode: true,
+        noFocusEvents: true,
+      }),
+      {
+        connectTimeoutMs: 3000,
+        only: ['rpc.unknown-method', 'fixture.focus', 'handshake.unauthorized'],
+      },
     );
     expect(report.passed).toBe(false);
     expect(Object.fromEntries(report.results.map((r) => [r.id, r.status]))).toEqual({
@@ -186,7 +217,17 @@ describe('conformance suite', () => {
 
 describe('dpad-conformance CLI', () => {
   it('parses arguments', () => {
-    expect(parseArgs(['--launch', 'node app.js {payload}', '--fixture', '--only', 'tree.', '--timeout', '500'])).toEqual({
+    expect(
+      parseArgs([
+        '--launch',
+        'node app.js {payload}',
+        '--fixture',
+        '--only',
+        'tree.',
+        '--timeout',
+        '500',
+      ]),
+    ).toEqual({
       launch: 'node app.js {payload}',
       terminate: undefined,
       fixture: true,
@@ -200,6 +241,8 @@ describe('dpad-conformance CLI', () => {
   });
 
   it('renders the payload placeholder', () => {
-    expect(renderCommand('run {payload} {payload}', { payload: { v: 1 }, encoded: 'abc' })).toBe('run abc abc');
+    expect(renderCommand('run {payload} {payload}', { payload: { v: 1 }, encoded: 'abc' })).toBe(
+      'run abc abc',
+    );
   });
 });

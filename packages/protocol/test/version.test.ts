@@ -1,5 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { isProtocolCompatible, parseProtocolVersion, protocolSupportsMethod } from '../src/index.js';
+import {
+  isProtocolCompatible,
+  parseProtocolVersion,
+  protocolSupportsMethod,
+} from '../src/index.js';
 
 describe('protocol versions', () => {
   it('parses semver and ignores suffixes', () => {

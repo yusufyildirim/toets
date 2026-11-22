@@ -95,13 +95,21 @@ export class RpcPeer {
       return;
     }
     if (typeof msg !== 'object' || msg === null || Array.isArray(msg)) {
-      this.respondError(null, RpcErrorCode.InvalidRequest, 'Invalid request (batches are not supported)');
+      this.respondError(
+        null,
+        RpcErrorCode.InvalidRequest,
+        'Invalid request (batches are not supported)',
+      );
       return;
     }
     const m = msg as Record<string, unknown>;
     const id = isId(m.id) ? m.id : undefined;
     if (m.jsonrpc !== '2.0') {
-      this.respondError(id ?? null, RpcErrorCode.InvalidRequest, 'Invalid request: jsonrpc must be "2.0"');
+      this.respondError(
+        id ?? null,
+        RpcErrorCode.InvalidRequest,
+        'Invalid request: jsonrpc must be "2.0"',
+      );
       return;
     }
     if (typeof m.method === 'string') {

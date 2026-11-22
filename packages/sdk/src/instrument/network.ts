@@ -7,7 +7,12 @@ const MAX_URL = 160;
 export function describeRequest(method: unknown, url: unknown): string {
   let u = String(url === undefined || url === null ? '' : url);
   const loc = getGlobal().location as { origin?: string } | undefined;
-  if (loc && typeof loc.origin === 'string' && loc.origin !== 'null' && u.indexOf(loc.origin) === 0) {
+  if (
+    loc &&
+    typeof loc.origin === 'string' &&
+    loc.origin !== 'null' &&
+    u.indexOf(loc.origin) === 0
+  ) {
     u = u.slice(loc.origin.length) || '/';
   }
   if (u.length > MAX_URL) u = `${u.slice(0, MAX_URL)}...`;
@@ -72,10 +77,12 @@ export function instrumentXhr(tracker: IdleTracker): () => void {
 
   function sendTracked(this: XhrLike, ...args: unknown[]): unknown {
     const description = info.get(this);
-    if (!enabled || tracker.isUntracked || description === undefined) return origSend.apply(this, args);
+    if (!enabled || tracker.isUntracked || description === undefined)
+      return origSend.apply(this, args);
     const release = tracker.begin('network', description);
     const done = (): void => release();
-    for (const type of ['loadend', 'abort', 'error', 'timeout', 'load']) this.addEventListener(type, done);
+    for (const type of ['loadend', 'abort', 'error', 'timeout', 'load'])
+      this.addEventListener(type, done);
     this.addEventListener('readystatechange', () => {
       if (this.readyState === 4) release();
     });

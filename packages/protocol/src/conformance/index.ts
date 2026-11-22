@@ -28,7 +28,7 @@ import {
   type Scenario,
   type SessionContext,
 } from './checks.js';
-import { CONFORMANCE_FIXTURE } from './types.js';
+import { CONFORMANCE_FIXTURE } from '../fixture.js';
 import type {
   CheckResult,
   ConformanceOptions,
@@ -37,6 +37,7 @@ import type {
 } from './types.js';
 
 export * from './types.js';
+export { CONFORMANCE_FIXTURE } from '../fixture.js';
 
 /** Ids of every check, in run order. */
 export const CONFORMANCE_CHECKS: readonly string[] = [
@@ -76,7 +77,8 @@ export async function runConformance(
     }
   };
   const failAll = <C>(checks: Check<C>[], message: string) => {
-    for (const check of checks) record({ id: check.id, title: check.title, status: 'fail', message, durationMs: 0 });
+    for (const check of checks)
+      record({ id: check.id, title: check.title, status: 'fail', message, durationMs: 0 });
   };
 
   // Main session.
@@ -94,7 +96,8 @@ export async function runConformance(
   if (launch.length > 0) {
     const needs = launch.some((c) => c.fixture) && !target.fixture;
     if (needs) {
-      for (const c of launch) record(skipped(c, 'target does not implement the conformance fixture'));
+      for (const c of launch)
+        record(skipped(c, 'target does not implement the conformance fixture'));
     } else {
       await withSession(
         target,
@@ -113,7 +116,9 @@ export async function runConformance(
   for (const scenario of ['reject-unauthorized', 'reject-incompatible'] as const) {
     const checks = selected(rejectionChecks).filter((c) => c.scenario === scenario);
     if (checks.length === 0) continue;
-    const ctx = await rejectedLaunch(target, scenario, connectTimeoutMs).catch((e: unknown) => e as Error);
+    const ctx = await rejectedLaunch(target, scenario, connectTimeoutMs).catch(
+      (e: unknown) => e as Error,
+    );
     if (ctx instanceof Error) failAll(checks, ctx.message);
     else await runChecks(checks, ctx, new Set());
   }
@@ -156,8 +161,10 @@ async function runOne<C>(check: Check<C>, ctx: C): Promise<CheckResult> {
     return { ...base, status: 'pass', durationMs: Date.now() - started };
   } catch (error) {
     const durationMs = Date.now() - started;
-    if (error instanceof CheckSkipped) return { ...base, status: 'skip', message: error.message, durationMs };
-    const message = error instanceof CheckFailed ? error.message : `unexpected error: ${String(error)}`;
+    if (error instanceof CheckSkipped)
+      return { ...base, status: 'skip', message: error.message, durationMs };
+    const message =
+      error instanceof CheckFailed ? error.message : `unexpected error: ${String(error)}`;
     return { ...base, status: 'fail', message, durationMs };
   }
 }
@@ -231,7 +238,10 @@ async function rejectedLaunch(
               data: { protocol: '999.0.0' },
             };
         socket.send(JSON.stringify({ jsonrpc: '2.0', id, error }));
-        socket.close(unauthorized ? CloseCode.Unauthorized : CloseCode.IncompatibleProtocol, 'rejected');
+        socket.close(
+          unauthorized ? CloseCode.Unauthorized : CloseCode.IncompatibleProtocol,
+          'rejected',
+        );
         connected();
       });
     },
@@ -241,10 +251,13 @@ async function rejectedLaunch(
     const payload: LaunchPayload = { v: 1, sdkUrl: listener.url, token };
     await target.launch({ payload, encoded: encodeLaunchPayloadParam(payload) });
     let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeout = new Promise<'timeout'>((r) => (timer = setTimeout(() => r('timeout'), connectTimeoutMs)));
+    const timeout = new Promise<'timeout'>(
+      (r) => (timer = setTimeout(() => r('timeout'), connectTimeoutMs)),
+    );
     const first = await Promise.race([firstConnection, timeout]);
     clearTimeout(timer);
-    if (first === 'timeout') throw new Error(`the SDK did not connect within ${connectTimeoutMs}ms`);
+    if (first === 'timeout')
+      throw new Error(`the SDK did not connect within ${connectTimeoutMs}ms`);
     // Long enough for any reconnect/backoff loop to show itself.
     await new Promise((r) => setTimeout(r, 2500));
     return { token, firstFrame, connections };

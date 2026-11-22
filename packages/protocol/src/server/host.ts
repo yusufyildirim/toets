@@ -217,7 +217,9 @@ class Host implements SdkHost {
       return;
     }
     const problems = validateHelloParams(msg.params);
-    const partial = (typeof msg.params === 'object' && msg.params !== null ? msg.params : {}) as Partial<HelloParams>;
+    const partial = (
+      typeof msg.params === 'object' && msg.params !== null ? msg.params : {}
+    ) as Partial<HelloParams>;
     const hello = withoutToken(partial);
     if (problems.length > 0) {
       this.reject(socket, id, CloseCode.HandshakeFailed, RpcErrorCode.InvalidParams, {
@@ -307,7 +309,8 @@ class Host implements SdkHost {
   private purgeExpiredTokens(): void {
     const now = Date.now();
     for (const [token, entry] of this.tokens) {
-      if (!entry.session && entry.waiters.size === 0 && entry.expiresAt < now) this.tokens.delete(token);
+      if (!entry.session && entry.waiters.size === 0 && entry.expiresAt < now)
+        this.tokens.delete(token);
     }
   }
 

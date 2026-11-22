@@ -76,7 +76,8 @@ function safeJson(value: object): string {
         if (seen.indexOf(v) >= 0) return '[Circular]';
         seen.push(v);
       }
-      if (typeof v === 'function') return `[Function ${(v as { name?: string }).name || 'anonymous'}]`;
+      if (typeof v === 'function')
+        return `[Function ${(v as { name?: string }).name || 'anonymous'}]`;
       if (typeof v === 'bigint') return `${String(v)}n`;
       return v;
     });

@@ -24,7 +24,9 @@ export class StateRegistry {
     this.onError = onError;
     const hasFlags = !!launch.flags && Object.keys(launch.flags).length > 0;
     this.launch =
-      launch.state !== undefined || hasFlags ? { state: launch.state, flags: launch.flags ?? {} } : null;
+      launch.state !== undefined || hasFlags
+        ? { state: launch.state, flags: launch.flags ?? {} }
+        : null;
   }
 
   /** Registers a handler; it immediately receives the launch state, if any. */
@@ -32,12 +34,18 @@ export class StateRegistry {
     this.handlers.push(handler);
     const launch = this.launch;
     if (launch) {
-      const release = this.tracker.begin('state', `launch state ${describe(launch.state, launch.flags)}`);
+      const release = this.tracker.begin(
+        'state',
+        `launch state ${describe(launch.state, launch.flags)}`,
+      );
       Promise.resolve()
         .then(() => handler(launch.state, launch.flags))
         .then(release, (error: unknown) => {
           release();
-          this.onError(`onState handler failed for launch state ${describe(launch.state, launch.flags)}`, error);
+          this.onError(
+            `onState handler failed for launch state ${describe(launch.state, launch.flags)}`,
+            error,
+          );
         });
     }
     return () => {

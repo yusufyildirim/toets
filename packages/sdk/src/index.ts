@@ -22,7 +22,13 @@ export {
   type WebSocketConstructor,
   type WebSocketLike,
 } from './runtime.js';
-export { IdleTracker, type BusyProbe, type IdleIgnoreRule, type IdleOptions, type IdleResult } from './idle.js';
+export {
+  IdleTracker,
+  type BusyProbe,
+  type IdleIgnoreRule,
+  type IdleOptions,
+  type IdleResult,
+} from './idle.js';
 export type { MediaProvider, MediaReporter, MediaSnapshot, MediaSource } from './media.js';
 export type { StateHandler } from './state.js';
 export { describeRequest } from './instrument/network.js';
