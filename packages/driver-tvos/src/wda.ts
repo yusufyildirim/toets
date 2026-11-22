@@ -1,5 +1,5 @@
 import { existsSync, readFileSync } from 'node:fs';
-import { mkdir, rm, stat, writeFile } from 'node:fs/promises';
+import { cp, mkdir, rm, stat, writeFile } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -23,7 +23,14 @@ const PRODUCT = join(
   'Debug-appletvsimulator',
   'WebDriverAgentRunner_tvOS-Runner.app',
 );
-const MARKER = '.dpad-complete';
+/** Bumped when the cached bundle layout changes, so stale caches are rebuilt. */
+const MARKER = '.dpad-complete-2';
+const RUNNER_EXECUTABLE = 'WebDriverAgentRunner_tvOS-Runner';
+const XCTEST_EXECUTABLE = join(
+  'PlugIns',
+  'WebDriverAgentRunner_tvOS.xctest',
+  'WebDriverAgentRunner_tvOS',
+);
 const POLL_MS = 1000;
 
 export function defaultWdaCacheDir(): string {
@@ -97,11 +104,83 @@ export async function ensurePrebuiltWda(opts: PrebuiltWdaOptions = {}): Promise<
         },
       );
     }
+    await embedXctestFrameworks(app, runner);
     await writeFile(join(dir, MARKER), new Date().toISOString());
     return app;
   } finally {
     await rm(lock, { recursive: true, force: true });
   }
+}
+
+/**
+ * Copies the XCTest frameworks the runner links into its `Frameworks` folder and re-signs it.
+ *
+ * `build-for-testing` leaves them out for simulator destinations: `xcodebuild test` injects them
+ * from Xcode's tvOS Simulator platform at launch. A prebuilt runner is launched like an app
+ * (`simctl launch`), so without them dyld fails on `@rpath/XCTest.framework` and WDA never
+ * starts. Only the runner's transitive `@rpath` dependencies are copied: some of the platform's
+ * overlay frameworks share a bundle identifier and the simulator refuses to install them together.
+ */
+export async function embedXctestFrameworks(app: string, runner: CommandRunner): Promise<void> {
+  const platform = await runner.run('xcrun', [
+    '--sdk',
+    'appletvsimulator',
+    '--show-sdk-platform-path',
+  ]);
+  const platformDir = platform.stdout.trim();
+  if (platform.exitCode !== 0 || !platformDir) {
+    throw wdaError(`Could not locate the tvOS Simulator platform: ${tail(platform.stderr)}`);
+  }
+  const searchDirs = [
+    join(platformDir, 'Developer', 'Library', 'Frameworks'),
+    join(platformDir, 'Developer', 'Library', 'PrivateFrameworks'),
+    join(platformDir, 'Developer', 'usr', 'lib'),
+  ];
+  const frameworksDir = join(app, 'Frameworks');
+  await mkdir(frameworksDir, { recursive: true });
+
+  const embedded = new Set<string>();
+  const queue = [join(app, RUNNER_EXECUTABLE), join(app, XCTEST_EXECUTABLE)];
+  for (let binary = queue.shift(); binary !== undefined; binary = queue.shift()) {
+    for (const dep of await rpathDependencies(binary, runner)) {
+      // `XCTest.framework/XCTest` -> bundle `XCTest.framework`; `libX.dylib` stays as is.
+      const bundle = dep.split('/')[0]!;
+      if (embedded.has(bundle)) continue;
+      embedded.add(bundle);
+      const source = searchDirs.map((d) => join(d, bundle)).find((p) => existsSync(p));
+      // Not a platform library: shipped inside the bundle (e.g. WebDriverAgentLib).
+      if (!source) continue;
+      await cp(source, join(frameworksDir, bundle), { recursive: true, verbatimSymlinks: true });
+      queue.push(join(frameworksDir, dep));
+    }
+  }
+  if (!embedded.has('XCTest.framework')) {
+    throw wdaError(`${app} does not link XCTest; is it a WebDriverAgent runner?`);
+  }
+
+  const sign = await runner.run('codesign', ['--force', '--sign', '-', '--timestamp=none', app]);
+  if (sign.exitCode !== 0) {
+    throw wdaError(`Signing ${app} failed: ${tail(sign.stderr || sign.stdout)}`);
+  }
+}
+
+/** `@rpath/...` install names a Mach-O binary links, e.g. `XCTest.framework/XCTest`. */
+async function rpathDependencies(binary: string, runner: CommandRunner): Promise<string[]> {
+  const res = await runner.run('xcrun', ['otool', '-L', binary]);
+  if (res.exitCode !== 0) throw wdaError(`otool -L ${binary} failed: ${tail(res.stderr)}`);
+  const deps = new Set<string>();
+  for (const line of res.stdout.split('\n')) {
+    const name = /^\s+@rpath\/(\S+)/.exec(line)?.[1];
+    if (name) deps.add(name);
+  }
+  return [...deps];
+}
+
+function wdaError(message: string) {
+  return tvosError(TvosErrorCode.WDA_BUILD_FAILED, message, {
+    hint: 'Check that Xcode with the tvOS platform is installed (`xcodebuild -downloadPlatform tvOS`) and selected (`xcode-select -p`).',
+    docs: DOCS.setup,
+  });
 }
 
 /** `Build version 27B52` -> `27B52`. */
