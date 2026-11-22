@@ -201,6 +201,14 @@ export interface DpadConfig extends PlaywrightTestConfig {
   readonly parityReport?: false | ParityReporterOptions;
 }
 
+/**
+ * Default `snapshotPathTemplate` of dpad projects: Playwright's default without the host OS
+ * suffix (`{-snapshotSuffix}`). Baselines are per project (so per platform and device) and the
+ * same on every machine; device screenshots do not depend on the host.
+ */
+const SNAPSHOT_PATH_TEMPLATE =
+  '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{ext}';
+
 function mergeOptions(base: DpadOptions, over: DpadOptions): DpadOptions {
   return { ...mergeRuntimeConfig(base, over), steps: { ...base.steps, ...over.steps } };
 }
@@ -227,7 +235,8 @@ function withParityReporter(
 /**
  * Playwright's `defineConfig` plus dpad: the per-platform `app` entries and shared `dpad`
  * options are merged into every `platforms.*()` project, and the parity matrix reporter is
- * added.
+ * added. dpad projects default `snapshotPathTemplate` to Playwright's default without the host
+ * OS suffix, so baselines match across machines; a top-level or project value wins.
  */
 export function defineConfig(config: DpadConfig): PlaywrightTestConfig {
   const { app, dpad, parityReport, projects, reporter, ...playwright } = config;
@@ -239,7 +248,12 @@ export function defineConfig(config: DpadConfig): PlaywrightTestConfig {
       app: { ...app?.[KEY_OF[target.platform]], ...target.app },
       options: mergeOptions(dpad ?? {}, target.options),
     };
-    return { ...project, use: { ...project.use, dpad: resolved } };
+    return {
+      ...project,
+      snapshotPathTemplate:
+        project.snapshotPathTemplate ?? config.snapshotPathTemplate ?? SNAPSHOT_PATH_TEMPLATE,
+      use: { ...project.use, dpad: resolved },
+    };
   });
   return playwrightDefineConfig({
     ...playwright,

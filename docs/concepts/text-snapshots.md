@@ -39,4 +39,4 @@ With a string, the snapshot is compared inline (indentation ignored). Without on
 
 - **Snapshot a region, not the screen.** Whole-screen snapshots break on unrelated changes. Pick the element whose structure the test is about.
 - **Mock the data first.** A snapshot of live content changes with the content. Use [network mocking](./network-mocking.md).
-- **Inline snapshots serve all platforms** when the app uses the same test IDs everywhere; where platforms legitimately differ, the diff shows it. Baseline files are per project, and Playwright's default path also includes the host OS (`-darwin`, `-linux`): set `snapshotPathTemplate` (for example `'{testDir}/__snapshots__/{testFilePath}/{arg}-{projectName}{ext}'`) so baselines written on a laptop match in CI.
+- **Inline snapshots serve all platforms** when the app uses the same test IDs everywhere; where platforms legitimately differ, the diff shows it. Baseline files are per project and never carry the host OS (dpad drops Playwright's `-darwin` / `-linux` suffix), so baselines written on a laptop match in CI.

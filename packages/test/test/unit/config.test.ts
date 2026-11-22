@@ -102,6 +102,24 @@ describe('defineConfig', () => {
     expect(plain).toEqual({ name: 'plain' });
   });
 
+  it('defaults dpad projects to host-independent snapshot paths', () => {
+    const template =
+      '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{ext}';
+    const [web, plain] = defineConfig({ projects: [platforms.web(), { name: 'plain' }] }).projects!;
+    expect(web?.snapshotPathTemplate).toBe(template);
+    expect(web?.snapshotPathTemplate).not.toContain('snapshotSuffix');
+    expect(plain?.snapshotPathTemplate).toBeUndefined();
+  });
+
+  it('keeps a configured snapshot path template, the project one first', () => {
+    const [web, tvos] = defineConfig({
+      snapshotPathTemplate: '{testDir}/__snapshots__/{arg}{ext}',
+      projects: [platforms.web(), platforms.tvOS({ snapshotPathTemplate: '{arg}-tv{ext}' })],
+    }).projects!;
+    expect(web?.snapshotPathTemplate).toBe('{testDir}/__snapshots__/{arg}{ext}');
+    expect(tvos?.snapshotPathTemplate).toBe('{arg}-tv{ext}');
+  });
+
   it('appends the parity reporter after the configured reporters', () => {
     const config = defineConfig({ reporter: [['html', { open: 'never' }]] });
     const reporters = config.reporter as [string, unknown][];

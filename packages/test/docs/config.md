@@ -32,6 +32,7 @@ export default defineConfig({
 - **`model` and `osVersion`** tell the device provider what to boot or lease, e.g. `model: 'tv_1080p', osVersion: '34'`.
 - **Relative app paths** (`apk`, `app`) resolve against the config file's directory.
 - **Options merge** from the top-level `dpad` into each project's `dpad`. The `app` entry for the platform merges with the project's `app`.
+- **Snapshot baselines are per project, not per host.** dpad projects default `snapshotPathTemplate` to Playwright's default without the host OS suffix; a top-level or project `snapshotPathTemplate` wins.
 - **The parity reporter is added** after your reporters; `parityReport: false` turns it off.
 
 | `dpad` option  | Meaning                                                                                |
