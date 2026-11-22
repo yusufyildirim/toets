@@ -40,7 +40,10 @@ The cross-platform suite lives in [`e2e`](./e2e) ([`playwright.config.ts`](./e2e
 ```sh
 pnpm e2e --project=web                     # also: web-blackbox
 DPAD_DEVICES=emulator-5554 pnpm e2e --project=android-tv   # running emulator; without it dpad manages one
+DPAD_DEVICES=<simulator-udid> pnpm e2e --project=tvos      # booted simulator; without it dpad manages one
 ```
+
+The suite starts the API and serves the web build (`node server/main.ts web`); native projects need only the API, so they run without a web build.
 
 `*-blackbox` projects run the same tests without the SDK session; tests needing an SDK capability are skipped with the reason, everything else must pass unchanged. The parity matrix lands in `dpad-report/parity.md`.
 

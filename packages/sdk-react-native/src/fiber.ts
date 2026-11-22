@@ -39,6 +39,12 @@ export interface FiberMapperOptions {
   readonly testIdProp?: string | undefined;
   /** Overrides focusability; return `undefined` to keep the default. */
   readonly isFocusable?: ((props: HostProps, type: string) => boolean | undefined) | undefined;
+  /**
+   * Components whose host view is a focus guide (react-native-tvos `TVFocusGuideView`). A guide
+   * redirects focus to its children and is never focused itself, although its view carries
+   * `isTVSelectable`.
+   */
+  readonly focusGuides?: readonly unknown[] | undefined;
   /** Upper bound for asynchronous measurement (old architecture). Default 500. */
   readonly measureTimeoutMs?: number | undefined;
 }
@@ -248,6 +254,16 @@ export class FiberMapper {
     return children;
   }
 
+  /** Whether a component between `fiber` and the next host view up is a focus guide. */
+  private isFocusGuide(fiber: Fiber): boolean {
+    const guides = this.opts.focusGuides;
+    if (!guides?.length) return false;
+    for (let p = fiber.return; p && !isHost(p) && p.tag !== HOST_ROOT; p = p.return) {
+      if (guides.includes(componentOf(p.type))) return true;
+    }
+    return false;
+  }
+
   private describe(
     fiber: Fiber,
     props: HostProps,
@@ -274,7 +290,8 @@ export class FiberMapper {
         ? custom
         : isInput
           ? enabled
-          : props.focusable === true || props.isTVSelectable === true;
+          : (props.focusable === true || props.isTVSelectable === true) &&
+            !this.isFocusGuide(fiber);
     const info: { -readonly [K in keyof NodeInfo]?: NodeInfo[K] } = {
       focusable,
       focused: focused !== null && matches(fiber, focused),
@@ -374,6 +391,18 @@ export function hostRootOf(instance: object): Fiber | null {
   if (!fiber) return null;
   const fiberRoot = fiber.stateNode as { current?: Fiber } | null;
   return (fiberRoot && fiberRoot.current) || null;
+}
+
+/** The function behind a fiber's type, unwrapping `memo` and `forwardRef`. */
+function componentOf(type: unknown): unknown {
+  let t = type;
+  while (t !== null && typeof t === 'object') {
+    const wrapper = t as { readonly type?: unknown; readonly render?: unknown };
+    const inner = wrapper.type ?? wrapper.render;
+    if (inner === undefined) break;
+    t = inner;
+  }
+  return t;
 }
 
 function isHost(f: Fiber): boolean {

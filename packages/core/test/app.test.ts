@@ -51,6 +51,8 @@ describe('launch', () => {
     expect(host?.session?.hello.token).toBe('token-1');
     expect(app.platform.has('media.state')).toBe(true);
     expect(app.platform.has('network.mock')).toBe(true);
+    // The tree domain: the SDK tree nests like the app's views.
+    expect(app.platform.has('tree.hierarchy')).toBe(true);
   });
 
   it('refuses launch states without the SDK', async () => {

@@ -200,6 +200,10 @@ function activate(payload: unknown): void {
     flattenStyle: (style) => StyleSheet.flatten(style as never),
     testIdProp: opts.testIdProp,
     isFocusable: opts.isFocusable,
+    // react-native-tvos only; plain React Native has no focus guides.
+    focusGuides: [(ReactNative as unknown as Record<string, unknown>).TVFocusGuideView].filter(
+      Boolean,
+    ),
   });
   dpad.handle('tree.get', (p) => {
     requireRoot();

@@ -2,7 +2,7 @@
  * Minimal `react-native` stand-in for unit tests (aliased in vitest.config.ts). Views are
  * host components rendered by the fake Fabric renderer in `test/renderer.ts`.
  */
-import type { ComponentType } from 'react';
+import { createElement, type ComponentType, type ReactNode } from 'react';
 
 export const Platform = {
   OS: 'android' as string,
@@ -49,6 +49,23 @@ export const StyleSheet = {
 };
 
 export const View = 'RCTView';
+
+/** react-native-tvos `TVFocusGuideView`: a View marked `isTVSelectable` when it auto-focuses. */
+export function TVFocusGuideView({
+  autoFocus,
+  ...props
+}: {
+  autoFocus?: boolean;
+  children?: ReactNode;
+  [prop: string]: unknown;
+}): ReactNode {
+  return createElement(FocusGuideInner, { ...props, autoFocus, isTVSelectable: !!autoFocus });
+}
+
+/** The function component between the guide and its host view, as `View` is in React Native. */
+function FocusGuideInner(props: Record<string, unknown>): ReactNode {
+  return createElement('RCTView', props);
+}
 export const Text = 'RCTText';
 export const TextInput = 'AndroidTextInput';
 
