@@ -65,7 +65,11 @@ export interface AgentResponses {
   } | null;
 }
 
-export function pageAgent(req: AgentRequest): AgentResponses[AgentRequest['op']] {
+/**
+ * Answers one request. Returns the response (`AgentResponses[op]`) as a JSON string: Playwright's
+ * structured serialization of a large tree is ~10x slower than `JSON.stringify` + `JSON.parse`.
+ */
+export function pageAgent(req: AgentRequest): string {
   // --- Element refs: stable per element, unique across documents (nonce), weakly held. ---
   interface RefState {
     readonly nonce: string;
@@ -93,11 +97,14 @@ export function pageAgent(req: AgentRequest): AgentResponses[AgentRequest['op']]
 
   if (req.op === 'bounds') {
     const el = refs.byRef.get(req.ref)?.deref();
-    if (el === undefined || !el.isConnected) return null;
-    return {
-      bounds: plainRect(el.getBoundingClientRect()),
-      viewport: { width: window.innerWidth, height: window.innerHeight },
-    };
+    const found: AgentResponses['bounds'] =
+      el === undefined || !el.isConnected
+        ? null
+        : {
+            bounds: plainRect(el.getBoundingClientRect()),
+            viewport: { width: window.innerWidth, height: window.innerHeight },
+          };
+    return JSON.stringify(found);
   }
 
   const cfg = req.config;
@@ -458,5 +465,5 @@ export function pageAgent(req: AgentRequest): AgentResponses[AgentRequest['op']]
     result = { root: els.length > 0 ? node(0) : null, viewport };
   }
   pruneRefs();
-  return result;
+  return JSON.stringify(result);
 }

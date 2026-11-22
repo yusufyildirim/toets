@@ -409,7 +409,8 @@ export class WebDriver implements Driver {
     const { page } = this.#require();
     for (let attempt = 0; ; attempt++) {
       try {
-        return (await page.evaluate(pageAgent, req as AgentRequest)) as AgentResponses[R['op']];
+        const json = await page.evaluate(pageAgent, req as AgentRequest);
+        return JSON.parse(json) as AgentResponses[R['op']];
       } catch (error) {
         // The document was replaced mid-read: the new document is the current state, read it.
         if (attempt === 0 && isContextLost(error)) continue;
