@@ -24,7 +24,7 @@ platforms.tvOS({
 
 ## The command contract
 
-- `acquire` gets `DPAD_PLATFORM`, `DPAD_WORKER_INDEX`, `DPAD_PARALLEL_INDEX` and `DPAD_DEVICE_SPEC` (JSON), and prints JSON on its last stdout line: `{ "address": "emulator-5554", "id"?: "...", "meta"?: { ... } }`.
+- `acquire` gets `DPAD_PLATFORM`, `DPAD_WORKER_INDEX`, `DPAD_PARALLEL_INDEX` and `DPAD_DEVICE_SPEC` (JSON), and prints JSON on its last stdout line: `{ "address": "emulator-5554", "id"?: "...", "meta"?: { ... }, "environment"?: { ... } }`. `environment` holds variables the device must be driven with (e.g. a lease broker's `ANDROID_ADB_SERVER_PORT` or `SIMLOCK_IOS_DEVICE_SET`); it lands in `meta.environment` and drivers apply it.
 - `release` gets the same variables plus `DPAD_DEVICE_ID`, `DPAD_DEVICE_ADDRESS` and `DPAD_DEVICE_META`.
 - Timeouts: `acquireTimeoutMs` (default 10 minutes, boots are slow) and `releaseTimeoutMs` (2 minutes).
 
