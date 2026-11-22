@@ -2,7 +2,7 @@
 
 dpad network mocking: MSW handlers served by a host-side mock server with upstream proxying, request recording and HAR export. Works the same on web, Android TV and tvOS without certificates.
 
-Docs (shipped in [`docs/`](./docs)):
+Docs (shipped in `docs/`):
 
 - [Concepts](./docs/concepts.md): how requests flow, isolation model, error codes
 - [Writing handlers](./docs/writing-handlers.md): matching, order, latency and failure injection

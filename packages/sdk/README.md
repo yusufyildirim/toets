@@ -7,4 +7,4 @@ import { startDpad } from '@dpad-tv/sdk/web';
 startDpad();
 ```
 
-Docs (shipped in [`docs/`](./docs)): [overview](./docs/overview.md), [web adapter](./docs/web.md), [idle](./docs/idle.md), [app state](./docs/state.md), [media](./docs/media.md), [production builds](./docs/production.md), [writing an adapter](./docs/adapters.md), [traps](./docs/traps.md). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Docs (shipped in `docs/`): [overview](./docs/overview.md), [web adapter](./docs/web.md), [idle](./docs/idle.md), [app state](./docs/state.md), [media](./docs/media.md), [production builds](./docs/production.md), [writing an adapter](./docs/adapters.md), [traps](./docs/traps.md). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).

@@ -8,4 +8,4 @@ import dpad from '@dpad-tv/eslint-plugin';
 export default [{ files: ['e2e/**'], ...dpad.configs.recommended }];
 ```
 
-Docs: [`docs/setup.md`](./docs/setup.md), one page per rule in [`docs/rules/`](./docs/rules). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Docs: [`docs/setup.md`](./docs/setup.md), one page per rule in `docs/rules/`. Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).

@@ -7,4 +7,4 @@ import { startDpad } from '@dpad-tv/sdk-react-native';
 startDpad();
 ```
 
-Docs (shipped in [`docs/`](./docs)): [integration](./docs/react-native.md), [focus](./docs/focus.md), [idle](./docs/idle.md), [media](./docs/media.md), [production builds](./docs/production.md), [traps](./docs/traps.md). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Docs (shipped in `docs/`): [integration](./docs/react-native.md), [focus](./docs/focus.md), [idle](./docs/idle.md), [media](./docs/media.md), [production builds](./docs/production.md), [traps](./docs/traps.md). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).

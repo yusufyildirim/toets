@@ -18,7 +18,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm docs:check",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm docs:api && pnpm test && pnpm docs:check",
+    "docs:api": "typedoc",
     "docs:dev": "pnpm --filter @dpad-tv/docs dev",
     "docs:build": "pnpm --filter @dpad-tv/docs build",
     "docs:check": "pnpm --filter @dpad-tv/docs check",
@@ -31,6 +32,7 @@
     "eslint": "^10.0.0",
     "prettier": "^3.6.0",
     "tsdown": "^0.23.0",
+    "typedoc": "^0.28.20",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.40.0",
     "vitest": "^5.0.0"

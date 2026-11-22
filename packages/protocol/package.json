@@ -14,16 +14,19 @@
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./host": {
       "@dpad-tv/source": "./src/server/index.ts",
+      "typedoc": "./src/server/index.ts",
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
     },
     "./conformance": {
       "@dpad-tv/source": "./src/conformance/index.ts",
+      "typedoc": "./src/conformance/index.ts",
       "types": "./dist/conformance/index.d.ts",
       "default": "./dist/conformance/index.js"
     },

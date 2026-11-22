@@ -2,7 +2,7 @@
 
 dpad driver for web TV apps in Chromium, built on Playwright. Loaded by `@dpad-tv/test` for `platforms.web()` projects.
 
-Docs (shipped in [`docs/`](./docs)):
+Docs (shipped in `docs/`):
 
 - [Setup](./docs/setup.md): install, configure, where the browser page comes from
 - [Options](./docs/options.md)

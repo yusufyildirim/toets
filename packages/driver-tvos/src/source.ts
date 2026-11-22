@@ -2,7 +2,7 @@ import type { ElementRef, Rect, UINode, UITree } from '@dpad-tv/core';
 
 /**
  * One element of WebDriverAgent's JSON page source (`mobile: source`, `format: json`).
- * Booleans arrive as `"1"`/`"0"` strings. Attributes listed in {@link SOURCE_EXCLUDED_ATTRIBUTES}
+ * Booleans arrive as `"1"`/`"0"` strings. Attributes listed in `SOURCE_EXCLUDED_ATTRIBUTES`
  * are not requested.
  */
 export interface WdaSourceNode {

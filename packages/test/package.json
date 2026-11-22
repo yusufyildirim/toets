@@ -14,11 +14,13 @@
   "exports": {
     ".": {
       "@dpad-tv/source": "./src/index.ts",
+      "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./reporter": {
       "@dpad-tv/source": "./src/reporter.ts",
+      "typedoc": "./src/reporter.ts",
       "types": "./dist/reporter.d.ts",
       "default": "./dist/reporter.js"
     },
