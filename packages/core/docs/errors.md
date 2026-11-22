@@ -15,39 +15,40 @@ Codes from the SDK host (`sdk.*`) surface as `DpadError` with the same code.
 
 ## @dpad-tv/core
 
-| Code                    | Meaning                                                                                                                         | Docs                                                                                                                                                        |
-| ----------------------- | ------------------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `CAPABILITY_MISSING`    | The action or assertion needs a capability this target does not have (driver, SDK domain or mock server). Also in @dpad-tv/mcp. | [capabilities](./capabilities.md), `concepts/capabilities`                                                                                                  |
-| `DEVICE_COMMAND_FAILED` | A `command` device provider command failed.                                                                                     | [test/devices](../../test/docs/devices.md)                                                                                                                  |
-| `DEVICE_COMMAND_OUTPUT` | The device acquire command must print JSON with an "address" on its last line; got.                                             | [test/devices](../../test/docs/devices.md)                                                                                                                  |
-| `DRIVER_CONTRACT`       | A driver returned something that breaks the `Driver` contract (a driver bug).                                                   | [capabilities](./capabilities.md)                                                                                                                           |
-| `ELEMENT_DETACHED`      | The element a locator resolved to left the screen before it could be read.                                                      | [text-snapshots](./text-snapshots.md)                                                                                                                       |
-| `ELEMENT_NOT_FOUND`     | A locator matched no element within the timeout. Also in @dpad-tv/mcp.                                                          | [locators](./locators.md), `concepts/locators-and-assertions`                                                                                               |
-| `ELEMENT_OFFSCREEN`     | Cannot screenshot an element outside the viewport.                                                                              | [screenshots](./screenshots.md)                                                                                                                             |
-| `FOCUS_UNCHANGED`       | Focus stayed on … for …ms after the action.                                                                                     | [focus-navigation](./focus-navigation.md)                                                                                                                   |
-| `FOCUS_UNREACHABLE`     | Could not move focus to ….                                                                                                      | [focus-navigation](./focus-navigation.md)                                                                                                                   |
-| `INVALID_ARGUMENT`      | An API received an invalid argument, such as a value that is not a dpad Locator or a negative count.                            | [screenshots](./screenshots.md), [focus-navigation](./focus-navigation.md), [locators](./locators.md), [assertions](./assertions.md), [remote](./remote.md) |
-| `INVALID_SCREENSHOT`    | Not a dpad screenshot.                                                                                                          | [screenshots](./screenshots.md)                                                                                                                             |
-| `INVALID_SUBJECT`       | A matcher received a subject it does not support. Also in @dpad-tv/test.                                                        | [assertions](./assertions.md)                                                                                                                               |
-| `KEY_UNSUPPORTED`       | The platform's remote has no such key, or cannot hold keys. Also in @dpad-tv/mcp.                                               | [remote](./remote.md), `concepts/remote-and-keys`                                                                                                           |
-| `MOCK_DISABLED`         | Network mocking is not enabled for this project.                                                                                | [network](./network.md)                                                                                                                                     |
-| `NO_DEVICES`            | No device addresses were configured for `external` devices.                                                                     | [test/devices](../../test/docs/devices.md)                                                                                                                  |
-| `NO_FOCUS`              | Nothing is focused, so focus cannot be navigated.                                                                               | [focus-navigation](./focus-navigation.md)                                                                                                                   |
-| `NOT_ENOUGH_DEVICES`    | There are fewer `external` devices than workers.                                                                                | [test/devices](../../test/docs/devices.md)                                                                                                                  |
-| `SDK_NOT_CONNECTED`     | The app did not connect to the dpad SDK host at … within …ms.                                                                   | [sdk](./sdk.md)                                                                                                                                             |
-| `STRICT_MODE_VIOLATION` | A locator matched several elements where exactly one is needed. Also in @dpad-tv/mcp.                                           | [locators](./locators.md), `concepts/locators-and-assertions`                                                                                               |
-| `TARGET_NOT_FOCUSABLE`  | `navigateTo` target is not focusable and contains nothing focusable.                                                            | [focus-navigation](./focus-navigation.md)                                                                                                                   |
-| `UNKNOWN_KEY`           | Unknown key ….                                                                                                                  | [remote](./remote.md)                                                                                                                                       |
+| Code                    | Meaning                                                                                                   | Docs                                                                                                                                                        |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `CAPABILITY_MISSING`    | The action or assertion needs a capability this target does not have (driver, SDK domain or mock server). | [capabilities](./capabilities.md)                                                                                                                           |
+| `DEVICE_COMMAND_FAILED` | A `command` device provider command failed.                                                               | [test/devices](../../test/docs/devices.md)                                                                                                                  |
+| `DEVICE_COMMAND_OUTPUT` | The device acquire command must print JSON with an "address" on its last line; got.                       | [test/devices](../../test/docs/devices.md)                                                                                                                  |
+| `DRIVER_CONTRACT`       | A driver returned something that breaks the `Driver` contract (a driver bug).                             | [capabilities](./capabilities.md)                                                                                                                           |
+| `ELEMENT_DETACHED`      | The element a locator resolved to left the screen before it could be read.                                | [text-snapshots](./text-snapshots.md)                                                                                                                       |
+| `ELEMENT_NOT_FOUND`     | A locator matched no element within the timeout.                                                          | [locators](./locators.md)                                                                                                                                   |
+| `ELEMENT_OFFSCREEN`     | Cannot screenshot an element outside the viewport.                                                        | [screenshots](./screenshots.md)                                                                                                                             |
+| `FOCUS_UNCHANGED`       | Focus stayed on … for …ms after the action.                                                               | [focus-navigation](./focus-navigation.md)                                                                                                                   |
+| `FOCUS_UNREACHABLE`     | Could not move focus to ….                                                                                | [focus-navigation](./focus-navigation.md)                                                                                                                   |
+| `INVALID_ARGUMENT`      | An API received an invalid argument, such as a value that is not a dpad Locator or a negative count.      | [screenshots](./screenshots.md), [focus-navigation](./focus-navigation.md), [locators](./locators.md), [assertions](./assertions.md), [remote](./remote.md) |
+| `INVALID_DRIVER`        | The configured driver module does not default-export a matching `DriverModule`.                           | [test/config](../../test/docs/config.md)                                                                                                                    |
+| `INVALID_SCREENSHOT`    | Not a dpad screenshot.                                                                                    | [screenshots](./screenshots.md)                                                                                                                             |
+| `INVALID_SUBJECT`       | A matcher received a subject it does not support. Also in @dpad-tv/test.                                  | [assertions](./assertions.md)                                                                                                                               |
+| `KEY_UNSUPPORTED`       | The platform's remote has no such key, or cannot hold keys.                                               | [remote](./remote.md)                                                                                                                                       |
+| `MOCK_DISABLED`         | Network mocking is not enabled for this project.                                                          | [network](./network.md)                                                                                                                                     |
+| `MOCK_UNAVAILABLE`      | Network mocking is on, but no mock server is set.                                                         | [network](./network.md)                                                                                                                                     |
+| `MODULE_NOT_FOUND`      | Cannot find … (…).                                                                                        | [test/config](../../test/docs/config.md)                                                                                                                    |
+| `NO_DEVICES`            | No device addresses were configured for `external` devices.                                               | [test/devices](../../test/docs/devices.md)                                                                                                                  |
+| `NO_FOCUS`              | Nothing is focused, so focus cannot be navigated.                                                         | [focus-navigation](./focus-navigation.md)                                                                                                                   |
+| `NO_MANAGED_DEVICES`    | The driver cannot manage devices for this platform.                                                       | [test/devices](../../test/docs/devices.md)                                                                                                                  |
+| `NOT_ENOUGH_DEVICES`    | There are fewer `external` devices than workers.                                                          | [test/devices](../../test/docs/devices.md)                                                                                                                  |
+| `SDK_NOT_CONNECTED`     | The app did not connect to the dpad SDK host at … within …ms.                                             | [sdk](./sdk.md)                                                                                                                                             |
+| `STRICT_MODE_VIOLATION` | A locator matched several elements where exactly one is needed.                                           | [locators](./locators.md)                                                                                                                                   |
+| `TARGET_NOT_FOCUSABLE`  | `navigateTo` target is not focusable and contains nothing focusable.                                      | [focus-navigation](./focus-navigation.md)                                                                                                                   |
+| `UNKNOWN_KEY`           | Unknown key ….                                                                                            | [remote](./remote.md)                                                                                                                                       |
 
 ## @dpad-tv/test
 
-| Code                   | Meaning                                                                         | Docs                                       |
-| ---------------------- | ------------------------------------------------------------------------------- | ------------------------------------------ |
-| `INVALID_DRIVER`       | The configured driver module does not default-export a matching `DriverModule`. | [test/config](../../test/docs/config.md)   |
-| `MODULE_NOT_FOUND`     | Cannot find … (…).                                                              | [test/config](../../test/docs/config.md)   |
-| `NEGATION_UNSUPPORTED` | The matcher cannot be negated with `.not`.                                      | [assertions](./assertions.md)              |
-| `NO_MANAGED_DEVICES`   | The driver cannot manage devices for this platform.                             | [test/devices](../../test/docs/devices.md) |
-| `NOT_A_DPAD_PROJECT`   | Project "…" is not a dpad project.                                              | [test/config](../../test/docs/config.md)   |
+| Code                   | Meaning                                    | Docs                                     |
+| ---------------------- | ------------------------------------------ | ---------------------------------------- |
+| `NEGATION_UNSUPPORTED` | The matcher cannot be negated with `.not`. | [assertions](./assertions.md)            |
+| `NOT_A_DPAD_PROJECT`   | Project "…" is not a dpad project.         | [test/config](../../test/docs/config.md) |
 
 ## @dpad-tv/driver-web
 
@@ -92,26 +93,26 @@ Codes from the SDK host (`sdk.*`) surface as `DpadError` with the same code.
 
 ## @dpad-tv/driver-tvos
 
-| Code                        | Meaning                                                                   | Docs                                                               |
-| --------------------------- | ------------------------------------------------------------------------- | ------------------------------------------------------------------ |
-| `TVOS_APP_NOT_INSTALLED`    | … is not installed on simulator ….                                        | [driver-tvos/setup](../../driver-tvos/docs/setup.md)               |
-| `TVOS_APPIUM_START_FAILED`  | Appium did not start on ….                                                | [driver-tvos/setup](../../driver-tvos/docs/setup.md)               |
-| `TVOS_BOOT_FAILED`          | Simulator … did not boot.                                                 | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)     |
-| `TVOS_COMMAND_FAILED`       | tvOS … failed.                                                            | [driver-tvos/traps](../../driver-tvos/docs/traps.md)               |
-| `TVOS_CONFIG`               | Invalid tvOS app config.                                                  | [driver-tvos/setup](../../driver-tvos/docs/setup.md)               |
-| `TVOS_DEVICE_TYPE_MISSING`  | The requested Apple TV device type is not available for the tvOS runtime. | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)     |
-| `TVOS_ELEMENT_DETACHED`     | Element … is no longer on screen.                                         | [driver-tvos/traps](../../driver-tvos/docs/traps.md)               |
-| `TVOS_ELEMENT_NOT_VISIBLE`  | Element … is not visible on screen.                                       | [driver-tvos/traps](../../driver-tvos/docs/traps.md)               |
-| `TVOS_KEY_UNSUPPORTED`      | The Siri Remote has no button for ….                                      | [driver-tvos/remote](../../driver-tvos/docs/remote.md)             |
-| `TVOS_NO_DEVICE`            | No tvOS simulator to drive.                                               | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)     |
-| `TVOS_NOT_A_TVOS_SIMULATOR` | Simulator … (…) runs …, not tvOS.                                         | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)     |
-| `TVOS_NOT_STARTED`          | The tvOS driver is not started.                                           |                                                                    |
-| `TVOS_RECORDING_FAILED`     | A recording is already running.                                           | [driver-tvos/capabilities](../../driver-tvos/docs/capabilities.md) |
-| `TVOS_RUNTIME_MISSING`      | No installed tvOS simulator runtime.                                      | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)     |
-| `TVOS_SESSION_FAILED`       | Could not open an Appium XCUITest session on ….                           | [driver-tvos/setup](../../driver-tvos/docs/setup.md)               |
-| `TVOS_SIMCTL_FAILED`        | `xcrun …` failed (exit …).                                                | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)     |
-| `TVOS_SIMULATOR_NOT_FOUND`  | No simulator with UDID … in ….                                            | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)     |
-| `TVOS_WDA_BUILD_FAILED`     | Building WebDriverAgent for tvOS Simulator failed (exit …).               | [driver-tvos/setup](../../driver-tvos/docs/setup.md)               |
+| Code                        | Meaning                                                                   | Docs                                                                                                                 |
+| --------------------------- | ------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
+| `TVOS_APP_NOT_INSTALLED`    | … is not installed on simulator ….                                        | [driver-tvos/setup](../../driver-tvos/docs/setup.md)                                                                 |
+| `TVOS_APPIUM_START_FAILED`  | Appium did not start on ….                                                | [driver-tvos/setup](../../driver-tvos/docs/setup.md)                                                                 |
+| `TVOS_BOOT_FAILED`          | Simulator … did not boot.                                                 | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)                                                       |
+| `TVOS_COMMAND_FAILED`       | tvOS … failed.                                                            | [driver-tvos/traps](../../driver-tvos/docs/traps.md)                                                                 |
+| `TVOS_CONFIG`               | managed.namePrefix "…" does not start with "dpad".                        | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md), [driver-tvos/setup](../../driver-tvos/docs/setup.md) |
+| `TVOS_DEVICE_TYPE_MISSING`  | The requested Apple TV device type is not available for the tvOS runtime. | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)                                                       |
+| `TVOS_ELEMENT_DETACHED`     | Element … is no longer on screen.                                         | [driver-tvos/traps](../../driver-tvos/docs/traps.md)                                                                 |
+| `TVOS_ELEMENT_NOT_VISIBLE`  | Element … is not visible on screen.                                       | [driver-tvos/traps](../../driver-tvos/docs/traps.md)                                                                 |
+| `TVOS_KEY_UNSUPPORTED`      | The Siri Remote has no button for ….                                      | [driver-tvos/remote](../../driver-tvos/docs/remote.md)                                                               |
+| `TVOS_NO_DEVICE`            | No tvOS simulator to drive.                                               | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)                                                       |
+| `TVOS_NOT_A_TVOS_SIMULATOR` | Simulator … (…) runs …, not tvOS.                                         | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)                                                       |
+| `TVOS_NOT_STARTED`          | The tvOS driver is not started.                                           |                                                                                                                      |
+| `TVOS_RECORDING_FAILED`     | A recording is already running.                                           | [driver-tvos/capabilities](../../driver-tvos/docs/capabilities.md)                                                   |
+| `TVOS_RUNTIME_MISSING`      | No installed tvOS simulator runtime.                                      | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)                                                       |
+| `TVOS_SESSION_FAILED`       | Could not open an Appium XCUITest session on ….                           | [driver-tvos/setup](../../driver-tvos/docs/setup.md)                                                                 |
+| `TVOS_SIMCTL_FAILED`        | `xcrun …` failed (exit …).                                                | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)                                                       |
+| `TVOS_SIMULATOR_NOT_FOUND`  | No simulator with UDID … in ….                                            | [driver-tvos/simulators](../../driver-tvos/docs/simulators.md)                                                       |
+| `TVOS_WDA_BUILD_FAILED`     | Building WebDriverAgent for tvOS Simulator failed (exit …).               | [driver-tvos/setup](../../driver-tvos/docs/setup.md)                                                                 |
 
 ## @dpad-tv/mock
 
@@ -147,16 +148,11 @@ Codes from the SDK host (`sdk.*`) surface as `DpadError` with the same code.
 
 ## @dpad-tv/mcp
 
-| Code                     | Meaning                                             | Docs                                 |
-| ------------------------ | --------------------------------------------------- | ------------------------------------ |
-| `MCP_BAD_INPUT`          | … needs `expected` text.                            | [mcp/tools](../../mcp/docs/tools.md) |
-| `MCP_CONFIG_INVALID`     | Invalid dpad MCP ….                                 | [mcp/setup](../../mcp/docs/setup.md) |
-| `MCP_CONFIG_NOT_FOUND`   | dpad MCP config not found at ….                     | [mcp/setup](../../mcp/docs/setup.md) |
-| `MCP_DEVICE_UNSUPPORTED` | Driver for … has no managed devices.                | [mcp/setup](../../mcp/docs/setup.md) |
-| `MCP_DRIVER_INVALID`     | … does not default-export a DriverModule.           | [mcp/setup](../../mcp/docs/setup.md) |
-| `MCP_DRIVER_NOT_FOUND`   | Could not load driver "…".                          | [mcp/setup](../../mcp/docs/setup.md) |
-| `MCP_NO_CONFIG`          | No dpad MCP config, so there is no target to drive. | [mcp/setup](../../mcp/docs/setup.md) |
-| `MCP_NO_FOCUS`           | No element has focus, so there is nothing to move.  | `concepts/focus`                     |
-| `MCP_NOT_LAUNCHED`       | The app is not running yet.                         | [mcp/tools](../../mcp/docs/tools.md) |
-| `MCP_UNKNOWN_TARGET`     | Unknown target "…".                                 | [mcp/setup](../../mcp/docs/setup.md) |
-| `MCP_UNREACHABLE`        | Could not move focus to ….                          | `concepts/focus`                     |
+| Code                   | Meaning                                         | Docs                                 |
+| ---------------------- | ----------------------------------------------- | ------------------------------------ |
+| `MCP_BAD_INPUT`        | A target needs `testId` and/or `text`.          | [mcp/tools](../../mcp/docs/tools.md) |
+| `MCP_CONFIG_INVALID`   | Invalid dpad MCP ….                             | [mcp/setup](../../mcp/docs/setup.md) |
+| `MCP_CONFIG_NOT_FOUND` | Config not found at ….                          | [mcp/setup](../../mcp/docs/setup.md) |
+| `MCP_NO_CONFIG`        | No dpad config, so there is no target to drive. | [mcp/setup](../../mcp/docs/setup.md) |
+| `MCP_NOT_LAUNCHED`     | The app is not running yet.                     | [mcp/tools](../../mcp/docs/tools.md) |
+| `MCP_UNKNOWN_TARGET`   | Unknown target "…".                             | [mcp/setup](../../mcp/docs/setup.md) |
