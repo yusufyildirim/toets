@@ -5,7 +5,8 @@ import { DetailsPage } from './pages/DetailsPage.js';
 import { HomePage } from './pages/HomePage.js';
 
 // Inline snapshots with mocked data: the same text on every platform is the parity claim. A rail
-// keeps its children in every tree; a whole screen nests like the tree it is read from.
+// keeps its children in every tree it runs on; a whole screen nests like its views only where the
+// tree does (`tree.hierarchy`: the DOM, the SDK tree).
 test.describe('text snapshots', requires('network.mock'), () => {
   test('a rail with the first card focused', async ({ app }) => {
     const home = new HomePage(app);
@@ -24,11 +25,7 @@ test.describe('text snapshots', requires('network.mock'), () => {
     `);
   });
 
-  test('the details screen', async ({ app, dpad }) => {
-    test.skip(
-      dpad?.platform === 'android-tv' && !dpad.options.sdk,
-      "React Native's Android accessibility tree lists a plain View's children as its siblings",
-    );
+  test('the details screen', requires('tree.hierarchy'), async ({ app }) => {
     const home = new HomePage(app);
     const details = new DetailsPage(app);
     app.network.use(...picksApi);

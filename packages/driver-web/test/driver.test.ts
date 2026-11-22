@@ -102,6 +102,7 @@ describe('web driver on the fixture app', () => {
         'logs',
         'platform.events',
         'screenshot.element',
+        'tree.hierarchy',
         'video',
       ].sort(),
     );

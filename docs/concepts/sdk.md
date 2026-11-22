@@ -6,14 +6,14 @@ description: The optional in-app SDK reports the app's own tree, focus graph, id
 
 dpad works **black-box**: the first test needs no app changes. The optional **SDK** is a small library inside the app that talks to the test host and reports what the app itself knows. It makes tests faster and more reliable, and adds capabilities a black-box driver can not offer.
 
-| Domain  | Adds                                                    | Capability    |
-| ------- | ------------------------------------------------------- | ------------- |
-| `tree`  | uniform element tree, free of accessibility-tree quirks |               |
-| `focus` | the app's real focus and focus graph                    | `focus.graph` |
-| `sync`  | idle signal, busy resources                             | `sync.idle`   |
-| `media` | player state, position, duration, errors                | `media.state` |
-| `state` | launch into a named state, feature flags                | `app.state`   |
-| `logs`  | console output and unhandled errors on the test result  | `logs`        |
+| Domain  | Adds                                                    | Capability       |
+| ------- | ------------------------------------------------------- | ---------------- |
+| `tree`  | uniform element tree, free of accessibility-tree quirks | `tree.hierarchy` |
+| `focus` | the app's real focus and focus graph                    | `focus.graph`    |
+| `sync`  | idle signal, busy resources                             | `sync.idle`      |
+| `media` | player state, position, duration, errors                | `media.state`    |
+| `state` | launch into a named state, feature flags                | `app.state`      |
+| `logs`  | console output and unhandled errors on the test result  | `logs`           |
 
 ## How it connects
 

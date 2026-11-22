@@ -11,6 +11,7 @@ Static capabilities of the tvOS driver. A connected dpad SDK adds its own (`focu
 | `video`                                                                                                                      | yes       | `simctl io recordVideo`, H.264 MP4 in the artifacts dir                            |
 | `key.menu`, `key.info`, `key.media.discrete`, `key.media.seek`, `key.media.track`, `key.color`, `key.numeric`, `key.channel` | no        | no such button                                                                     |
 | `platform.events`                                                                                                            | no        | not provided by the driver                                                         |
+| `tree.hierarchy`                                                                                                             | no        | XCUITest flattens plain containers (below); the SDK tree nests                     |
 | `network.mock`                                                                                                               | core      | granted by the core when `dpad.mock` is on (the simulator shares the host network) |
 
 ## Element mapping

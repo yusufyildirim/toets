@@ -8,8 +8,9 @@ import { defineConfig, platforms, type DeviceSelection } from '@dpad-tv/test';
  * - `*-blackbox`: the same tests without the SDK session (decision 5). Tests that need an SDK
  *   capability are skipped with the reason; everything else must pass unchanged.
  *
- * Devices: `DPAD_DEVICES=emulator-5554` uses already running devices (a lease broker, Android
- * Studio); without it dpad boots and manages emulators/simulators itself.
+ * Devices: `DPAD_DEVICES=<address>` (an emulator serial like `emulator-5554`, a simulator UDID)
+ * uses already running devices (a lease broker, Android Studio); without it dpad boots and
+ * manages emulators/simulators itself.
  */
 const devices: DeviceSelection = process.env.DPAD_DEVICES ? { mode: 'external' } : 'managed';
 const android = { model: 'tv_1080p', osVersion: '33', devices } as const;
@@ -29,11 +30,12 @@ export default defineConfig({
   timeout: 90_000,
   reporter: [['list'], ['html', { open: 'never', outputFolder: '../playwright-report' }]],
   parityReport: { outputFile: '../dpad-report/parity.md' },
-  // The API (8091) and the web build (8090). Mocked runs proxy unhandled API calls here.
+  // The API (8091) and the web build (8090). Mocked runs proxy unhandled API calls here. Ready
+  // once the API answers (it starts last); native projects need no web build.
   webServer: {
     command: 'node server/main.ts web',
     cwd: '..',
-    url: 'http://localhost:8090',
+    url: 'http://localhost:8091/api/catalog',
     reuseExistingServer: !process.env.CI,
   },
   app: {
@@ -45,7 +47,7 @@ export default defineConfig({
   projects: [
     platforms.web(web),
     platforms.androidTV(android),
-    platforms.tvOS(),
+    platforms.tvOS({ devices }),
     platforms.web({ name: 'web-blackbox', ...web, dpad: { sdk: false } }),
     platforms.androidTV({ name: 'android-tv-blackbox', ...android, dpad: { sdk: false } }),
   ],

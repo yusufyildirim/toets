@@ -15,7 +15,7 @@ import { evaluateChain, focusedIn, protocolToTree } from './tree.js';
 
 /** Capabilities each SDK domain adds to a target. */
 export const DOMAIN_CAPABILITIES: Readonly<Record<Domain, readonly Capability[]>> = {
-  tree: [],
+  tree: ['tree.hierarchy'],
   focus: ['focus.graph'],
   sync: ['sync.idle'],
   media: ['media.state'],
@@ -29,6 +29,7 @@ export const DOMAIN_CAPABILITIES: Readonly<Record<Domain, readonly Capability[]>
  * (`SdkSession.has`): its domain is announced and the SDK's protocol version has the method.
  */
 const CAPABILITY_METHOD: Partial<Record<Capability, HostToAppMethod>> = {
+  'tree.hierarchy': 'tree.get',
   'focus.graph': 'focus.graph',
   'sync.idle': 'sync.waitForIdle',
   'media.state': 'media.get',

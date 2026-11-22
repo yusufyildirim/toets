@@ -259,6 +259,22 @@ describe('tree', () => {
     ]);
   });
 
+  it('never reports a focus guide as focusable, only its children', async () => {
+    const { sdk } = await load();
+    const { TVFocusGuideView } = await import('react-native');
+    const { session } = await mountAndroid(
+      sdk,
+      h(
+        TVFocusGuideView,
+        { autoFocus: true, testID: 'rail', style: box(0, 0, 400, 100) },
+        h('RCTView', { testID: 'card', focusable: true, style: box(0, 0, 100, 100) }),
+      ),
+    );
+    const { root } = await session.request('tree.get', {});
+    expect(byTestId(root, 'rail').focusable).toBe(false);
+    expect(byTestId(root, 'card').focusable).toBe(true);
+  });
+
   it('treats opacity 0 as invisible and keeps ids stable across renders', async () => {
     const { sdk } = await load();
     const { session, rendered } = await mountAndroid(sdk, h(Screen));
