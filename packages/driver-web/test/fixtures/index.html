@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>dpad fixture</title>
+    <link rel="stylesheet" href="app.css" />
+  </head>
+  <body>
+    <header data-testid="header">
+      <h1 data-testid="title">dpad fixture</h1>
+      <div data-testid="payload-source"></div>
+      <div data-testid="payload"></div>
+      <div data-testid="launches"></div>
+      <div data-testid="last-action">none</div>
+    </header>
+
+    <nav data-testid="menu" role="tablist">
+      <div class="menu-item" tabindex="-1" role="tab" data-testid="menu-home" aria-selected="true">
+        Home
+      </div>
+      <div class="menu-item" tabindex="-1" role="tab" data-testid="menu-search">Search</div>
+      <div class="menu-item" tabindex="-1" role="tab" data-testid="menu-settings">Settings</div>
+    </nav>
+
+    <main data-testid="main">
+      <section class="rail" data-testid="rail-1">
+        <div class="rail-track"></div>
+      </section>
+
+      <div class="controls" data-testid="controls">
+        <button data-testid="play-button" tabindex="-1">Play</button>
+        <button data-testid="buy" disabled>Buy</button>
+        <div data-testid="locked" aria-disabled="true">
+          <span data-testid="locked-label" tabindex="-1">Locked</span>
+        </div>
+        <div data-testid="icon-button" tabindex="-1" aria-label="Open search"></div>
+        <img
+          data-testid="logo"
+          alt="dpad logo"
+          width="40"
+          height="40"
+          src="data:image/gif;base64,R0lGODlhAQABAIAAAP///wAAACH5BAEAAAAALAAAAAABAAEAAAICRAEAOw=="
+        />
+        <input data-testid="search-input" value="query   text" />
+      </div>
+
+      <div class="player">
+        <video data-testid="player" muted playsinline width="320" height="180"></video>
+        <div data-testid="player-state">paused</div>
+      </div>
+
+      <section data-testid="rail-2" aria-busy="true">
+        <div data-testid="spinner">Loading...</div>
+      </section>
+
+      <dpad-badge data-testid="badge"><em data-testid="badge-slotted">Hot</em></dpad-badge>
+      <div data-testid="contents" style="display: contents"><span>Inside contents</span></div>
+
+      <div data-testid="hidden-banner" style="display: none">Secret banner</div>
+      <div data-testid="invisible" style="visibility: hidden">Invisible text</div>
+      <div data-testid="zero" style="width: 0; height: 0; overflow: hidden">Zero</div>
+      <div data-testid="below-fold" style="position: absolute; top: 2000px">Below the fold</div>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

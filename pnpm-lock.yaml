@@ -59,6 +59,12 @@ importers:
       '@dpad-tv/core':
         specifier: workspace:^
         version: link:../core
+      '@dpad-tv/protocol':
+        specifier: workspace:^
+        version: link:../protocol
+      playwright-core:
+        specifier: ^1.65.1
+        version: 1.65.1
 
   packages/eslint-plugin:
     dependencies:
@@ -1165,6 +1171,11 @@ packages:
   pify@4.0.1:
     resolution: {integrity: sha512-uB80kBFb/tfd68bVleG9T5GGsGPjJrLAUpR5PZIrhBnIaRTQRjqdJSsIKkOP6OAIFbj7GOrcudc5pNjZ+geV2g==}
     engines: {node: '>=6'}
+
+  playwright-core@1.65.1:
+    resolution: {integrity: sha512-hqPpz7blSMPxWVdoeE1yiBSzXsKiVOd2k+kjCvmUywD2GPO2Dd9HfcWnq9NN0GHbNZDFgZ9JfBFr+X5/BLo0qw==}
+    engines: {node: '>=20'}
+    hasBin: true
 
   postcss@8.5.33:
     resolution: {integrity: sha512-RVHEU9/Pp1Fnjr/MpAJsZoADukCKhfIi15OunEYiGktIkYLkPVvC1sioWolGDS7XByMTx9m/IGbro0Js13zhnQ==}
@@ -2507,6 +2518,8 @@ snapshots:
   picomatch@4.0.7: {}
 
   pify@4.0.1: {}
+
+  playwright-core@1.65.1: {}
 
   postcss@8.5.33:
     dependencies:

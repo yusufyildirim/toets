@@ -1,0 +1,66 @@
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  font-family: sans-serif;
+  background: #111;
+  color: #eee;
+}
+header {
+  height: 120px;
+  padding: 10px 40px;
+}
+h1 {
+  margin: 0;
+  font-size: 32px;
+  text-transform: uppercase;
+}
+nav {
+  position: absolute;
+  left: 0;
+  top: 120px;
+  width: 200px;
+}
+.menu-item {
+  height: 60px;
+  padding: 16px;
+}
+main {
+  margin-left: 220px;
+}
+.rail {
+  width: 1500px;
+  height: 200px;
+  overflow: hidden;
+}
+.rail-track {
+  display: flex;
+  gap: 20px;
+  transition: none;
+}
+.card {
+  flex: 0 0 300px;
+  height: 170px;
+  background: #333;
+  padding: 10px;
+}
+:focus,
+[aria-selected='true'] {
+  outline: 4px solid #fc0;
+}
+.controls {
+  display: flex;
+  gap: 20px;
+  height: 60px;
+  align-items: center;
+}
+.controls > * {
+  min-width: 60px;
+  height: 40px;
+}
+.player {
+  display: flex;
+  gap: 20px;
+  height: 200px;
+}
