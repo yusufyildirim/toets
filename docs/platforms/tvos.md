@@ -27,7 +27,7 @@ export default defineConfig({
 
 ## Keys
 
-The remote has up, down, left, right, select, back (the Menu button), play/pause and home, and buttons can be held. So `key.back`, `key.home`, `key.media.toggle` and `key.longpress` are available; color, numeric, channel, info, menu, discrete media and transport keys are not. Tests that need them are skipped here with a reason. If your app implements, say, fast-forward as "hold right", declare a [key override](../concepts/remote-and-keys.md#overrides).
+The remote has up, down, left, right, select, back (the Menu button), play/pause and home, and buttons can be held. So `key.back`, `key.home`, `key.media.toggle` and `key.longpress` are available; color, numeric, channel, info, menu, discrete media, seek and track keys are not. Tests that need them are skipped here with a reason. If your app implements, say, fast-forward as "hold right", declare a [key override](../concepts/remote-and-keys.md#overrides).
 
 ## Traps
 

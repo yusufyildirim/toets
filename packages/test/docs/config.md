@@ -17,7 +17,7 @@ export default defineConfig({
   projects: [
     platforms.web(),
     platforms.androidTV({ device: { model: 'tv_1080p', osVersion: '34' } }),
-    platforms.tvOS({ dpad: { keyOverrides: { FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } } } }),
+    platforms.tvOS({ dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } } }),
   ],
 });
 ```

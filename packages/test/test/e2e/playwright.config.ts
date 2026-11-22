@@ -38,7 +38,7 @@ export default defineConfig({
     platforms.tvOS({
       driver: './fake-tvos-driver.ts',
       devices: { mode: 'external', addresses: ['FAKE-APPLE-TV'] },
-      dpad: { keyOverrides: { FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } } },
+      dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } },
     }),
   ],
 });

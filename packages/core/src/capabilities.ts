@@ -12,7 +12,8 @@ export type Capability =
   | 'key.info'
   | 'key.media.toggle'
   | 'key.media.discrete'
-  | 'key.media.transport'
+  | 'key.media.seek'
+  | 'key.media.track'
   | 'key.color'
   | 'key.numeric'
   | 'key.channel'
@@ -42,10 +43,10 @@ export const KEY_CAPABILITY: Readonly<Record<Key, Capability | null>> = {
   PLAY: 'key.media.discrete',
   PAUSE: 'key.media.discrete',
   STOP: 'key.media.discrete',
-  FAST_FORWARD: 'key.media.transport',
-  REWIND: 'key.media.transport',
-  NEXT: 'key.media.transport',
-  PREVIOUS: 'key.media.transport',
+  FAST_FORWARD: 'key.media.seek',
+  REWIND: 'key.media.seek',
+  NEXT: 'key.media.track',
+  PREVIOUS: 'key.media.track',
   RED: 'key.color',
   GREEN: 'key.color',
   YELLOW: 'key.color',

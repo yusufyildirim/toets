@@ -47,7 +47,7 @@ describe('defineConfig', () => {
       app: { web: { url: 'http://localhost:3000' }, tvOS: { bundleId: 'com.example.tv' } },
       dpad: {
         sdk: true,
-        keyOverrides: { FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } },
+        keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } },
         timeouts: { actionMs: 3000 },
       },
       projects: [
@@ -62,7 +62,7 @@ describe('defineConfig', () => {
     expect(dpadOf(tvos).app).toEqual({ bundleId: 'com.example.tv' });
     expect(dpadOf(tvos).options).toMatchObject({
       sdk: false,
-      keyOverrides: { FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } },
+      keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } },
       timeouts: { actionMs: 3000, sdkConnectMs: 30_000 },
     });
     expect(plain).toEqual({ name: 'plain' });

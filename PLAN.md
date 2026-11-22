@@ -65,7 +65,7 @@ The heart. Owns core contracts and the authoring API implementation.
 
 ### S3 - Android TV driver (`packages/driver-android-tv`)
 
-- `DriverModule` on WebdriverIO + Appium UiAutomator2: start/stop session (manage the Appium server lifecycle), launch with payload as intent extra `__dpad`, `adb reverse` for payload ports, terminate/reset (`pm clear`), query/focused/tree from UiAutomator2 page source (resource-id = testId, text, content-desc, focused, selected, enabled, bounds), key mapping to Android keycodes (all TV keys incl. color, numeric, channel, media discrete/toggle/transport), long press, screenshots, logcat, `screenrecord` video.
+- `DriverModule` on WebdriverIO + Appium UiAutomator2: start/stop session (manage the Appium server lifecycle), launch with payload as intent extra `__dpad`, `adb reverse` for payload ports, terminate/reset (`pm clear`), query/focused/tree from UiAutomator2 page source (resource-id = testId, text, content-desc, focused, selected, enabled, bounds), key mapping to Android keycodes (all TV keys incl. color, numeric, channel, media toggle/discrete/seek/track), long press, screenshots, logcat, `screenrecord` video.
 - Device providers: `managed` (create/boot AVD from an Android TV system image, snapshot, reuse, reset), plus helpers the `command`/`external` providers need.
 - Performance: avoid per-query round trips (one page-source fetch per snapshot), document latency numbers.
 - Verify: a minimal native Android TV fixture app (Kotlin, focusable views with resource IDs, a fake player) in `packages/driver-android-tv/fixtures/`, proving framework neutrality; run the driver against it on a simlock-leased Android TV emulator (`tv_1080p`, API 31/33 images exist).

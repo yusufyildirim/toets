@@ -184,7 +184,7 @@ describe('isolation and failure dumps', () => {
     const { app, driver, runtime } = setup({
       screen: smallScreen,
       capabilities: ['key.longpress'],
-      runtime: { mock, keyOverrides: { FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } } },
+      runtime: { mock, keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } },
     });
     await app.remote.press(Key.RIGHT);
     await app.remote.press(Key.FAST_FORWARD);

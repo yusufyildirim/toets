@@ -31,15 +31,16 @@ test('toggles playback from the remote', async ({ app }) => {
 
 D-pad (`UP`, `DOWN`, `LEFT`, `RIGHT`) and `SELECT` exist everywhere. Every other key needs a [capability](./capabilities.md):
 
-| Keys                                         | Capability                                     |
-| -------------------------------------------- | ---------------------------------------------- |
-| `BACK`, `HOME`, `MENU`, `INFO`               | `key.back`, `key.home`, `key.menu`, `key.info` |
-| `PLAY_PAUSE`                                 | `key.media.toggle`                             |
-| `PLAY`, `PAUSE`, `STOP`                      | `key.media.discrete`                           |
-| `FAST_FORWARD`, `REWIND`, `NEXT`, `PREVIOUS` | `key.media.transport`                          |
-| `RED`, `GREEN`, `YELLOW`, `BLUE`             | `key.color`                                    |
-| `DIGIT_0` ... `DIGIT_9`                      | `key.numeric`                                  |
-| `CHANNEL_UP`, `CHANNEL_DOWN`                 | `key.channel`                                  |
+| Keys                             | Capability                                     |
+| -------------------------------- | ---------------------------------------------- |
+| `BACK`, `HOME`, `MENU`, `INFO`   | `key.back`, `key.home`, `key.menu`, `key.info` |
+| `PLAY_PAUSE`                     | `key.media.toggle`                             |
+| `PLAY`, `PAUSE`, `STOP`          | `key.media.discrete`                           |
+| `FAST_FORWARD`, `REWIND`         | `key.media.seek`                               |
+| `NEXT`, `PREVIOUS`               | `key.media.track`                              |
+| `RED`, `GREEN`, `YELLOW`, `BLUE` | `key.color`                                    |
+| `DIGIT_0` ... `DIGIT_9`          | `key.numeric`                                  |
+| `CHANNEL_UP`, `CHANNEL_DOWN`     | `key.channel`                                  |
 
 Pressing a key the platform lacks throws an error naming the capability. Tests that need such a key declare it with `requires` and are skipped, with a reason, where it is missing.
 
@@ -54,7 +55,7 @@ export default defineConfig({
   app: { tvOS: { app: './build/Example.app', bundleId: 'com.example.tv' } },
   projects: [
     platforms.tvOS({
-      keyOverrides: { FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } },
+      keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } },
     }),
   ],
 });

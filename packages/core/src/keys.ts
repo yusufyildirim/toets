@@ -64,6 +64,8 @@ export interface PressOptions {
  * Overridden keys are flagged in reports.
  */
 export interface KeyOverride {
-  readonly key: Key;
+  /** The key actually pressed. */
+  readonly as: Key;
+  /** Hold it this long; absent = a plain press. */
   readonly holdMs?: number;
 }

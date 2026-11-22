@@ -57,7 +57,8 @@ const ALL_KEY_CAPABILITIES: readonly Capability[] = [
   'key.info',
   'key.media.toggle',
   'key.media.discrete',
-  'key.media.transport',
+  'key.media.seek',
+  'key.media.track',
   'key.color',
   'key.numeric',
   'key.channel',
@@ -66,9 +67,8 @@ const ALL_KEY_CAPABILITIES: readonly Capability[] = [
 /** Key capabilities per remote profile. `key.longpress` is added by the driver. */
 export const REMOTE_PROFILE_CAPABILITIES: Readonly<Record<RemoteProfile, readonly Capability[]>> = {
   'android-tv': ALL_KEY_CAPABILITIES,
-  // FAST_FORWARD/REWIND exist on the Fire TV remote but NEXT/PREVIOUS do not; since
-  // `key.media.transport` covers all four, Fire TV does not claim it (see docs/keys.md).
-  'fire-tv': ['key.back', 'key.home', 'key.menu', 'key.media.toggle'],
+  // The Alexa Voice Remote has FAST_FORWARD/REWIND but no NEXT/PREVIOUS (see docs/fire-tv.md).
+  'fire-tv': ['key.back', 'key.home', 'key.menu', 'key.media.toggle', 'key.media.seek'],
 };
 
 /** True when `key` can be pressed under the given capability set. */

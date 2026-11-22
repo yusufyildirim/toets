@@ -38,6 +38,9 @@ describe('remote profiles', () => {
     expect(keySupported(Key.SELECT, caps)).toBe(true);
     expect(keySupported(Key.PLAY_PAUSE, caps)).toBe(true);
     expect(keySupported(Key.MENU, caps)).toBe(true);
+    expect(keySupported(Key.FAST_FORWARD, caps)).toBe(true);
+    expect(keySupported(Key.REWIND, caps)).toBe(true);
+    expect(keySupported(Key.NEXT, caps)).toBe(false);
     expect(keySupported(Key.PLAY, caps)).toBe(false);
     expect(keySupported(Key.RED, caps)).toBe(false);
     expect(keySupported(Key.DIGIT_1, caps)).toBe(false);

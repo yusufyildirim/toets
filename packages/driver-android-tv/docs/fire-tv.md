@@ -6,9 +6,7 @@ Fire OS (Fire TV sticks and cubes before Vega OS) is Android, so the Android TV 
 platforms.androidTV({ remote: 'fire-tv' });
 ```
 
-With `fire-tv`, the driver claims D-pad, `SELECT`, `BACK`, `HOME`, `MENU` and `PLAY_PAUSE`. Tests that `require` color, numeric, channel, info or discrete media keys are skipped with a reason instead of passing on a key no customer can press.
-
-`FAST_FORWARD` and `REWIND` exist on the Fire TV remote, but `key.media.transport` also covers `NEXT`/`PREVIOUS`, which do not; the profile leaves the capability out to stay honest.
+With `fire-tv`, the driver claims D-pad, `SELECT`, `BACK`, `HOME`, `MENU`, `PLAY_PAUSE` and `FAST_FORWARD`/`REWIND` (`key.media.seek`). Tests that `require` color, numeric, channel, info, discrete media or track keys (`key.media.track`: `NEXT`/`PREVIOUS`) are skipped with a reason instead of passing on a key no customer can press.
 
 ## Trap
 

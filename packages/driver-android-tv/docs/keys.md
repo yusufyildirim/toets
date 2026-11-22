@@ -2,21 +2,21 @@
 
 Every dpad key is a real Android `KeyEvent` injected into the system input pipeline, so the app's native focus engine handles it exactly like a remote button.
 
-| Key                           | Android keycode                                      | Capability            |
-| ----------------------------- | ---------------------------------------------------- | --------------------- |
-| `UP` `DOWN` `LEFT` `RIGHT`    | `DPAD_UP` 19 ... `DPAD_RIGHT` 22                     | -                     |
-| `SELECT`                      | `DPAD_CENTER` 23                                     | -                     |
-| `BACK`                        | `BACK` 4                                             | `key.back`            |
-| `HOME`                        | `HOME` 3                                             | `key.home`            |
-| `MENU`                        | `MENU` 82                                            | `key.menu`            |
-| `INFO`                        | `INFO` 165                                           | `key.info`            |
-| `PLAY_PAUSE`                  | `MEDIA_PLAY_PAUSE` 85                                | `key.media.toggle`    |
-| `PLAY` `PAUSE` `STOP`         | `MEDIA_PLAY` 126, `MEDIA_PAUSE` 127, `MEDIA_STOP` 86 | `key.media.discrete`  |
-| `FAST_FORWARD` `REWIND`       | `MEDIA_FAST_FORWARD` 90, `MEDIA_REWIND` 89           | `key.media.transport` |
-| `NEXT` `PREVIOUS`             | `MEDIA_NEXT` 87, `MEDIA_PREVIOUS` 88                 | `key.media.transport` |
-| `RED` `GREEN` `YELLOW` `BLUE` | `PROG_RED` 183 ... `PROG_BLUE` 186                   | `key.color`           |
-| `CHANNEL_UP` `CHANNEL_DOWN`   | `CHANNEL_UP` 166, `CHANNEL_DOWN` 167                 | `key.channel`         |
-| `DIGIT_0` ... `DIGIT_9`       | `0` 7 ... `9` 16                                     | `key.numeric`         |
+| Key                           | Android keycode                                      | Capability           |
+| ----------------------------- | ---------------------------------------------------- | -------------------- |
+| `UP` `DOWN` `LEFT` `RIGHT`    | `DPAD_UP` 19 ... `DPAD_RIGHT` 22                     | -                    |
+| `SELECT`                      | `DPAD_CENTER` 23                                     | -                    |
+| `BACK`                        | `BACK` 4                                             | `key.back`           |
+| `HOME`                        | `HOME` 3                                             | `key.home`           |
+| `MENU`                        | `MENU` 82                                            | `key.menu`           |
+| `INFO`                        | `INFO` 165                                           | `key.info`           |
+| `PLAY_PAUSE`                  | `MEDIA_PLAY_PAUSE` 85                                | `key.media.toggle`   |
+| `PLAY` `PAUSE` `STOP`         | `MEDIA_PLAY` 126, `MEDIA_PAUSE` 127, `MEDIA_STOP` 86 | `key.media.discrete` |
+| `FAST_FORWARD` `REWIND`       | `MEDIA_FAST_FORWARD` 90, `MEDIA_REWIND` 89           | `key.media.seek`     |
+| `NEXT` `PREVIOUS`             | `MEDIA_NEXT` 87, `MEDIA_PREVIOUS` 88                 | `key.media.track`    |
+| `RED` `GREEN` `YELLOW` `BLUE` | `PROG_RED` 183 ... `PROG_BLUE` 186                   | `key.color`          |
+| `CHANNEL_UP` `CHANNEL_DOWN`   | `CHANNEL_UP` 166, `CHANNEL_DOWN` 167                 | `key.channel`        |
+| `DIGIT_0` ... `DIGIT_9`       | `0` 7 ... `9` 16                                     | `key.numeric`        |
 
 The table is `ANDROID_KEYCODES`. Which of these a target claims depends on the `remote` option: `android-tv` (default) claims all of them, `fire-tv` only what the Fire TV remote has (see [Fire TV](./fire-tv.md)).
 

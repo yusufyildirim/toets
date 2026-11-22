@@ -48,7 +48,7 @@ describe('remote', () => {
     const { app, driver, runtime } = setup({
       capabilities: ['key.longpress'],
       runtime: {
-        keyOverrides: { FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } },
+        keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } },
         hooks: { step: (info, run) => (infos.push(info), run()) },
       },
     });

@@ -10,7 +10,7 @@ The tvOS driver presses real Siri Remote buttons through `XCUIRemote`. It maps o
 | `PLAY_PAUSE`               | Play/Pause              | `key.media.toggle` |
 | `HOME`                     | TV / Home               | `key.home`         |
 
-`MENU`, `INFO`, discrete `PLAY`/`PAUSE`/`STOP`, transport (`FAST_FORWARD`, `REWIND`, `NEXT`, `PREVIOUS`), color, numeric and channel keys have no button, so tests that need them are skipped on tvOS with a reason. The remote's Menu button is tvOS's back action, which is why it implements `BACK`, not `MENU`.
+`MENU`, `INFO`, discrete `PLAY`/`PAUSE`/`STOP`, seek (`FAST_FORWARD`, `REWIND`), track (`NEXT`, `PREVIOUS`), color, numeric and channel keys have no button, so tests that need them are skipped on tvOS with a reason. The remote's Menu button is tvOS's back action, which is why it implements `BACK`, not `MENU`.
 
 ## Long press
 

@@ -148,7 +148,7 @@ interface Driver {
 
 ### Capabilities (initial set)
 
-`key.media`, `key.color`, `key.numeric`, `key.longpress`, `focus.graph`, `sync.idle`, `media.state`, `app.state`, `network.mock`, `screenshot.element`, `platform.events`.
+`key.back`, `key.home`, `key.menu`, `key.info`, `key.media.toggle`, `key.media.discrete`, `key.media.seek`, `key.media.track`, `key.color`, `key.numeric`, `key.channel`, `key.longpress`, `focus.graph`, `sync.idle`, `media.state`, `app.state`, `network.mock`, `screenshot.element`, `platform.events`.
 
 Tests declare `requires`; the report shows a **parity matrix** (which test ran where, which was skipped and why).
 

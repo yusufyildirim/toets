@@ -350,7 +350,8 @@ describe('capabilities and key mapping', () => {
     }
     for (const cap of [
       'key.media.discrete',
-      'key.media.transport',
+      'key.media.seek',
+      'key.media.track',
       'key.color',
       'key.numeric',
       'key.channel',

@@ -53,7 +53,7 @@ export interface DpadOptions {
       };
   /**
    * App-level key overrides: how a semantic key is performed when the app maps it to another
-   * gesture, e.g. `{ FAST_FORWARD: { key: Key.RIGHT, holdMs: 800 } }`. Flagged in reports.
+   * gesture, e.g. `{ FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } }`. Flagged in reports.
    */
   readonly keyOverrides?: KeyOverrides;
   /** Assertion timeouts come from Playwright's `expect.timeout`. */

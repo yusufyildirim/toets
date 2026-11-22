@@ -41,7 +41,7 @@ export class RemoteImpl implements Remote {
   async press(key: Key, opts?: PressOptions): Promise<void> {
     assertKey(key);
     const override = this.ctx.keyOverrides[key];
-    const performed = override?.key ?? key;
+    const performed = override?.as ?? key;
     const holdMs = override?.holdMs ?? opts?.holdMs;
     const performedAs = override
       ? `${holdMs === undefined ? 'press' : 'hold'} ${performed}${describeHold(holdMs)}`
