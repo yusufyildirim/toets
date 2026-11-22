@@ -1,9 +1,4 @@
-import type {
-  DeviceAcquireOptions,
-  DeviceLease,
-  DeviceProvider,
-  DeviceSpec,
-} from '@dpad-tv/core';
+import type { DeviceAcquireOptions, DeviceLease, DeviceProvider, DeviceSpec } from '@dpad-tv/core';
 import { existsSync, readdirSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createServer } from 'node:net';

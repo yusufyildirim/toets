@@ -33,11 +33,15 @@ describe('external devices', () => {
     const a = await provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 });
     expect([a.address, b.address]).toEqual(['emulator-5554', 'emulator-5556']);
     expect(a.meta).toEqual({ apiLevel: 33, isTv: true });
-    await expect(provider.acquire(spec, { workerIndex: 2, parallelIndex: 2 })).rejects.toMatchObject({
+    await expect(
+      provider.acquire(spec, { workerIndex: 2, parallelIndex: 2 }),
+    ).rejects.toMatchObject({
       code: 'ANDROID_NO_DEVICE',
     });
     await a.release();
-    expect((await provider.acquire(spec, { workerIndex: 2, parallelIndex: 2 })).address).toBe('emulator-5554');
+    expect((await provider.acquire(spec, { workerIndex: 2, parallelIndex: 2 })).address).toBe(
+      'emulator-5554',
+    );
     expect(runner.lines().some((l) => l.includes('emu kill'))).toBe(false);
   });
 
