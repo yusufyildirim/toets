@@ -1,8 +1,8 @@
 /**
  * Geometry-based focus navigation with real D-pad presses.
  *
- * TODO(core): replace with `app.focus.navigateTo(locator)` from the core once S1 merges (it also
- * uses the SDK focus graph when available). The contract kept here: real presses only, the
+ * TODO(core): replace with `app.focus.navigateTo(locator)` from the core (it also uses
+ * the SDK focus graph when available). The contract kept here: real presses only, the
  * effective path is returned, and an unreachable target fails with a precise reason.
  */
 import {

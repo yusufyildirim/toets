@@ -2,7 +2,7 @@
  * Polling helpers.
  *
  * TODO(core): replace with the core retry engine (timeouts, SDK idle integration per decision
- * 16) once S1 merges. Until then this is plain polling, which is correct but slower than idle.
+ * 16). Until then this is plain polling, which is correct but slower than idle.
  */
 
 export const POLL_INTERVAL_MS = 50;

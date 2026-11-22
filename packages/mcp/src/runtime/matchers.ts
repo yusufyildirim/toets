@@ -1,8 +1,8 @@
 /**
  * The matcher subset the MCP `assert` tool offers.
  *
- * TODO(core): replace `evaluate` with the core matchers (implemented once over `ElementSnapshot`
- * by S1) so `assert` passes or fails exactly like `expect(...)` in a test.
+ * TODO(core): replace `evaluate` with the core matchers (implemented once over
+ * `ElementSnapshot`) so `assert` passes or fails exactly like `expect(...)` in a test.
  */
 import type { ElementSnapshot } from '@dpad-tv/core';
 import { describeElement } from './text-snapshot.js';

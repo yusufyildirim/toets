@@ -1,7 +1,7 @@
 /**
  * Minimal text snapshot (YAML, focus-aware).
  *
- * TODO(core): replace with the core text snapshot from `@dpad-tv/core` once S1 merges, so agents
+ * TODO(core): replace with the core text snapshot from `@dpad-tv/core`, so agents
  * see exactly the format tests assert with. Keep this module's exports as thin wrappers until then.
  *
  * Format: one YAML list item per meaningful element. Anonymous wrappers are collapsed, hidden

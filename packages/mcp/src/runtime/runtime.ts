@@ -2,7 +2,7 @@
  * The seam between MCP tools and dpad. Tools only talk to {@link ScreenRuntime}; today it is
  * implemented directly over the `Driver` contract with small local helpers.
  *
- * TODO(core): after S1 merges, implement `ScreenRuntime` over the core `App` (locators, remote
+ * TODO(core): implement `ScreenRuntime` over the core `App` (locators, remote
  * with key overrides and capability checks, `focus.navigateTo`, matchers, text snapshot, SDK
  * composition) and delete the local helpers in this folder. Tool code should not need changes.
  */
