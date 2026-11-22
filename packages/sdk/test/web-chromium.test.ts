@@ -3,12 +3,16 @@ import type { Browser, Page } from 'playwright-core';
 import { encodeLaunchPayloadParam, type ProtocolNode } from '@dpad-tv/protocol';
 import { createSdkHost, type SdkHost, type SdkSession } from '@dpad-tv/protocol/host';
 import { formatConformanceReport, runConformance } from '@dpad-tv/protocol/conformance';
-import { bundleFixture, launchChromium, serveApp } from './chromium.js';
+import { bundleFixture, chromiumAvailable, launchChromium, serveApp } from './chromium.js';
 
 let browser: Browser;
 let app: { url: string; close: () => Promise<void> };
 
+const available = chromiumAvailable();
+if (!available) console.warn('[dpad] Chromium not installed: skipping web adapter browser tests');
+
 beforeAll(async () => {
+  if (!available) return;
   app = await serveApp(await bundleFixture('./fixtures/conformance-app.ts'));
   browser = await launchChromium();
 }, 60_000);
@@ -18,7 +22,7 @@ afterAll(async () => {
   await app?.close();
 });
 
-describe('web adapter in Chromium', () => {
+describe.skipIf(!available)('web adapter in Chromium', () => {
   it('passes the protocol conformance suite', { timeout: 120_000 }, async () => {
     let page: Page | undefined;
     const report = await runConformance({

@@ -1,3 +1,4 @@
+import { existsSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { fileURLToPath } from 'node:url';
@@ -48,6 +49,19 @@ export async function serveApp(
         server.close(() => r());
       }),
   };
+}
+
+/**
+ * Whether the Playwright Chromium build is installed (`pnpm exec playwright-core install
+ * chromium`). Browser tests skip without it unless `DPAD_REQUIRE_BROWSER=1`.
+ */
+export function chromiumAvailable(): boolean {
+  if (process.env.DPAD_REQUIRE_BROWSER === '1') return true;
+  try {
+    return existsSync(chromium.executablePath());
+  } catch {
+    return false;
+  }
 }
 
 export async function launchChromium(): Promise<Browser> {

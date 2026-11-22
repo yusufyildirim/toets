@@ -27,10 +27,12 @@ export const native = {
   console: g.console as Console | undefined,
 };
 
+/** `setTimeout` that idle tracking never sees. For adapters' own scheduling. */
 export function setNativeTimeout(fn: () => void, ms: number): unknown {
   return native.setTimeout.call(g, fn, ms);
 }
 
+/** Clears a {@link setNativeTimeout} handle. */
 export function clearNativeTimeout(handle: unknown): void {
   native.clearTimeout.call(g, handle);
 }

@@ -33,4 +33,4 @@ export type { MediaProvider, MediaReporter, MediaSnapshot, MediaSource } from '.
 export type { StateHandler } from './state.js';
 export { describeRequest } from './instrument/network.js';
 export { formatLogArgs } from './instrument/console.js';
-export { getGlobal } from './env.js';
+export { getGlobal, setNativeTimeout, clearNativeTimeout, sdkWarn } from './env.js';
