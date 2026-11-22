@@ -3,3 +3,4 @@ pnpm-lock.yaml
 CHANGELOG.md
 examples/**/android
 examples/**/ios
+.expo

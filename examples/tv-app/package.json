@@ -1,0 +1,29 @@
+{
+  "name": "@dpad-tv/example-tv-app",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Example React Native TV app (Android TV, tvOS, web) used to dogfood dpad.",
+  "license": "MIT",
+  "main": "index.ts",
+  "scripts": {
+    "start": "expo start",
+    "api": "node server/main.ts api",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@expo/metro-runtime": "~58.0.17",
+    "expo": "~58.0.26",
+    "expo-video": "~58.0.14",
+    "react": "19.3.0",
+    "react-dom": "19.3.0",
+    "react-native": "npm:react-native-tvos@0.88.1-0",
+    "react-native-web": "~0.21.4"
+  },
+  "devDependencies": {
+    "@react-native-tvos/config-tv": "^0.1.7",
+    "@types/react": "~19.3.0",
+    "typescript": "~6.0.3",
+    "@types/node": "^24.0.0"
+  }
+}
