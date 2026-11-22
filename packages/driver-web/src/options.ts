@@ -91,7 +91,7 @@ export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 } as const;
 const DOCS = packageDocsLink('driver-web', 'options');
 
 function invalid(message: string, hint: string): DpadError {
-  return new DpadError('web.invalid-config', message, { hint, docs: DOCS });
+  return new DpadError('WEB_INVALID_CONFIG', message, { hint, docs: DOCS });
 }
 
 function optionalString(o: Record<string, unknown>, name: string): string | undefined {
@@ -130,7 +130,7 @@ function positive(v: unknown, name: string, fallback: number): number {
 
 /**
  * Merges the app config and platform options (platform wins) and validates the result.
- * Throws `DpadError` (`web.invalid-config`) with a hint for anything malformed.
+ * Throws `DpadError` (`WEB_INVALID_CONFIG`) with a hint for anything malformed.
  */
 export function resolveOptions(
   options: WebDriverOptions,

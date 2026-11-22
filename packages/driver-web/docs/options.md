@@ -1,6 +1,6 @@
 # Web driver options
 
-Set in `app.web` or `platforms.web({...})` (platform wins). Invalid values fail fast with `web.invalid-config`.
+Set in `app.web` or `platforms.web({...})` (platform wins). Invalid values fail fast with `WEB_INVALID_CONFIG`.
 
 | Option            | Default                            | Meaning                                                             |
 | ----------------- | ---------------------------------- | ------------------------------------------------------------------- |

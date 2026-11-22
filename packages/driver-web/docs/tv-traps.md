@@ -2,7 +2,7 @@
 
 Where desktop-web intuition misleads when testing TV apps in Chromium.
 
-- **No click, no scroll.** The driver only presses keys. Element screenshots never scroll; off-screen elements fail with `web.element-offscreen`. Move focus to bring things into view, as a user would.
+- **No click, no scroll.** The driver only presses keys. Element screenshots never scroll; off-screen elements fail with `WEB_ELEMENT_OFFSCREEN`. Move focus to bring things into view, as a user would.
 - **Virtual focus.** Many TV apps never move DOM focus. If `focused()` is always `null`, configure [`focus` selectors](./options.md#virtual-focus).
 - **BACK is `Escape`.** Real TV browsers send their own codes (Tizen 10009, webOS 461). Map them in [`keys`](./keys.md) if your build reads keyCodes.
 - **Text is DOM text.** CSS `text-transform` is ignored: a label rendered as `PLAY` with `text-transform: uppercase` has text `Play`. Default text matching is case-insensitive anyway.

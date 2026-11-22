@@ -147,7 +147,7 @@ export class WebDriver implements Driver {
       response = await page.goto(target, { waitUntil: this.#opts.waitUntil });
     } catch (error) {
       throw new DpadError(
-        'web.launch-failed',
+        'WEB_LAUNCH_FAILED',
         `Could not load the app at ${this.#opts.url.href}: ${firstLine(error)}`,
         {
           hint: 'Check that the app is served at the configured `url` (dev server running, right port) and loads without a network error.',
@@ -158,7 +158,7 @@ export class WebDriver implements Driver {
     }
     if (response && /^https?:$/.test(this.#opts.url.protocol) && !response.ok()) {
       throw new DpadError(
-        'web.launch-failed',
+        'WEB_LAUNCH_FAILED',
         `The app URL ${this.#opts.url.href} answered HTTP ${response.status()}.`,
         {
           hint: 'Check the configured `url` path and that the server serves the app there.',
@@ -206,7 +206,7 @@ export class WebDriver implements Driver {
   async tree(): Promise<UITree> {
     const result = await this.#evaluate({ op: 'tree', config: this.#agentConfig });
     if (result.root === null) {
-      throw new DpadError('web.no-document', 'The page has no document element to read.', {
+      throw new DpadError('WEB_NO_DOCUMENT', 'The page has no document element to read.', {
         hint: 'Launch the app before reading the UI.',
       });
     }
@@ -222,7 +222,7 @@ export class WebDriver implements Driver {
     const spec = this.#opts.keys[key];
     if (spec === undefined) {
       const capability = KEY_CAPABILITY[key];
-      throw new DpadError('web.key-unmapped', `Key ${key} has no web key mapping.`, {
+      throw new DpadError('WEB_KEY_UNMAPPED', `Key ${key} has no web key mapping.`, {
         hint: `Map it in the web config, e.g. \`keys: { ${key}: { key: '...', keyCode: 0 } }\`.${
           capability ? ` Tests pressing it should declare \`requires('${capability}')\`.` : ''
         }`,
@@ -257,13 +257,13 @@ export class WebDriver implements Driver {
     if (opts?.element === undefined) return page.screenshot({ type: 'png' });
     const found = await this.#evaluate({ op: 'bounds', ref: opts.element });
     if (found === null) {
-      throw new DpadError('web.stale-element', 'The element is no longer in the document.', {
+      throw new DpadError('WEB_STALE_ELEMENT', 'The element is no longer in the document.', {
         hint: 'Element refs are valid only while the element is attached. Locate it again.',
       });
     }
     const clip = intersect(found.bounds, { x: 0, y: 0, ...found.viewport });
     if (clip.width < 1 || clip.height < 1) {
-      throw new DpadError('web.element-offscreen', 'The element is outside the viewport.', {
+      throw new DpadError('WEB_ELEMENT_OFFSCREEN', 'The element is outside the viewport.', {
         hint: 'Bring it into view first, e.g. by navigating focus to it.',
       });
     }
@@ -303,7 +303,7 @@ export class WebDriver implements Driver {
   async startRecording(): Promise<void> {
     const { page } = this.#require();
     if (this.#recording !== null) {
-      throw new DpadError('web.recording-active', 'A recording is already running.', {
+      throw new DpadError('WEB_RECORDING_ACTIVE', 'A recording is already running.', {
         hint: 'Call stopRecording() before starting a new recording.',
       });
     }
@@ -319,7 +319,7 @@ export class WebDriver implements Driver {
     const { page } = this.#require();
     const path = this.#recording;
     if (path === null) {
-      throw new DpadError('web.not-recording', 'No recording is running.', {
+      throw new DpadError('WEB_NOT_RECORDING', 'No recording is running.', {
         hint: 'Call startRecording() first.',
       });
     }
@@ -369,7 +369,7 @@ export class WebDriver implements Driver {
     } catch (error) {
       const missingBrowser = /Executable doesn't exist|playwright install/i.test(String(error));
       throw new DpadError(
-        'web.start-failed',
+        'WEB_START_FAILED',
         `Could not open a browser page: ${firstLine(error)}`,
         {
           hint: missingBrowser
@@ -381,7 +381,7 @@ export class WebDriver implements Driver {
       );
     }
     if (page.isClosed()) {
-      throw new DpadError('web.page-closed', 'The page passed to the web driver is closed.', {
+      throw new DpadError('WEB_PAGE_CLOSED', 'The page passed to the web driver is closed.', {
         hint: 'Pass an open page, or let the driver create one.',
         docs: packageDocsLink('driver-web', 'setup'),
       });
@@ -392,7 +392,7 @@ export class WebDriver implements Driver {
       cdp = await page.context().newCDPSession(page);
     } catch (error) {
       await close().catch(() => {});
-      throw new DpadError('web.not-chromium', 'The web driver needs a Chromium page.', {
+      throw new DpadError('WEB_NOT_CHROMIUM', 'The web driver needs a Chromium page.', {
         hint: 'Use Chromium (Playwright `chromium`, or `channel: "chrome"`); Firefox and WebKit are not supported.',
         docs: packageDocsLink('driver-web', 'setup'),
         cause: error,
@@ -426,7 +426,7 @@ export class WebDriver implements Driver {
 
   #require(): Session {
     if (this.#session === null) {
-      throw new DpadError('web.not-started', 'The web driver is not started.', {
+      throw new DpadError('WEB_NOT_STARTED', 'The web driver is not started.', {
         hint: 'Call `start()` first (the dpad runner does this once per worker).',
       });
     }
@@ -450,14 +450,14 @@ export class WebDriver implements Driver {
   #evaluateError(error: unknown, page: Page): DpadError {
     const message = firstLine(error);
     if (page.isClosed()) {
-      return new DpadError('web.page-closed', 'The browser page was closed.', {
+      return new DpadError('WEB_PAGE_CLOSED', 'The browser page was closed.', {
         hint: 'Something outside dpad closed the page or browser. Do not close it in a test.',
         cause: error,
       });
     }
     if (/is not a valid selector/.test(message)) {
       return new DpadError(
-        'web.invalid-config',
+        'WEB_INVALID_CONFIG',
         `A \`focus\` selector is not valid CSS: ${message}`,
         {
           hint: 'Fix `focus.focused` / `focus.focusable` in the web config.',
@@ -466,7 +466,7 @@ export class WebDriver implements Driver {
         },
       );
     }
-    return new DpadError('web.evaluate-failed', `Reading the page failed: ${message}`, {
+    return new DpadError('WEB_EVALUATE_FAILED', `Reading the page failed: ${message}`, {
       hint: 'The page may have navigated or crashed; check the app logs.',
       cause: error,
     });

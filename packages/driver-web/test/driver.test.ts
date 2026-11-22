@@ -302,11 +302,11 @@ describe('web driver on the fixture app', () => {
     });
 
     const below = await one(driver, testId('below-fold'));
-    await expectDpadError(driver.screenshot({ element: below.ref }), 'web.element-offscreen');
+    await expectDpadError(driver.screenshot({ element: below.ref }), 'WEB_ELEMENT_OFFSCREEN');
     expect(await driver.escapeHatch().evaluate(() => window.scrollY)).toBe(0);
 
     await driver.launch({ payload: { v: 1 } });
-    await expectDpadError(driver.screenshot({ element: card.ref }), 'web.stale-element');
+    await expectDpadError(driver.screenshot({ element: card.ref }), 'WEB_STALE_ELEMENT');
   });
 
   it('collects console logs and uncaught errors', async () => {
@@ -347,7 +347,7 @@ describe('web driver on the fixture app', () => {
 
   it('records video across launches', async () => {
     await driver.startRecording();
-    await expectDpadError(driver.startRecording(), 'web.recording-active');
+    await expectDpadError(driver.startRecording(), 'WEB_RECORDING_ACTIVE');
     await driver.press(Key.RIGHT);
     await driver.launch({ payload: { v: 1 } });
     await driver.press(Key.RIGHT);
@@ -355,7 +355,7 @@ describe('web driver on the fixture app', () => {
     expect(path.startsWith(artifactsDir)).toBe(true);
     expect(path.endsWith('.webm')).toBe(true);
     expect(existsSync(path) && statSync(path).size).toBeGreaterThan(0);
-    await expectDpadError(driver.stopRecording(), 'web.not-recording');
+    await expectDpadError(driver.stopRecording(), 'WEB_NOT_RECORDING');
   });
 
   it('emits network and lifecycle events', async () => {
@@ -403,7 +403,7 @@ describe('web driver on the fixture app', () => {
   });
 
   it('rejects unmapped keys with a hint', async () => {
-    const error = await expectDpadError(driver.press(Key.HOME), 'web.key-unmapped');
+    const error = await expectDpadError(driver.press(Key.HOME), 'WEB_KEY_UNMAPPED');
     expect(error.hint).toContain('key.home');
   });
 });
@@ -426,7 +426,7 @@ describe('web driver configuration', () => {
       { app: { url: server.url }, workerIndex: 0, artifactsDir, log: () => {} },
     );
     expect(driver.platform).toBe('web');
-    await expectDpadError(driver.query([]), 'web.not-started');
+    await expectDpadError(driver.query([]), 'WEB_NOT_STARTED');
   });
 
   it('passes the payload through an init script as window.__DPAD__', async () => {
@@ -500,7 +500,7 @@ describe('web driver configuration', () => {
       await driver.launch({ payload: { v: 1 } });
       await driver.press(Key.BACK);
       await driver.press(Key.HOME);
-      await expectDpadError(driver.press(Key.RED), 'web.key-unmapped');
+      await expectDpadError(driver.press(Key.RED), 'WEB_KEY_UNMAPPED');
       const downs = (await keyEvents(driver)).filter((e) => e.type === 'keydown');
       // Non-standard key values arrive as an empty string; the keyCode is verbatim.
       expect(downs.map((e) => [e.key, e.keyCode])).toEqual([
@@ -537,7 +537,7 @@ describe('web driver configuration', () => {
     await driver.start();
     try {
       await driver.launch({ payload: { v: 1 } });
-      await expectDpadError(driver.focused(), 'web.invalid-config');
+      await expectDpadError(driver.focused(), 'WEB_INVALID_CONFIG');
     } finally {
       await driver.stop();
     }
@@ -546,12 +546,12 @@ describe('web driver configuration', () => {
   it('explains launch failures', async () => {
     const missing = createWebDriver({ url: `${server.url}missing.html`, browser });
     await missing.start();
-    await expectDpadError(missing.launch({ payload: { v: 1 } }), 'web.launch-failed');
+    await expectDpadError(missing.launch({ payload: { v: 1 } }), 'WEB_LAUNCH_FAILED');
     await missing.stop();
 
     const refused = createWebDriver({ url: 'http://127.0.0.1:9/', browser });
     await refused.start();
-    await expectDpadError(refused.launch({ payload: { v: 1 } }), 'web.launch-failed');
+    await expectDpadError(refused.launch({ payload: { v: 1 } }), 'WEB_LAUNCH_FAILED');
     await refused.stop();
   });
 

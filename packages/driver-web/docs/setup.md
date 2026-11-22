@@ -9,7 +9,7 @@ npm i -D @dpad-tv/test @dpad-tv/driver-web
 npx playwright install chromium
 ```
 
-Chromium only. Firefox and WebKit are not TV engines and are rejected (`web.not-chromium`).
+Chromium only. Firefox and WebKit are not TV engines and are rejected (`WEB_NOT_CHROMIUM`).
 
 ## Configure
 

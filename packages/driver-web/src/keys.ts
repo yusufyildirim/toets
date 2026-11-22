@@ -126,7 +126,7 @@ function validateSpec(key: Key, spec: unknown): WebKeySpec {
 }
 
 function invalidKeys(message: string, hint?: string): DpadError {
-  return new DpadError('web.invalid-config', message, {
+  return new DpadError('WEB_INVALID_CONFIG', message, {
     hint: hint ?? 'Fix the `keys` option of the web app config.',
     docs: packageDocsLink('driver-web', 'keys'),
   });

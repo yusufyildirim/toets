@@ -10,7 +10,7 @@ function invalid(options: WebDriverOptions, app?: Record<string, unknown>): Dpad
     resolveOptions(options, app);
   } catch (error) {
     expect(error).toBeInstanceOf(DpadError);
-    expect((error as DpadError).code).toBe('web.invalid-config');
+    expect((error as DpadError).code).toBe('WEB_INVALID_CONFIG');
     expect((error as DpadError).hint).toBeTruthy();
     return error as DpadError;
   }
