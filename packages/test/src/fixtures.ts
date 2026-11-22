@@ -12,7 +12,7 @@ import {
   type LogEntry,
 } from '@dpad-tv/core';
 import type { DpadOptions, DpadProjectConfig } from './config.js';
-import { requiredCapabilities } from './requires.js';
+import { requiredCapabilities, requiresSkipReason } from './requires.js';
 import { serialGroupOf } from './serial.js';
 import { DpadWorker, workerArtifactsDir } from './worker.js';
 
@@ -159,9 +159,10 @@ export const test = base.extend<DpadTestFixtures, DpadWorkerFixtures>({
         const worker = await _dpadWorker.get();
         const have = worker.runtime.declaredCapabilities;
         const missing = required.filter((c) => !have.has(c));
+        const { sdk, mock } = worker.config.options;
         testInfo.skip(
           missing.length > 0,
-          `requires ${missing.join(', ')}: not available on ${worker.config.platform}`,
+          requiresSkipReason(missing, worker.config.platform, { sdk: !!sdk, mock: !!mock }),
         );
       }
       await use();

@@ -1,7 +1,7 @@
 import { Key } from '@dpad-tv/core';
 import { describe, expect, it } from 'vitest';
 import { defineConfig, platforms, type DpadProjectConfig } from '../../src/config.js';
-import { requiredCapabilities, requires } from '../../src/requires.js';
+import { requiredCapabilities, requires, requiresSkipReason } from '../../src/requires.js';
 import { serialGroupOf } from '../../src/serial.js';
 
 const dpadOf = (project: { use?: unknown } | undefined) =>
@@ -139,6 +139,23 @@ describe('requires', () => {
         { type: 'skip' },
       ]),
     ).toEqual(['key.color', 'media.state']);
+  });
+
+  it('names the dpad option a skipped capability needs', () => {
+    const on = { sdk: true, mock: true };
+    const off = { sdk: false, mock: false };
+    expect(requiresSkipReason(['key.color'], 'tvos', off)).toBe(
+      'requires key.color: not available on tvos',
+    );
+    expect(requiresSkipReason(['media.state'], 'web', off)).toBe(
+      'requires media.state: not available on web (dpad.sdk off)',
+    );
+    expect(requiresSkipReason(['app.state', 'network.mock'], 'web', off)).toBe(
+      'requires app.state, network.mock: not available on web (dpad.sdk, dpad.mock off)',
+    );
+    expect(requiresSkipReason(['media.state'], 'web', on)).toBe(
+      'requires media.state: not available on web',
+    );
   });
 });
 

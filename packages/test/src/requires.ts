@@ -1,5 +1,5 @@
 import type { TestDetails, TestInfo } from '@playwright/test';
-import type { Capability } from '@dpad-tv/core';
+import { SDK_CAPABILITIES, type Capability } from '@dpad-tv/core';
 
 /** Annotation type carrying a test's required capabilities. */
 export const REQUIRES_ANNOTATION = 'requires';
@@ -28,4 +28,21 @@ export function requiredCapabilities(annotations: TestInfo['annotations']): Capa
     for (const c of a.description.split(',')) if (c.trim()) out.add(c.trim() as Capability);
   }
   return [...out];
+}
+
+/**
+ * Skip reason for missing capabilities, e.g. `requires key.color: not available on tvos`. When
+ * the capability only needs a dpad option the project turned off, it says so:
+ * `requires media.state: not available on web (dpad.sdk off)`.
+ */
+export function requiresSkipReason(
+  missing: readonly Capability[],
+  platform: string,
+  enabled: { readonly sdk: boolean; readonly mock: boolean },
+): string {
+  const off: string[] = [];
+  if (!enabled.sdk && missing.some((c) => SDK_CAPABILITIES.includes(c))) off.push('dpad.sdk');
+  if (!enabled.mock && missing.includes('network.mock')) off.push('dpad.mock');
+  const suffix = off.length ? ` (${off.join(', ')} off)` : '';
+  return `requires ${missing.join(', ')}: not available on ${platform}${suffix}`;
 }
