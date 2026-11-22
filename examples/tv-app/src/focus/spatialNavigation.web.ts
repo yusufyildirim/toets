@@ -2,10 +2,11 @@
  * Minimal spatial navigation for the web build, mirroring the native TV focus engines:
  * arrow keys move focus to the nearest focusable element in that direction, and entering a
  * `FocusGroup` (`data-focus-group`) restores the element focused there last (first visit: the
- * first focusable child), like `TVFocusGuideView autoFocus`.
+ * first focusable child), like `TVFocusGuideView autoFocus`. A group's `data-focus-trap`
+ * (`up down ...`) keeps focus inside it in those directions, like `trapFocus*`.
  */
 
-type Direction = 'up' | 'down' | 'left' | 'right';
+import type { Direction } from './FocusGroup';
 
 const KEY_TO_DIRECTION: Record<string, Direction> = {
   ArrowUp: 'up',
@@ -70,13 +71,47 @@ function score(from: DOMRect, to: DOMRect, direction: Direction): number | null 
   return primary + (overlap > 0 ? 0 : offAxis * 2) + offAxis * 0.1;
 }
 
+function isClipped(el: Element): boolean {
+  const overflow = getComputedStyle(el);
+  return overflow.overflowX !== 'visible' || overflow.overflowY !== 'visible';
+}
+
+/**
+ * Like the native engines, only consider elements that are on screen, except inside scroll
+ * containers shared with the focused element (so a rail still scrolls to its next card). This
+ * keeps a card scrolled out of view in another rail from being picked.
+ */
+function isReachable(candidate: HTMLElement, rect: DOMRect, current: HTMLElement): boolean {
+  for (let el = candidate.parentElement; el && !el.contains(current); el = el.parentElement) {
+    if (!isClipped(el)) continue;
+    const box = el.getBoundingClientRect();
+    const overlaps =
+      rect.right > box.left &&
+      rect.left < box.right &&
+      rect.bottom > box.top &&
+      rect.top < box.bottom;
+    if (!overlaps) return false;
+  }
+  return true;
+}
+
+function isTrapped(current: HTMLElement, next: HTMLElement, direction: Direction): boolean {
+  return groupsOf(current).some(
+    (group) =>
+      !group.contains(next) &&
+      (group.getAttribute('data-focus-trap') ?? '').split(' ').includes(direction),
+  );
+}
+
 function findNext(current: HTMLElement, direction: Direction): HTMLElement | null {
   const from = current.getBoundingClientRect();
   let best: HTMLElement | null = null;
   let bestScore = Infinity;
   for (const candidate of focusables()) {
     if (candidate === current) continue;
-    const s = score(from, candidate.getBoundingClientRect(), direction);
+    const rect = candidate.getBoundingClientRect();
+    if (!isReachable(candidate, rect, current)) continue;
+    const s = score(from, rect, direction);
     if (s !== null && s < bestScore) {
       best = candidate;
       bestScore = s;
@@ -114,7 +149,7 @@ function onKeyDown(event: KeyboardEvent): void {
     return;
   }
   const next = findNext(current, direction);
-  if (next) redirect(current, next).focus();
+  if (next && !isTrapped(current, next, direction)) redirect(current, next).focus();
 }
 
 /** Installs the key and focus listeners; returns an uninstaller. */

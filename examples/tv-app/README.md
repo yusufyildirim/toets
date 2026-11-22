@@ -33,8 +33,16 @@ With a `mockUrl`, API requests go to the mock server instead, keeping the path, 
 
 Native platforms read the payload through a tiny local Expo module, [`modules/dpad-launch`](./modules/dpad-launch). Everything dpad-specific lives in [`src/dpad`](./src/dpad), the seam where the dpad SDK plugs in later.
 
+## Media keys
+
+The player handles play/pause, play, pause, fast forward, rewind and stop in JS ([`useMediaKeys`](./src/remote/useMediaKeys.ts)). On Android, React Native does not consume keys, so the system would also hand them to expo-video's media session (play/pause toggling twice, stop resetting the player). [`modules/media-keys`](./modules/media-keys) consumes them after JS has seen them.
+
 ## Focus
 
 The native focus engines (tvOS, Android TV) move focus; `TVFocusGuideView autoFocus` gives rails and the menu their focus memory. On web, [`spatialNavigation.web.ts`](./src/focus/spatialNavigation.web.ts) implements the same arrow-key navigation and group memory. Screens own initial focus and restore the focused element on back ([`FocusScope`](./src/focus/FocusScope.tsx)).
 
-TV trap: hidden screens use `display: 'none'`, which unmounts their native views. Focus memory that must survive navigation therefore lives in JS (`FocusScope`), not only in native focus guides.
+Traps worth knowing:
+
+- Rails and the menu trap up/down (`FocusGroup trap`), so the menu is only reached with left.
+- Android TV: a horizontal `FlatList` clips offscreen cards out of the view tree and its arrow-key scrolling can scroll without moving focus. Rails set `removeClippedSubviews={false}` and `snapToAlignment="item"` (react-native-tvos), so every press moves focus.
+- Screens owning their focus restore it in JS (`FocusScope`) instead of relying on native focus guides alone, so it also works when the element that had focus re-mounts (e.g. after a retry).

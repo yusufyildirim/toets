@@ -22,7 +22,7 @@ export function SideMenu({ visible }: { visible: boolean }) {
           <Text style={styles.logo}>dpad</Text>
           <Text style={styles.tagline}>TV example</Text>
         </View>
-        <FocusGroup style={styles.items}>
+        <FocusGroup style={styles.items} trap={['up', 'down']}>
           {ITEMS.map(({ tab, label }) => {
             const selected = state.tab === tab;
             return (

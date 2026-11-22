@@ -1,9 +1,11 @@
 import type { Catalog, ItemDetails } from '../src/api/types.ts';
 
-/** Public, CORS-friendly test streams (W3C media test files). */
+/**
+ * Public, CORS-friendly test streams (W3C media test files). Not the W3C bunny trailer: its
+ * 853px width breaks the Android emulator's H.264 decoder.
+ */
 const STREAMS = [
   'https://media.w3.org/2010/05/sintel/trailer.mp4',
-  'https://media.w3.org/2010/05/bunny/trailer.mp4',
   'https://media.w3.org/2010/05/video/movie_300.mp4',
 ] as const;
 

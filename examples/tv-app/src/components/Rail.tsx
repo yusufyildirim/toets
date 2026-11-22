@@ -28,6 +28,12 @@ export const Rail = memo(function Rail({ rail, onFocusItem, onSelectItem }: Rail
             <Card item={item} onFocusItem={onFocusItem} onSelectItem={onSelectItem} />
           )}
           showsHorizontalScrollIndicator={false}
+          // Android TV: every D-pad press must move focus to the next card. FlatList clips
+          // offscreen cards out of the view tree by default, so the focus engine cannot find
+          // them, and the default arrow scrolling scrolls without moving focus when the next
+          // card is far offscreen. 'item' (react-native-tvos) always moves focus.
+          removeClippedSubviews={false}
+          snapToAlignment="item"
           style={styles.list}
           contentContainerStyle={styles.content}
         />

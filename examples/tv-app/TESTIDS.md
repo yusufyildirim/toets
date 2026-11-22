@@ -64,5 +64,6 @@ Stable `testID`s of the example app. They map to `data-testid` on web, the resou
 
 - **Initial focus:** first card of the first rail on Home; Play on Details; play/pause on the Player.
 - **Rail memory:** entering a rail focuses its last focused card (first visit: its first card). Entering the rails from the menu restores the last focused card; entering the menu restores its last focused item.
+- **Edges:** up from the first rail, down from the last rail and right from a rail's last card keep focus; left from a rail's first card goes to the menu; up/down never leave the menu.
 - **Back:** Player to Details, Details to Home, each restoring the element that opened the next screen (Play, the card). From Settings, back goes to Home and focuses `menu_home`. On Home, back is left to the platform (exits on Android TV and tvOS).
 - **Keys:** D-pad moves focus, select presses. Player: play/pause, play, pause, fast forward / rewind (±10s) and stop media keys where the remote has them (tvOS: play/pause only). Web back keys: `Escape`, `Backspace`, `GoBack`, `BrowserBack`, `XF86Back`.

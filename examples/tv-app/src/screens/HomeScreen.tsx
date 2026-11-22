@@ -48,8 +48,14 @@ export function HomeScreen({ visible }: { visible: boolean }) {
               {hero ? `${hero.year} · ${hero.genre}` : ''}
             </Text>
           </View>
-          <FocusGroup style={styles.rails}>
-            <ScrollView testID="home_rails" showsVerticalScrollIndicator={false}>
+          {/* Up and down stay in the rails; the menu is reached with left. */}
+          <FocusGroup style={styles.rails} trap={['up', 'down']}>
+            <ScrollView
+              testID="home_rails"
+              showsVerticalScrollIndicator={false}
+              // Every D-pad press moves focus, see Rail.
+              snapToAlignment="item"
+            >
               {catalog.data.rails.map((rail) => (
                 <Rail
                   key={rail.id}
