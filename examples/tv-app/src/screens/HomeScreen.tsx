@@ -39,7 +39,10 @@ export function HomeScreen({ visible }: { visible: boolean }) {
           onRetry={catalog.retry}
         />
       ) : (
-        <View style={styles.container}>
+        // The group spans the hero too, so right from any menu item enters it on tvOS: the
+        // focus engine only enters a focus guide that overlaps the focused item vertically.
+        // Up and down stay in the rails; the menu is reached with left.
+        <FocusGroup style={styles.container} trap={['up', 'down']}>
           <View testID="home_hero" style={styles.hero}>
             <Text testID="home_hero_title" style={styles.heroTitle} numberOfLines={1}>
               {hero?.title}
@@ -48,25 +51,23 @@ export function HomeScreen({ visible }: { visible: boolean }) {
               {hero ? `${hero.year} · ${hero.genre}` : ''}
             </Text>
           </View>
-          {/* Up and down stay in the rails; the menu is reached with left. */}
-          <FocusGroup style={styles.rails} trap={['up', 'down']}>
-            <ScrollView
-              testID="home_rails"
-              showsVerticalScrollIndicator={false}
-              // Every D-pad press moves focus, see Rail.
-              snapToAlignment="item"
-            >
-              {catalog.data.rails.map((rail) => (
-                <Rail
-                  key={rail.id}
-                  rail={rail}
-                  onFocusItem={setFocused}
-                  onSelectItem={onSelectItem}
-                />
-              ))}
-            </ScrollView>
-          </FocusGroup>
-        </View>
+          <ScrollView
+            testID="home_rails"
+            style={styles.rails}
+            showsVerticalScrollIndicator={false}
+            // Every D-pad press moves focus, see Rail.
+            snapToAlignment="item"
+          >
+            {catalog.data.rails.map((rail) => (
+              <Rail
+                key={rail.id}
+                rail={rail}
+                onFocusItem={setFocused}
+                onSelectItem={onSelectItem}
+              />
+            ))}
+          </ScrollView>
+        </FocusGroup>
       )}
     </Screen>
   );

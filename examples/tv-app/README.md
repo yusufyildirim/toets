@@ -56,4 +56,6 @@ Traps worth knowing:
 
 - Rails and the menu trap up/down (`FocusGroup trap`), so the menu is only reached with left.
 - Android TV: a horizontal `FlatList` clips offscreen cards out of the view tree and its arrow-key scrolling can scroll without moving focus. Rails set `removeClippedSubviews={false}` and `snapToAlignment="item"` (react-native-tvos), so every press moves focus.
+- tvOS: the focus engine only enters a focus guide that overlaps the focused item on the other axis. The menu's item group fills the menu's height and the home group spans hero and rails, so left from any rail reaches the menu and right from any menu item restores the last card.
+- tvOS: React Native joins an accessible view's child texts into its label (`Northern Lights, 2025 · Drama`), and XCUITest flattens plain views with a `testID` (`rail_trending`, `screen_home`) into childless elements. Black-box tests on tvOS match card text with `toContainText`, and scope into rails or assert focus within them only with the dpad SDK connected.
 - Screens owning their focus restore it in JS (`FocusScope`) instead of relying on native focus guides alone, so it also works when the element that had focus re-mounts (e.g. after a retry).

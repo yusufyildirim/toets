@@ -55,6 +55,9 @@ const DEFAULT_DEPS: TvosDriverDeps = {
   freePort,
 };
 
+const DEFAULT_FOCUS_WAIT_MS = 1500;
+const FOCUS_POLL_MS = 50;
+
 interface Started {
   readonly session: TvosSession;
   readonly simulator: TvosSimulator;
@@ -193,6 +196,8 @@ export class TvosDriver implements Driver {
         docs: DOCS.remote,
       });
     }
+    // Home is handled by the system, every other button by the focused element's responders.
+    if (name !== 'home') await this.waitForFocus();
     const holdMs = opts?.holdMs ?? 0;
     await this.mobile(
       'pressButton',
@@ -260,6 +265,25 @@ export class TvosDriver implements Driver {
     started.logs?.stop();
     await started.session.deleteSession().catch(() => {});
     await started.appium?.stop().catch(() => {});
+  }
+
+  /**
+   * Waits until some element has focus, or `focusWaitMs` passed. During screen transitions
+   * nothing is focused and the focus engine drops presses, even though the next screen's
+   * elements are already in the tree; a press then would be lost silently. Screens that never
+   * focus anything only cost the wait.
+   */
+  private async waitForFocus(): Promise<void> {
+    const waitMs = this.options.focusWaitMs ?? DEFAULT_FOCUS_WAIT_MS;
+    if (waitMs <= 0) return;
+    const { session } = this.require();
+    const deadline = Date.now() + waitMs;
+    // WebDriver's active element is the focused one; it costs a fraction of a page source.
+    // Errors count as "not focused": a broken session fails on the press itself.
+    const hasFocus = () => session.getActiveElement().then(isElementReference, () => false);
+    while (!(await hasFocus()) && Date.now() < deadline) {
+      await new Promise((r) => setTimeout(r, FOCUS_POLL_MS));
+    }
   }
 
   private require(): Started {
@@ -414,6 +438,14 @@ export function buildCapabilities(input: {
     'appium:newCommandTimeout': input.externalServer ? 600 : 0,
     ...input.extra,
   };
+}
+
+/** A W3C (or legacy JSONWP) element reference with an id. */
+function isElementReference(value: unknown): boolean {
+  if (!value || typeof value !== 'object') return false;
+  const ref = value as Record<string, unknown>;
+  const id = ref['element-6066-11e4-a52e-4f735466cecf'] ?? ref.ELEMENT;
+  return typeof id === 'string' && id !== '';
 }
 
 function decodeBase64(data: string): Uint8Array {

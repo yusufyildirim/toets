@@ -33,7 +33,11 @@ export interface TvosManagedDeviceOptions {
   readonly keepBooted?: boolean;
   /** Maximum time to boot one simulator. Default 300000 (cold boots on CI are slow). */
   readonly bootTimeoutMs?: number;
-  /** Prefix of the simulator names dpad creates and reuses. Default `dpad`. */
+  /**
+   * Prefix of the simulator names dpad creates and reuses, e.g. `dpad-ci` to keep a second
+   * checkout's simulators apart. Must start with `dpad`: the provider only ever touches
+   * simulators named so. Default `dpad`.
+   */
   readonly namePrefix?: string;
 }
 
@@ -60,6 +64,16 @@ export function createManagedDeviceProvider(
   const simctl = new Simctl(options.deviceSet, deps.runner ?? defaultRunner);
   const bootTimeoutMs = options.bootTimeoutMs ?? DEFAULT_BOOT_TIMEOUT_MS;
   const prefix = options.namePrefix ?? 'dpad';
+  if (!/^dpad(-|$)/.test(prefix)) {
+    throw tvosError(
+      TvosErrorCode.CONFIG,
+      `managed.namePrefix "${prefix}" does not start with "dpad".`,
+      {
+        hint: `Use e.g. "dpad-${slug(prefix) || 'ci'}": dpad only creates and reuses simulators named dpad-*.`,
+        docs: DOCS.simulators,
+      },
+    );
+  }
   const bootedByUs = new Set<string>();
 
   return {

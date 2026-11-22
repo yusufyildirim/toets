@@ -93,7 +93,7 @@ describe('managed device provider', () => {
   it('honors model, osVersion and a custom device set', async () => {
     const runner = managedRunner();
     const provider = createManagedDeviceProvider(
-      { deviceSet: '/sets/dpad', namePrefix: 'ci' },
+      { deviceSet: '/sets/dpad', namePrefix: 'dpad-ci' },
       { runner },
     );
     const lease = await provider.acquire(
@@ -101,9 +101,17 @@ describe('managed device provider', () => {
       { workerIndex: 1, parallelIndex: 1 },
     );
     expect(runner.lines()).toContain(
-      `xcrun simctl --set /sets/dpad create ci-apple-tv-4k-3rd-generation-18.4-w1 ${ATV_4K} com.apple.CoreSimulator.SimRuntime.tvOS-18-4`,
+      `xcrun simctl --set /sets/dpad create dpad-ci-apple-tv-4k-3rd-generation-18.4-w1 ${ATV_4K} com.apple.CoreSimulator.SimRuntime.tvOS-18-4`,
     );
     expect(lease.meta.deviceSet).toBe('/sets/dpad');
+  });
+
+  it('only names simulators dpad-*', () => {
+    expect(() => createManagedDeviceProvider({ namePrefix: 'ci' })).toThrow(
+      expect.objectContaining({ code: 'TVOS_CONFIG', hint: expect.stringContaining('dpad-ci') }),
+    );
+    expect(() => createManagedDeviceProvider({ namePrefix: 'dpadx' })).toThrow();
+    expect(() => createManagedDeviceProvider({ namePrefix: 'dpad' })).not.toThrow();
   });
 
   it('explains a missing runtime or model', async () => {

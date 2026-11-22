@@ -69,7 +69,9 @@ const styles = StyleSheet.create({
   brand: { paddingHorizontal: px(20), marginBottom: px(64) },
   logo: { color: colors.text, fontSize: px(52), fontWeight: '800', letterSpacing: px(1) },
   tagline: { color: colors.textMuted, fontSize: px(22), marginTop: px(4) },
-  items: { gap: px(12) },
+  // Fills the menu's height: the tvOS focus engine only enters a focus guide that overlaps the
+  // focused card vertically, so a short group is unreachable with left from the lower rails.
+  items: { flex: 1, gap: px(12) },
   item: {
     paddingVertical: px(18),
     paddingHorizontal: px(20),
