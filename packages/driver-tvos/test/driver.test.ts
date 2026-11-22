@@ -45,6 +45,8 @@ class FakeSession implements TvosSession {
   deleted = 0;
   screenshotPng = solidPng(3840, 2160);
   failNext: Error | undefined;
+  /** `getActiveElement` answers before the focused element, one per call. */
+  active: unknown[] = [];
 
   async execute(script: string, ...args: unknown[]): Promise<unknown> {
     this.executed.push({ script, args: args[0] });
@@ -54,6 +56,12 @@ class FakeSession implements TvosSession {
       throw err;
     }
     return script === 'mobile: source' ? structuredClone(SCREEN) : null;
+  }
+  async getActiveElement(): Promise<unknown> {
+    this.executed.push({ script: 'getActiveElement', args: undefined });
+    const next = this.active.length ? this.active.shift() : { ELEMENT: 'focused-1' };
+    if (next instanceof Error) throw next;
+    return next;
   }
   async takeScreenshot(): Promise<string> {
     return Buffer.from(this.screenshotPng).toString('base64');
@@ -253,12 +261,49 @@ describe('TvosDriver', () => {
     await driver.press(Key.BACK);
     await driver.press(Key.SELECT, { holdMs: 1500 });
     await driver.press(Key.PLAY_PAUSE);
-    expect(session.executed.map((e) => e.args)).toEqual([
+    await driver.press(Key.HOME);
+    expect(
+      session.executed.filter((e) => e.script === 'mobile: pressButton').map((e) => e.args),
+    ).toEqual([
       { name: 'menu' },
       { name: 'select', durationSeconds: 1.5 },
       { name: 'playpause' },
+      { name: 'home' },
     ]);
     await expect(driver.press(Key.RED)).rejects.toMatchObject({ code: 'TVOS_KEY_UNSUPPORTED' });
+  });
+
+  it('waits for focus before a press: tvOS drops presses during screen transitions', async () => {
+    const driver = await started();
+    session.active = [
+      {},
+      new Error('no such element'),
+      { 'element-6066-11e4-a52e-4f735466cecf': 'el-1' },
+    ];
+    await driver.press(Key.PLAY_PAUSE);
+    expect(session.scripts()).toEqual([
+      'getActiveElement',
+      'getActiveElement',
+      'getActiveElement',
+      'mobile: pressButton',
+    ]);
+  });
+
+  it('presses anyway when nothing gets focus within focusWaitMs, and never waits for HOME', async () => {
+    const driver = await started({ focusWaitMs: 120 });
+    session.active = Array.from({ length: 100 }, () => ({}));
+    const t0 = Date.now();
+    await driver.press(Key.SELECT);
+    expect(Date.now() - t0).toBeGreaterThanOrEqual(100);
+    expect(session.scripts().at(-1)).toBe('mobile: pressButton');
+    session.executed.length = 0;
+    await driver.press(Key.HOME);
+    expect(session.scripts()).toEqual(['mobile: pressButton']);
+
+    const immediate = await started({ focusWaitMs: 0 });
+    session.executed.length = 0;
+    await immediate.press(Key.SELECT);
+    expect(session.scripts()).toEqual(['mobile: pressButton']);
   });
 
   it('crops element screenshots from the viewport screenshot at the pixel scale', async () => {

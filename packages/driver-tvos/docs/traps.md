@@ -10,6 +10,8 @@ Where web or mobile intuition is wrong on tvOS.
 - **`BACK` at the root leaves the app.** The Menu button on a root screen sends the app to the background, like a user would.
 - **`focusable` is inferred.** XCUITest has no focusable flag; custom `.focusable()` views count once they hold focus or carry the Button trait.
 - **Refs follow the screen structure.** Element refs are tree paths; after the screen changes, re-resolve the locator (the core does this for you).
+- **Presses during a screen transition are dropped.** For about 350ms after a push or pop nothing has focus and the focus engine ignores the remote, although the new screen is already in the tree. The driver waits for focus before each press (`focusWaitMs`), so a test can press right after asserting on the new screen. A screen that never focuses anything costs that wait per press.
+- **Down only reaches what is below.** The focus engine moves to elements that overlap the focused one along the movement axis. A button at the far left is unreachable with `DOWN` from a card on the right; on web and Android TV spatial navigation often reaches it.
 - **Reads never wait.** The driver disables XCUITest's wait-for-idle, so reads return the current state immediately and the core's retries do the waiting. Animations are in flight while you assert; assert on end states.
 - **The first run builds WebDriverAgent.** Expect about a minute once per Xcode version; cache it on CI (see [setup](./setup.md)).
 - **One simulator per worker.** Focus is global to the device.

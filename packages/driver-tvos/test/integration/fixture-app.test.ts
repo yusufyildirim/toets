@@ -40,7 +40,7 @@ async function timed<T>(label: string, fn: () => Promise<T>): Promise<T> {
   }
 }
 
-describe.skipIf(!udid)('tvOS driver on the fixture app', () => {
+describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, () => {
   let driver: TvosDriver;
   let artifactsDir: string;
 
@@ -98,8 +98,9 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', () => {
     await driver?.stop();
     const rows = [...latencies].map(([label, ms]) => {
       const sorted = [...ms].sort((a, b) => a - b);
-      const p50 = sorted[Math.floor(sorted.length / 2)]!;
-      return `${label.padEnd(14)} n=${String(ms.length).padStart(3)}  p50=${p50.toFixed(0)}ms  max=${sorted.at(-1)!.toFixed(0)}ms`;
+      const pct = (p: number) =>
+        sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * p))]!;
+      return `${label.padEnd(16)} n=${String(ms.length).padStart(3)}  p50=${pct(0.5).toFixed(0)}ms  p90=${pct(0.9).toFixed(0)}ms  max=${sorted.at(-1)!.toFixed(0)}ms`;
     });
     console.log(`tvOS driver latencies:\n${rows.join('\n')}\nArtifacts: ${artifactsDir}`);
     if (artifactsDir && !process.env.DPAD_KEEP_ARTIFACTS) {
@@ -116,14 +117,13 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', () => {
   it('moves focus with real remote presses', async () => {
     await press(Key.RIGHT);
     await waitFocus('rail_item_2');
+    await press(Key.LEFT);
+    await waitFocus('rail_item_1');
+    // The focus engine moves down only to elements overlapping the focused one horizontally.
     await press(Key.DOWN);
-    await waitFor('focus below the rail', focusedId, (id) => id === 'settings_button');
+    await waitFocus('settings_button');
     await press(Key.UP);
-    await waitFor(
-      'focus back on the rail',
-      focusedId,
-      (id) => id?.startsWith('rail_item_') ?? false,
-    );
+    await waitFocus('rail_item_1');
   });
 
   it('maps tree state: text, enabled, focusWithin, viewport', async () => {

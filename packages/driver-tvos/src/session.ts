@@ -1,6 +1,8 @@
 /** The part of a WebdriverIO `Browser` the driver uses. Kept small so tests can fake it. */
 export interface TvosSession {
   execute(script: string, ...args: unknown[]): Promise<unknown>;
+  /** WebDriver "Get Active Element": on tvOS the focused element, without an id when none is. */
+  getActiveElement(): Promise<unknown>;
   takeScreenshot(): Promise<string>;
   deleteSession(): Promise<unknown>;
 }
