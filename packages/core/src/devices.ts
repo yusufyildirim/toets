@@ -20,14 +20,24 @@ export interface DeviceLease {
   release(): Promise<void>;
 }
 
+export interface DeviceAcquireOptions {
+  /** Unique per worker process; grows when Playwright restarts a worker after a failure. */
+  readonly workerIndex: number;
+  /**
+   * Stable slot `0..workers-1`, reused by the replacement of a restarted worker. Use it to pick
+   * an exclusive device (e.g. the n-th address or AVD) without cross-process coordination.
+   */
+  readonly parallelIndex: number;
+}
+
 /**
- * Supplies devices to workers. Built-in kinds:
+ * Supplies devices to workers. One provider instance lives in each worker process. Built-in kinds:
  * - `managed`: dpad creates, boots, snapshots and resets emulators/simulators itself.
  * - `external`: the user supplies addresses (e.g. `DPAD_DEVICES=emulator-5554,emulator-5556`).
  * - `command`: shell commands lease and release devices and print JSON (integrates device farms
  *   and lease brokers).
  */
 export interface DeviceProvider {
-  acquire(spec: DeviceSpec, opts: { readonly workerIndex: number }): Promise<DeviceLease>;
+  acquire(spec: DeviceSpec, opts: DeviceAcquireOptions): Promise<DeviceLease>;
   dispose(): Promise<void>;
 }

@@ -1,4 +1,5 @@
 import type { LaunchPayload } from '@dpad-tv/protocol';
+import type { PlatformEvent } from './api.js';
 import type { Capability } from './capabilities.js';
 import type { DeviceLease, DeviceProvider } from './devices.js';
 import type { Key, PressOptions } from './keys.js';
@@ -20,6 +21,9 @@ export interface DriverLaunchOptions {
  *
  * Rules for implementers:
  * - Never wait or retry inside `query`/`focused`/`tree`: return the current state immediately.
+ * - `ElementSnapshot.ref` must identify the same element across `query`, `focused` and `tree`
+ *   and stay stable while the element is attached: the core compares refs to detect focus
+ *   movement and to find a located element in the tree.
  * - `press` sends real platform input (no synthetic in-app events).
  * - Throw `DpadError` with a precise `hint` for anything the user can fix.
  */
@@ -53,6 +57,9 @@ export interface Driver {
 
   /** Returns and clears logs collected since the last call. */
   drainLogs(): Promise<readonly LogEntry[]>;
+
+  /** Emits an OS-level lifecycle or environment event (`platform.events`). */
+  emit?(event: PlatformEvent): Promise<void>;
 
   /** Starts screen recording (`video`). */
   startRecording?(): Promise<void>;

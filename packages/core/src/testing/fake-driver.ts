@@ -3,9 +3,13 @@
  * nodes with real focus movement (explicit neighbors, otherwise nearest node in the pressed
  * direction), key handlers and a press log. Not a platform: never ship it to users.
  */
+import type { FocusGraphNode, ProtocolNode } from '@dpad-tv/protocol';
+import { PNG } from 'pngjs';
+import type { PlatformEvent } from '../api.js';
 import type { Capability } from '../capabilities.js';
 import type { Driver, DriverLaunchOptions } from '../driver.js';
 import { DIRECTION_KEY, type Direction, type Key, type PressOptions } from '../keys.js';
+import type { Platform } from '../platform.js';
 import type { SelectorChain } from '../selectors.js';
 import type { ElementRef, ElementSnapshot, LogEntry, Rect, UINode, UITree } from '../snapshot.js';
 
@@ -31,6 +35,11 @@ export interface FakeScreen {
   readonly viewport?: { width: number; height: number };
 }
 
+export interface FakeDriverOptions {
+  /** Platform reported by the driver. Default `web`. */
+  readonly platform?: Platform;
+}
+
 interface FakeNode {
   id: string;
   spec: FakeNodeSpec;
@@ -43,10 +52,16 @@ const DIRECTION_OF: Partial<Record<Key, Direction>> = Object.fromEntries(
 );
 
 export class FakeDriver implements Driver {
-  readonly platform = 'web' as const;
+  readonly platform: Platform;
   readonly capabilities: ReadonlySet<Capability>;
   /** Every key press, in order. */
   readonly presses: { key: Key; opts: PressOptions | undefined }[] = [];
+  /** Every launch, in order. */
+  readonly launches: DriverLaunchOptions[] = [];
+  /** Every emitted platform event, in order. */
+  readonly events: PlatformEvent[] = [];
+  started = false;
+  stopped = false;
   /** Handlers for non-directional keys; receive the focused node id. */
   readonly keyHandlers = new Map<Key, (focusedId: string | null, driver: FakeDriver) => void>();
   launched = false;
@@ -58,7 +73,12 @@ export class FakeDriver implements Driver {
   private viewport = { width: 1920, height: 1080 };
   private counter = 0;
 
-  constructor(screen: FakeScreen, capabilities: Iterable<Capability> = []) {
+  constructor(
+    screen: FakeScreen,
+    capabilities: Iterable<Capability> = [],
+    opts: FakeDriverOptions = {},
+  ) {
+    this.platform = opts.platform ?? 'web';
     this.capabilities = new Set(capabilities);
     this.setScreen(screen);
   }
@@ -79,9 +99,14 @@ export class FakeDriver implements Driver {
     this.logs.push({ level, message, timestamp: Date.now(), source: 'app' });
   }
 
-  async start(): Promise<void> {}
-  async stop(): Promise<void> {}
-  async launch(_opts: DriverLaunchOptions): Promise<void> {
+  async start(): Promise<void> {
+    this.started = true;
+  }
+  async stop(): Promise<void> {
+    this.stopped = true;
+  }
+  async launch(opts: DriverLaunchOptions): Promise<void> {
+    this.launches.push(opts);
     this.launched = true;
   }
   async terminate(): Promise<void> {
@@ -130,8 +155,86 @@ export class FakeDriver implements Driver {
     this.keyHandlers.get(key)?.(this.focusedId, this);
   }
 
+  /**
+   * A deterministic PNG of the viewport: black background, each visible node with bounds as a
+   * gray box (lighter when deeper), the focused node white.
+   */
   async screenshot(): Promise<Uint8Array> {
-    return new Uint8Array();
+    const { width, height } = this.viewport;
+    const png = new PNG({ width, height });
+    png.data.fill(0);
+    for (let i = 3; i < png.data.length; i += 4) png.data[i] = 0xff;
+    const paint = (n: FakeNode, depth: number) => {
+      if (!this.isVisible(n)) return;
+      if (n.spec.bounds) {
+        const shade = n.id === this.focusedId ? 0xff : Math.min(0x30 + depth * 0x20, 0xe0);
+        const b = n.spec.bounds;
+        for (let y = Math.max(0, b.y); y < Math.min(height, b.y + b.height); y++) {
+          for (let x = Math.max(0, b.x); x < Math.min(width, b.x + b.width); x++) {
+            const i = (y * width + x) * 4;
+            png.data[i] = png.data[i + 1] = png.data[i + 2] = shade;
+          }
+        }
+      }
+      for (const c of n.children) paint(c, depth + 1);
+    };
+    paint(this.rootNode, 0);
+    return new Uint8Array(PNG.sync.write(png));
+  }
+
+  async emit(event: PlatformEvent): Promise<void> {
+    this.events.push(event);
+  }
+
+  /** The screen as an SDK would report it (`tree.get`): own text, no concatenation. */
+  protocolTree(): ProtocolNode {
+    const convert = (n: FakeNode): ProtocolNode => ({
+      id: n.id,
+      ...(n.spec.testId === undefined ? {} : { testId: n.spec.testId }),
+      ...(n.spec.text === undefined ? {} : { text: n.spec.text }),
+      bounds: this.protocolBounds(n),
+      visible: n.spec.visible !== false,
+      focusable: !!n.spec.focusable,
+      focused: n.id === this.focusedId,
+      enabled: n.spec.enabled !== false,
+      selected: !!n.spec.selected,
+      busy: !!n.spec.busy,
+      children: n.children.map(convert),
+    });
+    return convert(this.rootNode);
+  }
+
+  /** Real SDKs always report bounds: use the union of the children's, else the viewport. */
+  private protocolBounds(n: FakeNode): Rect {
+    if (n.spec.bounds) return n.spec.bounds;
+    if (n === this.rootNode) return { x: 0, y: 0, ...this.viewport };
+    const rects = n.children.map((c) => this.protocolBounds(c));
+    if (!rects.length) return { x: 0, y: 0, ...this.viewport };
+    const x = Math.min(...rects.map((r) => r.x));
+    const y = Math.min(...rects.map((r) => r.y));
+    const right = Math.max(...rects.map((r) => r.x + r.width));
+    const bottom = Math.max(...rects.map((r) => r.y + r.height));
+    return { x, y, width: right - x, height: bottom - y };
+  }
+
+  /** The focus graph an SDK would report (`focus.graph`): the neighbor of every focusable node. */
+  focusGraph(): FocusGraphNode[] {
+    const saved = this.focusedId;
+    try {
+      return [...this.nodes.values()]
+        .filter((n) => n.spec.focusable && this.isVisible(n) && n.spec.enabled !== false)
+        .map((n) => {
+          this.focusedId = n.id;
+          const node: { -readonly [K in keyof FocusGraphNode]: FocusGraphNode[K] } = { id: n.id };
+          for (const d of ['up', 'down', 'left', 'right'] as const) {
+            const next = this.neighbor(d);
+            if (next) node[d] = next;
+          }
+          return node;
+        });
+    } finally {
+      this.focusedId = saved;
+    }
   }
 
   async drainLogs(): Promise<readonly LogEntry[]> {

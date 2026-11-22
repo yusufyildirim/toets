@@ -27,5 +27,8 @@
   "dependencies": {
     "@dpad-tv/core": "workspace:^",
     "@dpad-tv/protocol": "workspace:^"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.65.1"
   }
 }
