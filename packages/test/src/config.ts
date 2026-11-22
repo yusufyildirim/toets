@@ -105,7 +105,7 @@ const _allProjectKeysListed: [UnlistedProjectKey] extends [never] ? true : Unlis
 void _allProjectKeysListed;
 
 /** dpad's own keys of a platform project; everything else that is not Playwright's is the driver's. */
-interface DpadProjectKeys<App> {
+export interface DpadProjectKeys<App> {
   /** Driver module override (package name or path relative to the config). */
   readonly driver?: string;
   /** Merged over the top-level `app` entry for this platform. */
