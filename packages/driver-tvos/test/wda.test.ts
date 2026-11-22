@@ -64,12 +64,10 @@ describe('ensurePrebuiltWda', () => {
   });
 
   it('fails with the build log location and releases the lock', async () => {
-    const runner = new FakeRunner()
-      .on('xcodebuild -version', XCODE)
-      .on('build-for-testing', {
-        exitCode: 65,
-        stderr: 'error: SDK "appletvsimulator" cannot be located',
-      });
+    const runner = new FakeRunner().on('xcodebuild -version', XCODE).on('build-for-testing', {
+      exitCode: 65,
+      stderr: 'error: SDK "appletvsimulator" cannot be located',
+    });
     await expect(ensurePrebuiltWda({ cacheDir, runner, projectDir: '/wda' })).rejects.toMatchObject(
       {
         code: 'TVOS_WDA_BUILD_FAILED',
