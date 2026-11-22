@@ -9,3 +9,9 @@
 *.tsbuildinfo
 /modules/*/android/build
 /modules/*/android/.cxx
+
+# E2E output
+/test-results
+/playwright-report
+/dpad-report
+/e2e/.out

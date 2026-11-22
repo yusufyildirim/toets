@@ -35,7 +35,28 @@ describe('parsePageSource', () => {
       inViewport: true,
     });
     expect(card?.bounds).toEqual({ x: 424, y: 172, width: 400, height: 224 });
-    expect(byTestId(tree.root, 'content')?.testId).toBe('content'); // android:id/content
+    expect(byTestId(tree.root, 'root')?.testId).toBe('root'); // tv.dpad.fixture:id/root
+  });
+
+  it('gives window decor no test ID', () => {
+    // android:id/content and the frames above it belong to the platform, not the app.
+    expect(byTestId(tree.root, 'content')).toBeUndefined();
+    const content = tree.root.children[0]?.children[0]?.children[0];
+    expect(content?.ref).toContain('|android:id/content');
+    expect(content?.testId).toBeNull();
+    expect(content?.children[0]?.testId).toBe('root');
+  });
+
+  it('reports scroll containers with focusable children as not focusable', () => {
+    // Android focuses a HorizontalScrollView only when nothing inside it can take focus.
+    expect(byTestId(tree.root, 'rail')?.focusable).toBe(false);
+    expect(byTestId(tree.root, 'card_1')?.focusable).toBe(true);
+    const empty = parsePageSource(`<hierarchy width="100" height="100">
+  <android.widget.ScrollView resource-id="list" focusable="true" bounds="[0,0][100,100]">
+    <android.widget.TextView text="Nothing yet" focusable="false" bounds="[0,0][100,20]" />
+  </android.widget.ScrollView>
+</hierarchy>`);
+    expect(byTestId(empty.root, 'list')?.focusable).toBe(true);
   });
 
   it('maps content-desc to label, enabled and selected', () => {

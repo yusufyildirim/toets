@@ -21,19 +21,28 @@ Native builds embed the JS bundle, so they run without Metro: the APK is a debug
 
 The app calls the API at `http://localhost:8091` (`EXPO_PUBLIC_API_URL` at build time overrides it). Native apps need it on the device's `localhost`: the tvOS simulator shares the host network; on an Android emulator run `adb reverse tcp:8091 tcp:8091`.
 
-## Launch payload and mocking
+## dpad SDK
 
-The app reads the dpad [launch payload](../../packages/protocol/src/launch.ts) without the dpad SDK:
+The app embeds [`@dpad-tv/sdk-react-native`](../../packages/sdk-react-native/docs/react-native.md). Everything dpad-specific lives in [`src/dpad`](./src/dpad); the rest of the app imports from there, never from dpad packages.
 
-- web: `?__dpad=<value>` or `window.__DPAD__`
-- Android: intent string extra `__dpad` (`adb shell am start -n dev.dpad.example/.MainActivity --es __dpad <value>`)
-- tvOS: launch arguments `-__dpad <value>`
+- **Start:** [`src/dpad/start.ts`](./src/dpad/start.ts) is the entry file's first import, so the SDK is in place before any app module runs. It is inert unless dpad launched the app.
+- **Payload:** web reads `?__dpad=`, tvOS the `-__dpad` launch argument, Android the `__dpad` intent extra, handed to JS by a `getLaunchOptions()` override that [`app.config.ts`](./app.config.ts) adds to `MainActivity`.
+- **Mocking:** the API client routes to `getLaunchPayload()?.mockUrl`, keeping the path, with the real origin in the `x-dpad-original-origin` header. It works with and without the SDK session (black-box runs). Settings shows the API in use.
+- **Launch states:** `details:<id>` and `player:<id>`; flag `autoplay` (boolean). See [`launchStateActions`](./src/navigation/navigation.ts).
+- **Media:** the player reports to the `media` domain as `main` through `useDpadMedia` ([`src/dpad/media.ts`](./src/dpad/media.ts) bridges expo-video's events).
+- **Idle:** a pending focus request (a screen taking or restoring focus) counts as a navigation transition.
+- **Production builds:** only e2e builds (`DPAD_E2E=1`, the build scripts' default) bundle the SDK and the Android glue; any other bundle gets the no-op module ([`metro.config.ts`](./metro.config.ts)). `DPAD_E2E=0 pnpm build:android` builds without it.
 
-dpad drivers send the value as unpadded base64url of the JSON; plain JSON (`'{"v":1,...}'`) works too, which is handy by hand.
+## E2E tests
 
-With a `mockUrl`, API requests go to the mock server instead, keeping the path, with the real origin in the `x-dpad-original-origin` header so unmatched requests can be proxied. Settings shows the API in use.
+The cross-platform suite lives in [`e2e`](./e2e) ([`playwright.config.ts`](./e2e/playwright.config.ts), page objects in `e2e/pages`). Build the target first, then:
 
-Native platforms read the payload through a tiny local Expo module, [`modules/dpad-launch`](./modules/dpad-launch). Everything dpad-specific lives in [`src/dpad`](./src/dpad), the seam where the dpad SDK plugs in later.
+```sh
+pnpm e2e --project=web                     # also: web-blackbox
+DPAD_DEVICES=emulator-5554 pnpm e2e --project=android-tv   # running emulator; without it dpad manages one
+```
+
+`*-blackbox` projects run the same tests without the SDK session; tests needing an SDK capability are skipped with the reason, everything else must pass unchanged. The parity matrix lands in `dpad-report/parity.md`.
 
 ## Media keys
 

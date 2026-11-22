@@ -25,7 +25,7 @@ test('tagged', { ...requires('key.numeric'), tag: '@smoke' }, async ({ app }) =>
 ## Principles
 
 - **It is a Playwright annotation** (`{ type: 'requires' }`), so it works on tests and `describe` blocks and keeps test locations, UI mode and reporters intact.
-- **Skip reason format:** `requires key.color: not available on tvos`.
+- **Skip reason format:** `requires key.color: not available on tvos`; when only a dpad option is missing: `requires media.state: not available on web (dpad.sdk off)`.
 - **The check is against declared capabilities:** the driver's, plus SDK capabilities when `sdk` is on (the app connects only at launch), plus `network.mock` when `mock` is on.
 - **Declare what the test uses, not the platform it targets.** `requires('key.color')` stays correct when a new platform gains color keys; skipping on `tvos` does not.
 

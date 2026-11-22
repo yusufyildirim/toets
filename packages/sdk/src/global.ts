@@ -1,3 +1,4 @@
+import { decodeLaunchPayload, type LaunchPayload } from '@dpad-tv/protocol';
 import type { MediaReporter, MediaSnapshot, MediaSource } from './media.js';
 import { Dpad, type DpadOptions } from './runtime.js';
 import type { StateHandler } from './state.js';
@@ -9,6 +10,7 @@ import type { StateHandler } from './state.js';
  */
 
 let current: Dpad | null = null;
+let launchPayload: LaunchPayload | null = null;
 
 interface Binding<T> {
   readonly value: T;
@@ -27,6 +29,7 @@ const mediaSources: Array<
  */
 export function createDpad(options: DpadOptions): Dpad {
   const dpad = new Dpad(options);
+  launchPayload = decodeLaunchPayload(options.payload) ?? launchPayload;
   if (!dpad.active) return dpad;
   if (current && current !== dpad) current.stop();
   current = dpad;
@@ -45,6 +48,20 @@ export function createDpad(options: DpadOptions): Dpad {
 /** The active runtime, or `null` when the SDK is not running (no payload, production). */
 export function getDpad(): Dpad | null {
   return current;
+}
+
+/**
+ * The launch payload the app was started with (`mockUrl`, `state`, `flags`), or `null` for a
+ * normal launch. Unlike {@link getDpad} it is also set when dpad runs without the SDK session
+ * (black-box runs with network mocking: the payload has a `mockUrl` but no `sdkUrl`), so read
+ * the mock server URL here. Available once an adapter looked for the payload (`startDpad()`;
+ * on React Native Android when the root first renders).
+ *
+ * @example
+ * const apiBase = getLaunchPayload()?.mockUrl ?? 'https://api.example.com';
+ */
+export function getLaunchPayload(): LaunchPayload | null {
+  return launchPayload;
 }
 
 /**

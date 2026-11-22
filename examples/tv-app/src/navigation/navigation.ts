@@ -71,3 +71,23 @@ export function navigationReducer(
     }
   }
 }
+
+/**
+ * Navigation actions that open a dpad launch state (`app.launch({ state })`): `details:<id>` or
+ * `player:<id>` (on top of its details screen, so back behaves as if the user got there).
+ */
+export function launchStateActions(state: string): NavigationAction[] {
+  const [name, itemId] = splitOnce(state, ':');
+  const home: NavigationAction = { type: 'selectTab', tab: 'home' };
+  const details: NavigationAction = { type: 'push', route: { name: 'details', itemId } };
+  if (itemId && name === 'details') return [home, details];
+  if (itemId && name === 'player') {
+    return [home, details, { type: 'push', route: { name: 'player', itemId } }];
+  }
+  throw new Error(`Unknown launch state "${state}": expected details:<id> or player:<id>`);
+}
+
+function splitOnce(value: string, separator: string): [string, string] {
+  const i = value.indexOf(separator);
+  return i < 0 ? [value, ''] : [value.slice(0, i), value.slice(i + 1)];
+}

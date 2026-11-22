@@ -5,3 +5,6 @@ examples/**/android
 examples/**/ios
 .expo
 examples/**/build
+packages/driver-android-tv/fixtures/android-tv-app/**/build
+packages/driver-android-tv/fixtures/android-tv-app/.gradle
+packages/driver-android-tv/fixtures/android-tv-app/.kotlin

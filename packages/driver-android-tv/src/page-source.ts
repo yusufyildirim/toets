@@ -20,6 +20,9 @@ interface OrderedXmlNode {
   readonly ':@'?: Attributes;
 }
 
+/** The frame the activity's content view is added to; everything above it is window decor. */
+const WINDOW_CONTENT_ID = 'android:id/content';
+
 const parser = new XMLParser({
   preserveOrder: true,
   ignoreAttributes: false,
@@ -33,11 +36,14 @@ const parser = new XMLParser({
 /**
  * Maps a UiAutomator2 page source (or a `uiautomator dump`) to a dpad {@link UITree}.
  *
- * - `testId`: `resource-id` without the package prefix (or `content-desc`, see options).
+ * - `testId`: `resource-id` without the package prefix (or `content-desc`, see options). Window
+ *   decor (`android:id/content` and the frames above it) has none: its IDs are the platform's.
  * - `text`: the element's own `text` plus that of its displayed descendants, normalized.
  * - `label`: `content-desc`.
  * - `visible`: `displayed` and a non-empty `bounds`. Android reports bounds clipped to what is
  *   on screen, so partially scrolled-out elements report their visible part only.
+ * - `focusable`: Android's flag, except on containers holding a focusable descendant (scroll
+ *   views, lists): Android focuses those only when no descendant can take focus.
  * - `busy`: always `false`; Android has no busy flag (the SDK `sync` domain provides it).
  */
 export function parsePageSource(xml: string, opts: PageSourceOptions = {}): UITree {
@@ -59,6 +65,19 @@ export function parsePageSource(xml: string, opts: PageSourceOptions = {}): UITr
           height: Math.max(0, ...childRects.map((r) => r.y + r.height)),
         };
 
+  // Nodes on the path from the root to `android:id/content`.
+  const decor = new Set<OrderedXmlNode>();
+  const markDecor = (node: OrderedXmlNode): boolean => {
+    const onPath =
+      node[':@']?.['resource-id'] === WINDOW_CONTENT_ID ||
+      childrenOf(node).some((c) => markDecor(c));
+    if (onPath) decor.add(node);
+    return onPath;
+  };
+  markDecor(hierarchy);
+  // Nodes that are, or contain, an element Android reports focusable.
+  const withFocusable = new Set<UINode>();
+
   const build = (node: OrderedXmlNode, path: string): UINode => {
     const attrs = node[':@'] ?? {};
     const isRoot = path === 'r';
@@ -74,15 +93,17 @@ export function parsePageSource(xml: string, opts: PageSourceOptions = {}): UITr
     );
     const focused = attrs.focused === 'true';
     const resourceId = attrs['resource-id'] ?? '';
-    return {
+    const rawFocusable = attrs.focusable === 'true';
+    const holdsFocusable = children.some((c) => withFocusable.has(c));
+    const result: UINode = {
       ref: `${path}|${attrs.class ?? tagOf(node) ?? ''}|${resourceId}` as ElementRef,
-      testId: isRoot ? null : testIdOf(attrs, testIdAttribute),
+      testId: isRoot || decor.has(node) ? null : testIdOf(attrs, testIdAttribute),
       text: text || null,
       label: nonEmpty(attrs['content-desc']),
       bounds,
       visible: isRoot || visible,
       inViewport: (isRoot || visible) && intersects(bounds, viewport),
-      focusable: attrs.focusable === 'true',
+      focusable: rawFocusable && (focused || !holdsFocusable),
       focused,
       focusWithin: focused || children.some((c) => c.focusWithin),
       enabled: isRoot || attrs.enabled !== 'false',
@@ -90,6 +111,8 @@ export function parsePageSource(xml: string, opts: PageSourceOptions = {}): UITr
       busy: false,
       children,
     };
+    if (rawFocusable || holdsFocusable) withFocusable.add(result);
+    return result;
   };
 
   return { root: build(hierarchy, 'r'), viewport };

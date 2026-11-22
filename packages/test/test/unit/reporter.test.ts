@@ -1,6 +1,9 @@
-import type { Suite, TestCase } from '@playwright/test/reporter';
+import { existsSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import type { FullConfig, Suite, TestCase } from '@playwright/test/reporter';
 import { describe, expect, it } from 'vitest';
-import {
+import ParityReporter, {
   buildParityMatrix,
   formatParityMatrix,
   summarizeParity,
@@ -139,5 +142,21 @@ describe('summarizeParity', () => {
         '  differs: a.spec.ts > a | b: web passed, tvos skipped (requires key.color: not available on tvos)',
       ].join('\n'),
     );
+  });
+});
+
+describe('ParityReporter', () => {
+  it('resolves a relative outputFile against the config directory, like Playwright', () => {
+    const dir = mkdtempSync(join(tmpdir(), 'dpad-parity-'));
+    try {
+      const reporter = new ParityReporter({ outputFile: '../report/parity.md', summary: false });
+      const config = { configFile: join(dir, 'e2e', 'playwright.config.ts') } as FullConfig;
+      reporter.onBegin(config, root(projectSuite('web', [{ title: 't', outcome: 'expected' }])));
+      reporter.onEnd();
+      expect(existsSync(join(dir, 'report', 'parity.md'))).toBe(true);
+      expect(existsSync(join(dir, 'report', 'parity.json'))).toBe(true);
+    } finally {
+      rmSync(dir, { recursive: true, force: true });
+    }
   });
 });

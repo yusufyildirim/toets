@@ -16,15 +16,16 @@ What the driver declares black-box (without the in-app SDK). The SDK adds its do
 
 ## Snapshot fields
 
-| `ElementSnapshot`                    | From the UiAutomator2 page source                                                 |
-| ------------------------------------ | --------------------------------------------------------------------------------- |
-| `testId`                             | `resource-id` without `<package>:id/` (React Native `testID` lands here too)      |
-| `text`                               | own `text` + text of displayed descendants, whitespace-normalized; hints excluded |
-| `label`                              | `content-desc`                                                                    |
-| `focused`                            | `focused` (input focus, which is the D-pad focus on TV)                           |
-| `selected` / `enabled` / `focusable` | same-named attributes                                                             |
-| `visible`                            | `displayed` and non-empty bounds                                                  |
-| `inViewport`                         | visible and intersecting the screen                                               |
-| `busy`                               | always `false`: Android exposes no busy state; use the SDK `sync` domain          |
+| `ElementSnapshot`      | From the UiAutomator2 page source                                                                                                   |
+| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
+| `testId`               | `resource-id` without `<package>:id/` (React Native `testID` lands here too); none on window decor (`android:id/content` and above) |
+| `text`                 | own `text` + text of displayed descendants, whitespace-normalized; hints excluded                                                   |
+| `label`                | `content-desc`                                                                                                                      |
+| `focused`              | `focused` (input focus, which is the D-pad focus on TV)                                                                             |
+| `selected` / `enabled` | same-named attributes                                                                                                               |
+| `focusable`            | `focusable`, except containers holding a focusable descendant (scroll views, lists: Android never focuses them then)                |
+| `visible`              | `displayed` and non-empty bounds                                                                                                    |
+| `inViewport`           | visible and intersecting the screen                                                                                                 |
+| `busy`                 | always `false`: Android exposes no busy state; use the SDK `sync` domain                                                            |
 
 `checked` (switches, checkboxes) is not mapped to `selected`; they are different states.

@@ -38,7 +38,10 @@ export function videoMediaProps(
         duration: positive(e && e.duration),
         position: positive(e && e.currentTime) ?? 0,
       };
-      if (r.snapshot.state === 'loading' || r.snapshot.state === 'idle') patch.state = 'paused';
+      // Autoplaying players may report playback before the load completes.
+      if (r.snapshot.state === 'loading' || r.snapshot.state === 'idle') {
+        patch.state = playing ? 'playing' : 'paused';
+      }
       r.update(patch);
     },
     onProgress: (e) => update({ position: positive(e && e.currentTime) ?? 0 }),

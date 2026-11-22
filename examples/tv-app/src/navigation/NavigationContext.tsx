@@ -4,6 +4,7 @@ import {
   canGoBack,
   initialNavigationState,
   navigationReducer,
+  type NavigationAction,
   type NavigationState,
   type Route,
   type Tab,
@@ -15,6 +16,8 @@ interface Navigation {
   push(route: Route): void;
   /** Goes back one level; returns false when there is nothing to go back to. */
   back(): boolean;
+  /** Runs several actions at once (launch states). */
+  apply(actions: readonly NavigationAction[]): void;
 }
 
 const NavigationContext = createContext<Navigation | null>(null);
@@ -31,6 +34,7 @@ export function NavigationProvider({ children }: { children: ReactNode }) {
         dispatch({ type: 'back' });
         return true;
       },
+      apply: (actions) => actions.forEach((action) => dispatch(action)),
     }),
     [state],
   );

@@ -18,7 +18,7 @@ Parity matrix: dpad-report/parity.md
 
 ## Parity matrix
 
-Written to `dpad-report/parity.md` (and `parity.json`) after every run, one row per test and one column per dpad project:
+Written to `dpad-report/parity.md` and `parity.json` next to the config after every run, one row per test and one column per dpad project:
 
 ```md
 | Test                              | web    | tvos                                                |
@@ -27,7 +27,7 @@ Written to `dpad-report/parity.md` (and `parity.json`) after every run, one row 
 | navigation.spec.ts > fast forward | passed | passed [overrides: FAST_FORWARD = hold RIGHT 800ms] |
 ```
 
-Configure with `parityReport: { outputFile, summary }` or turn it off with `parityReport: false`.
+Configure with `parityReport: { outputFile, summary }` (`outputFile` is relative to the config file, like Playwright reporter paths) or turn it off with `parityReport: false`.
 
 ## Principles
 
