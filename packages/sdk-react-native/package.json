@@ -10,6 +10,11 @@
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
+    "./noop": {
+      "source": "./src/noop.ts",
+      "types": "./dist/noop.d.ts",
+      "default": "./dist/noop.js"
+    },
     "./package.json": "./package.json"
   },
   "files": [
@@ -25,7 +30,19 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/sdk": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^"
-  }
+    "@dpad-tv/protocol": "workspace:^",
+    "@dpad-tv/sdk": "workspace:^"
+  },
+  "peerDependencies": {
+    "react": ">=18",
+    "react-native": ">=0.76"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-reconciler": "^0.34.1",
+    "react": "~19.3.1",
+    "react-native": "npm:react-native-tvos@0.88.1-0",
+    "react-reconciler": "0.34.0"
+  },
+  "sideEffects": false
 }

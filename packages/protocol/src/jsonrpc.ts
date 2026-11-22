@@ -49,4 +49,24 @@ export const RpcErrorCode = {
   IncompatibleProtocol: -32002,
   /** Domain not implemented by this SDK. */
   DomainUnavailable: -32003,
+  /** An app-registered handler (e.g. an `onState` handler) failed or is missing. */
+  HandlerFailed: -32004,
+  /** A referenced node or player does not exist (anymore). */
+  NotFound: -32005,
 } as const;
+
+/**
+ * An error that maps to a JSON-RPC error object. Request handlers throw it to answer with a
+ * specific code; requesters receive it when the peer answers with an error.
+ */
+export class RpcError extends Error {
+  readonly code: number;
+  readonly data: unknown;
+
+  constructor(code: number, message: string, data?: unknown) {
+    super(message);
+    this.name = 'RpcError';
+    this.code = code;
+    this.data = data;
+  }
+}
