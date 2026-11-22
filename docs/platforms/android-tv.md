@@ -23,19 +23,21 @@ export default defineConfig({
 | Focus     | the focused view, or the SDK's focus when connected                                  |
 | Keys      | Android keycodes; all TV keys including color, numeric, channel and media            |
 | Launch    | launch payload as the `__dpad` intent extra; host ports forwarded with `adb reverse` |
-| Artifacts | logcat, screen recording, screenshots per step                                       |
+| Artifacts | logcat, screen recording (`dpad.video`)                                              |
+
+Options (SDK path, Appium, remote profile, logcat, managed emulators): [Android TV setup](../reference/driver-android-tv/docs/setup.md) and [devices](../reference/driver-android-tv/docs/devices.md).
 
 ## Devices
 
-| Mode       | Who owns the emulator                                                                |
-| ---------- | ------------------------------------------------------------------------------------ |
-| `managed`  | dpad: creates, boots, snapshots, resets and shuts down emulators (default)           |
-| `external` | you: list running devices, for example `DPAD_DEVICES=emulator-5554,emulator-5556`    |
-| `command`  | your scripts: shell commands lease and release devices (device farms, lease brokers) |
+| Mode       | Who owns the emulator                                                                                 |
+| ---------- | ----------------------------------------------------------------------------------------------------- |
+| `managed`  | dpad: creates, boots, snapshots, resets and shuts down emulators (default)                            |
+| `external` | you: running devices, `devices: { mode: 'external' }` with `DPAD_DEVICES=emulator-5554,emulator-5556` |
+| `command`  | your scripts: shell commands lease and release devices (device farms, lease brokers)                  |
 
 ## Fire TV
 
-Fire TV apps are Android apps; test them on Android TV emulators. Fire TV-only services (Amazon IAP, ADM) are covered by platform shims as they arrive; Vega OS is a later phase.
+Fire TV apps (Fire OS) are Android apps; test them on Android TV emulators with `platforms.androidTV({ remote: 'fire-tv' })`, which limits the keys to the Alexa Voice Remote's. Amazon services (IAP, ADM) are not on Android TV images; fake them in the app's test build. Vega OS is not supported. See [Fire TV](../reference/driver-android-tv/docs/fire-tv.md).
 
 ## Traps
 

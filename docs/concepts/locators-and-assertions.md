@@ -29,7 +29,7 @@ v1 has two selectors, chainable from `app` or from another locator (each step se
 - `getByTestId(id)`: preferred. Stable across layouts, languages and platforms.
 - `getByText(text, { exact })`: for user-visible copy. Substring and case-insensitive unless `exact: true`; a `RegExp` also works.
 
-Narrow multiple matches with `first()` and `nth(index)`, in tree order. Role and label selectors come later.
+Narrow multiple matches with `first()` and `nth(index)`, in tree order. Actions and single-element reads are strict: a locator that matches several elements fails instead of picking one. Role and label selectors come later.
 
 How a test ID maps to each platform:
 
@@ -42,20 +42,9 @@ How a test ID maps to each platform:
 
 ## Matchers
 
-Element matchers, implemented once in the core over the same element snapshot on every platform:
+Matchers are implemented once in the core, over the same element snapshot on every platform, so `toBeFocused()` means the same on web, Android TV and tvOS. Element matchers: `toBeVisible`, `toBeInViewport`, `toBeFocused`, `toHaveFocusWithin`, `toBeEnabled`, `toBeDisabled`, `toBeSelected`, `toBeBusy`, `toHaveText`, `toContainText`, `toHaveCount`. The app, `app.media` and `app.network` have their own (text snapshots, screenshots, playback, requests).
 
-| Matcher                                | Passes when                                 |
-| -------------------------------------- | ------------------------------------------- |
-| `toBeVisible()`                        | attached, non-zero size, not hidden         |
-| `toBeInViewport()`                     | intersects the screen                       |
-| `toBeFocused()`, `toHaveFocusWithin()` | it, or one of its descendants, holds focus  |
-| `toBeEnabled()`, `toBeDisabled()`      | the platform reports it enabled or disabled |
-| `toBeSelected()`                       | selected (tabs, toggles, chosen options)    |
-| `toBeBusy()`                           | it or a descendant reports loading          |
-| `toHaveText(t)`, `toContainText(t)`    | full text equals, or contains, `t`          |
-| `toHaveCount(n)`                       | the locator matches `n` elements            |
-
-Every matcher takes `{ timeout }` and supports `.not`. Media, network, screenshot and text snapshot matchers are covered on their own pages.
+Every matcher takes `{ timeout }` (default: Playwright's `expect.timeout`, 5 s); element matchers support `.not`. Semantics of each, including how missing elements count: [assertions reference](../reference/core/docs/assertions.md). Selector details: [locators reference](../reference/core/docs/locators.md).
 
 ## Traps
 

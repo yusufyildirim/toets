@@ -1,3 +1,7 @@
+---
+description: Screenshot assertions that settle animated TV screens - stable frames, masks, thresholds and per-platform baselines.
+---
+
 # Screenshots
 
 ```ts nocheck
@@ -9,7 +13,7 @@ const shot = await app.screenshot(); // opaque; screenshotPng(shot) gives the PN
 
 ## Principles
 
-- **Baselines are per platform.** Each project has its own baseline files; different platforms render differently and are never compared to each other. Baselines are written on the first run and updated with `--update-snapshots`.
+- **Baselines are per platform.** Each project has its own baseline files; different platforms render differently and are never compared to each other. A missing baseline is written and the test fails once (Playwright's `toMatchSnapshot`); update with `--update-snapshots`. File names carry the host OS (`-darwin`, `-linux`): record baselines where CI runs.
 - **Stable before compared.** `toMatchScreenshot` waits until two consecutive screenshots are identical, then compares with Playwright's image comparator (`threshold`, `maxDiffPixels`, `maxDiffPixelRatio`).
 - **Mask what moves.** `mask` paints the given elements a solid color before comparing.
 - **Element screenshots are crops** of the full screen on every platform, so they look the same everywhere. An element that is not on screen fails with `ELEMENT_OFFSCREEN`.

@@ -19,14 +19,27 @@ export class DpadError extends Error {
     this.code = code;
     this.hint = opts.hint;
     this.docs = opts.docs;
+    // Runners such as Playwright Test print `stack`, not `toString()`: lead it with the code,
+    // hint and docs so they reach the test output.
+    if (typeof this.stack === 'string') {
+      const frames = this.stack.indexOf('\n    at ');
+      this.stack = this.toString() + (frames === -1 ? '' : this.stack.slice(frames));
+    }
   }
 
+  /** `DpadError [CODE]: message`, then `Hint:` and `Docs:` lines when set. */
   override toString(): string {
     let out = `${this.name} [${this.code}]: ${this.message}`;
     if (this.hint) out += `\nHint: ${this.hint}`;
-    if (this.docs) out += `\nDocs: ${this.docs}`;
+    if (this.docs) out += `\nDocs: ${describeDocs(this.docs)}`;
     return out;
   }
+}
+
+/** A docs path plus, for package pages, where the installed package ships it. */
+function describeDocs(path: string): string {
+  const pkg = /^reference\/([^/]+)\/docs\/(.+)$/.exec(path);
+  return pkg ? `${path} (offline: node_modules/@dpad-tv/${pkg[1]}/docs/${pkg[2]}.md)` : path;
 }
 
 /**

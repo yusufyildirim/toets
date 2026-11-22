@@ -4,7 +4,7 @@ description: Assertions always retry with a timeout. With the SDK, dpad also kno
 
 # Idle and synchronization
 
-Every dpad assertion **retries until it passes or times out**. That alone makes tests correct without sleeps. When the [in-app SDK](./sdk.md) is connected (`sync.idle`), dpad additionally knows when the app is **idle**, and evaluates checks at moments where the screen is settled.
+Every dpad assertion **retries until it passes or times out**. That alone makes tests correct without sleeps. When the [in-app SDK](./sdk.md) is enabled (`dpad: { sdk: true }`) and connected (`sync.idle`), dpad additionally knows when the app is **idle**, and evaluates checks at moments where the screen is settled.
 
 The app is idle when it has had no tracked work for about 100 ms. Tracked work: network requests, animations, short timers (under about 1.5 s), focus and navigation transitions, and anything the app marks busy itself.
 
@@ -32,7 +32,7 @@ test('closing the menu leaves no overlay behind', async ({ app }) => {
 
 ## Never a gate
 
-Idle only speeds things up. A video player, a clock or a polling request can keep an app busy forever; dpad then falls back to polling and names the busy resource in the report. Exclude known noise in the SDK configuration, and mark custom work busy with the SDK's `markBusy()`.
+Idle only speeds things up. A video player, a clock or a polling request can keep an app busy forever; after `dpad.idle.budgetMs` (default 2000) dpad falls back to polling and names the busy resource in the failure message. Exclude known noise with the SDK's `idle.ignore`, and mark work the SDK cannot see with `markBusy()`: [idle tracking](../reference/sdk/docs/idle.md). Host-side options: [idle sync](../reference/core/docs/idle.md).
 
 ## Traps
 

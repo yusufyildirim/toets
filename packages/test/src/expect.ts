@@ -25,6 +25,7 @@ import {
   type Network,
   type RequestFilter,
 } from '@dpad-tv/core';
+import { withExplainedErrors } from './errors.js';
 
 /** Every dpad matcher accepts a per-call timeout (ms); the default is `expect.timeout`. */
 export interface TimeoutOption {
@@ -258,4 +259,17 @@ export const dpadMatchers = {
  * Playwright's `expect` with the dpad matchers. Every dpad matcher retries until it passes or
  * `expect.timeout` elapses, waiting for app idle first when the SDK provides it.
  */
-export const expect = baseExpect.extend(dpadMatchers);
+export const expect = baseExpect.extend(explainingErrors(dpadMatchers));
+
+/** The same matchers, with `DpadError`s they throw explained for Playwright's output. */
+function explainingErrors<T extends Record<string, (...args: never[]) => Promise<MatchResult>>>(
+  matchers: T,
+): T {
+  const out: Record<string, unknown> = {};
+  for (const [name, matcher] of Object.entries(matchers)) {
+    out[name] = function (this: ExpectMatcherState, ...args: never[]) {
+      return withExplainedErrors(() => matcher.apply(this, args));
+    };
+  }
+  return out as T;
+}

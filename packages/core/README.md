@@ -16,5 +16,6 @@ Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys,
 - [Network mocking](./docs/network.md)
 - [Failure dumps](./docs/failure-dumps.md)
 - [Writing a driver](./docs/drivers.md)
+- [Error codes](./docs/errors.md): every `DpadError` code, generated from the sources
 
 Project overview: [dpad](../../README.md).

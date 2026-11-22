@@ -40,11 +40,12 @@ jobs:
           path: |
             playwright-report
             test-results
+            dpad-report
 ```
 
 ## Adapting it
 
-- **Pin Xcode** and the tvOS runtime together; match `runtime` in your config. Runner images change their default Xcode over time.
+- **Pin Xcode** and the tvOS runtime together; match `osVersion` in your config. Runner images change their default Xcode over time.
 - **Managed mode** creates and boots Apple TV simulators and resets them between tests. Simulators are lighter than emulators; two workers fit on a standard macOS runner.
 - **Build once.** If several jobs need the `.app`, build it in one job and pass it as an artifact.
 - **Cache** WebDriverAgent and Appium drivers; see [Caching](./caching.md).

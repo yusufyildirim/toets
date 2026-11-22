@@ -46,14 +46,14 @@ test('home shows the featured rail first', async ({ home }) => {
 
 ## The fast loop
 
-Develop against web (`--project=web`): it starts in seconds and has full Playwright traces. Then run every project before you finish; a test is done when it passes, or is skipped with a reason, everywhere.
+Develop against web (`--project=web`): it starts in seconds and records Playwright traces. Then run every project before you finish; a test is done when it passes, or is skipped with a reason, everywhere (check `dpad-report/parity.md`).
 
 ```sh
 npx playwright test e2e/home.spec.ts --project=web
 npx playwright test e2e/home.spec.ts
 ```
 
-Enable the [ESLint plugin](../reference/eslint-plugin.md): it rejects sleeps, raw keycodes, assertions in page objects and unmarked escape hatches.
+Enable the [ESLint plugin](../reference/eslint-plugin/docs/setup.md): it rejects sleeps, raw keycodes and behavior assertions in page objects, and warns on `platformOnly`.
 
 ## Traps
 

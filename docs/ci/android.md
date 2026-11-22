@@ -48,11 +48,12 @@ jobs:
           path: |
             playwright-report
             test-results
+            dpad-report
 ```
 
 ## Adapting it
 
-- **Pick the image** with `sdkmanager --list | grep -E 'android-tv|google-tv'` and keep it in one variable. Match the `api` in your config.
+- **Pick the image** with `sdkmanager --list | grep -E 'android-tv|google-tv'` and keep it in one variable. Match `osVersion` (the API level) in your config.
 - **Managed mode does the rest.** dpad creates the AVD, boots it headless, snapshots it and resets it between tests. Use `external` mode only if your CI already provides running emulators.
 - **Workers:** a standard 4 vCPU runner hosts one or two emulators. For more parallelism, shard across jobs (`--shard=1/3`) rather than adding workers.
 - **Cache** the system image and the AVD with its snapshot; see [Caching](./caching.md).

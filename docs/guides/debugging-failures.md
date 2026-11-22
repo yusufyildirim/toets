@@ -8,9 +8,9 @@ dpad failures are meant to explain themselves. Read what they say before changin
 
 ## 1. Read the failure
 
-- **The error.** A `DpadError` has a code, a message, a `Hint:` with the likely cause and fix, and a `Docs:` page.
-- **The failure dump**, attached to the failed test: focused element, a [text snapshot](../concepts/text-snapshots.md) of the surrounding tree, the last keys pressed, a screenshot, recent logs and requests.
-- **The report.** `npx playwright show-report` lists every action as a step, with a screenshot and text snapshot per step. Per test: device logs, network log (HAR) and video. Web runs also have a full Playwright trace.
+- **The error.** A thrown error reads `DpadError: [CODE] what happened`, then `Hint:` (likely cause and fix) and `Docs:` (the page, with its offline path). Every code is listed in the [error code index](../reference/core/docs/errors.md). A failed assertion shows the locator, expected and received state, what was focused and whether the app was idle.
+- **The failure dump** (`dpad-failure`, with `dpad-screenshot`), attached to the failed test: platform and capabilities, the focused element, a [text snapshot](../concepts/text-snapshots.md) of the screen, the last keys pressed, what kept the app busy, recent logs and requests. See [failure dumps](../reference/core/docs/failure-dumps.md).
+- **The report.** `npx playwright show-report` lists every action as a step (`press RIGHT`, `navigateTo getByTestId('card')`). Per test: `dpad-logs` and, with mocking on, `dpad-network.har`. Per-step screenshots and snapshots (`dpad.steps`) and video (`dpad.video`) are off by default; turn them on while debugging. Web runs also record Playwright traces (`--trace on`).
 
 ## 2. Reproduce narrowly
 
@@ -28,9 +28,9 @@ To look at the live app with the same primitives, use the [MCP server](../refere
 | ----------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------- |
 | Element not found on one platform               | The text snapshot: is the test ID there? See the test ID mapping in [Locators](../concepts/locators-and-assertions.md).     |
 | Focus on the wrong element                      | The step screenshots and last keys. An overlay or a different focus engine rule on that platform.                           |
-| `navigateTo` says unreachable                   | The recorded path. The target may not be focusable, or is behind a focus trap.                                              |
+| `FOCUS_UNREACHABLE` from `navigateTo`           | The path tried, in the message. The target may not be focusable, or is behind a focus trap.                                 |
 | Timed out, busy resource named                  | The app never went idle: a poller, animation or player. Exclude the noise in the SDK.                                       |
-| Unsupported key                                 | The platform lacks it. Declare `requires`, or configure an override. See [Remote and keys](../concepts/remote-and-keys.md). |
+| `KEY_UNSUPPORTED`                               | The platform lacks it. Declare `requires`, or configure an override. See [Remote and keys](../concepts/remote-and-keys.md). |
 | Negative assertion passes, then the bug appears | It passed too early. Anchor it on a positive assertion. See [Idle](../concepts/idle.md).                                    |
 | Passes on web, fails on a device                | Compare text snapshots across platforms; check device logs for app errors.                                                  |
 | Launch fails                                    | Driver and device logs; the `app` config for that platform; see [Platforms](../platforms/web.md).                           |

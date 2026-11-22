@@ -21,7 +21,7 @@ await expect(app).toMatchTextSnapshot(); // per-platform baseline file
 
 ## Principles
 
-- **Inline for intent, files for coverage.** An inline snapshot documents what matters in the test. Without an argument the snapshot is compared to a baseline file per project (platform), written on the first run and updated with `--update-snapshots`.
+- **Inline for intent, files for coverage.** An inline snapshot documents what matters in the test. Without an argument the snapshot is compared to a baseline file per project (platform), updated with `--update-snapshots`. A missing baseline is written and the test fails once (Playwright's `toMatchSnapshot`); file names carry the host OS (`-darwin`, `-linux`) unless `snapshotPathTemplate` drops `{platform}`.
 - **Indentation is ignored** in inline snapshots, so they can follow the code's indentation.
 - **Retried like any assertion** until it matches or times out; the failure shows a line diff.
 - **`app.snapshot()`** returns the same text, handy for debugging and for agents.

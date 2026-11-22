@@ -7,7 +7,7 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, join, posix } from 'node:path';
 import matter from 'gray-matter';
 import type { SiteConfig } from 'vitepress';
-import { titleOf } from './packages.ts';
+import { listPackages, titleOf } from './packages.ts';
 import { sections } from './sidebar.ts';
 
 export interface LlmsPage {
@@ -18,6 +18,33 @@ export interface LlmsPage {
   /** Markdown ready for agents: no frontmatter, comments or VitePress-only syntax. */
   readonly markdown: string;
 }
+
+export interface LlmsGroup {
+  readonly text: string;
+  /** One line under the heading, e.g. a package description. */
+  readonly summary?: string;
+  readonly pages: readonly LlmsPage[];
+  /** Listed under `## Optional`, left out of llms-full.txt. */
+  readonly optional?: boolean;
+}
+
+/**
+ * Package order in llms.txt: what test authors need first, implementers' packages last.
+ * Packages not listed follow alphabetically.
+ */
+const PACKAGE_ORDER = [
+  'test',
+  'core',
+  'mock',
+  'driver-web',
+  'driver-android-tv',
+  'driver-tvos',
+  'sdk',
+  'sdk-react-native',
+  'eslint-plugin',
+  'mcp',
+  'protocol',
+];
 
 export interface LlmsOptions {
   readonly title: string;
@@ -58,20 +85,33 @@ export function cleanMarkdown(
     .trim();
   return {
     title: titleOf(data, content),
-    description: typeof data.description === 'string' ? data.description : undefined,
+    description: typeof data.description === 'string' ? data.description : firstParagraph(markdown),
     markdown,
   };
 }
 
-export function renderIndex(
-  groups: readonly { text: string; pages: readonly LlmsPage[]; optional?: boolean }[],
-  opts: LlmsOptions,
-): string {
-  const lines = [`# ${opts.title}`, '', `> ${opts.summary}`, '', opts.intro.trim(), ''];
+/**
+ * The page's lead sentence, as a fallback description: the first block after the headings, when
+ * it is prose. Pages that open with a list, table, fence or admonition get none.
+ */
+export function firstParagraph(markdown: string): string | undefined {
+  const lead = markdown
+    .split(/\n\s*\n/)
+    .map((block) => block.trim())
+    .find((block) => block && !block.startsWith('#'));
+  if (!lead || /^([-*+] |\d+\. |\||>|:::|<|!\[|`{3}|~{3})/.test(lead)) return undefined;
+  const line = lead.replace(/\s*\n\s*/g, ' ');
+  const sentence = /^.+?[.!?](?=\s|$)/.exec(line)?.[0] ?? line;
+  return sentence.length > 200 ? `${sentence.slice(0, 199).trimEnd()}…` : sentence;
+}
+
+export function renderIndex(groups: readonly LlmsGroup[], opts: LlmsOptions): string {
+  const intro = opts.intro.trim().replace(/\]\(\//g, `](${opts.origin}/`);
+  const lines = [`# ${opts.title}`, '', `> ${opts.summary}`, '', intro, ''];
   const link = (p: LlmsPage) =>
     `- [${p.title}](${opts.origin}${markdownPath(p.url)})${p.description ? `: ${p.description}` : ''}`;
   for (const g of groups.filter((g) => !g.optional && g.pages.length > 0)) {
-    lines.push(`## ${g.text}`, '', ...g.pages.map(link), '');
+    lines.push(`## ${g.text}`, '', ...(g.summary ? [g.summary, ''] : []), ...g.pages.map(link), '');
   }
   const optional = groups.filter((g) => g.optional).flatMap((g) => g.pages);
   lines.push(
@@ -130,7 +170,27 @@ export function generateLlms(config: SiteConfig, opts: Omit<LlmsOptions, 'origin
     };
   };
 
-  const groups = sections().map((s) => {
+  const pagesOf = (urls: readonly string[]) =>
+    urls.map(load).filter((p): p is LlmsPage => p !== undefined);
+  const rank = (dir: string) => {
+    const i = PACKAGE_ORDER.indexOf(dir);
+    return i === -1 ? PACKAGE_ORDER.length : i;
+  };
+  // Reference pages are grouped per package, so same-titled pages (`Setup`, `Capabilities`)
+  // stay apart, and each group says what the package is.
+  const packageGroups = (): LlmsGroup[] =>
+    listPackages()
+      .sort((a, b) => rank(a.dir) - rank(b.dir) || a.dir.localeCompare(b.dir))
+      .map((pkg) => ({
+        text: `Reference: ${pkg.name}`,
+        summary: pkg.description,
+        pages: pagesOf(pkg.pages.map((p) => p.link)),
+      }));
+
+  const groups = sections().flatMap((s): LlmsGroup[] => {
+    if (s.text === 'Reference') {
+      return [{ text: 'Reference', pages: pagesOf(['/reference/']) }, ...packageGroups()];
+    }
     const urls: string[] = [];
     const walk = (items: typeof s.items) => {
       for (const item of items) {
@@ -139,11 +199,7 @@ export function generateLlms(config: SiteConfig, opts: Omit<LlmsOptions, 'origin
       }
     };
     walk(s.items);
-    return {
-      text: s.text,
-      optional: s.text === 'Agent skills',
-      pages: urls.map(load).filter((p): p is LlmsPage => p !== undefined),
-    };
+    return [{ text: s.text, optional: s.text === 'Agent skills', pages: pagesOf(urls) }];
   });
 
   const full = { ...opts, origin };

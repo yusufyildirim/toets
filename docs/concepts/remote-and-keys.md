@@ -22,10 +22,12 @@ test('toggles playback from the remote', async ({ app }) => {
 
 ## API
 
-- `press(key)`: one press. `press(key, { holdMs })` holds it.
-- `longPress(key, holdMs?)`: a long press (`key.longpress`).
+- `press(key)`: one press. `press(key, { holdMs })` holds it (`key.longpress`).
+- `longPress(key, holdMs?)`: the same, default hold 1000 ms.
 - `repeat(key, times, { intervalMs })`: the same key several times.
 - `sequence(keys, { intervalMs })`: several keys in order.
+
+Each press is a step in the report and is listed under "last keys" in failure dumps.
 
 ## Keys and capabilities
 
@@ -42,11 +44,11 @@ D-pad (`UP`, `DOWN`, `LEFT`, `RIGHT`) and `SELECT` exist everywhere. Every other
 | `DIGIT_0` ... `DIGIT_9`          | `key.numeric`                                  |
 | `CHANNEL_UP`, `CHANNEL_DOWN`     | `key.channel`                                  |
 
-Pressing a key the platform lacks throws an error naming the capability. Tests that need such a key declare it with `requires` and are skipped, with a reason, where it is missing.
+Pressing a key the platform lacks throws `KEY_UNSUPPORTED`, naming the capability. Tests that need such a key declare it with `requires` and are skipped, with a reason, where it is missing. Which keys each platform has: [web](../reference/driver-web/docs/keys.md), [Android TV](../reference/driver-android-tv/docs/keys.md), [tvOS](../reference/driver-tvos/docs/remote.md).
 
 ## Overrides
 
-Some apps define their own gesture for a key the remote lacks, for example "hold right to fast-forward" on Apple TV. Declare it once in the config instead of branching in tests; overridden presses are flagged in the report.
+Some apps define their own gesture for a key the remote lacks, for example "hold right to fast-forward" on Apple TV. Declare it once in the project's `dpad.keyOverrides` instead of branching in tests; overridden presses are flagged in the step title and the parity matrix.
 
 ```ts
 import { defineConfig, platforms, Key } from '@dpad-tv/test';
@@ -66,4 +68,4 @@ export default defineConfig({
 - **`PLAY`, `PAUSE` and `PLAY_PAUSE` are different keys.** Most remotes only have the toggle. Use `PLAY_PAUSE` unless the test is about discrete play or pause.
 - **`BACK` is the Menu button on Apple TV.** The driver maps it; tests stay semantic.
 - **Fixed key sequences are brittle.** `repeat(Key.RIGHT, 7)` encodes today's layout. Use [`navigateTo`](./focus.md) unless the sequence itself is under test.
-- **Key timing is realistic.** Presses have human-like spacing so focus animations and debouncing behave as on a device. Do not add sleeps between presses.
+- **Do not add sleeps between presses.** `repeat` and `sequence` already space presses (`intervalMs`, default 100 ms, configurable as `dpad.remote.intervalMs`). Between separate presses, assert the state you expect instead of waiting.

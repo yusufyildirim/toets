@@ -5,7 +5,7 @@ The docs site, `llms.txt` generation, the agent skills checks and the code examp
 ```sh
 pnpm docs:dev     # local site with hot reload
 pnpm docs:build   # static site + llms.txt + llms-full.txt in docs/.vitepress/dist
-pnpm docs:check   # typecheck, unit tests, code examples, skills
+pnpm docs:check   # typecheck, unit tests, code examples, skills, error codes (part of `pnpm check`)
 ```
 
 ## What the site renders
@@ -65,3 +65,7 @@ Packages own `packages/<pkg>/docs/`. Those pages ship in the npm package, so:
 - frontmatter `name` (matches the folder) and `description` (says precisely when to trigger), no unknown keys;
 - a body of at most 150 lines: link to pages by slug (`` `concepts/focus` ``) instead of inlining them;
 - every slug mentioned in a skill or in `templates/AGENTS.md` resolves to a page.
+
+## Error codes
+
+`packages/core/docs/errors.md` is generated from the sources: every `DpadError` code thrown in `packages/*/src` (test doubles in `src/testing/` excluded) and every declared `*ErrorCode` type, with its message or doc comment and its `docs` page. `check:errors` fails when the page is stale, a code has no meaning or a docs path points at no page. Regenerate with `pnpm --filter @dpad-tv/docs errors`; never edit the page by hand. Generic codes whose messages vary get their meaning from `MEANINGS` in `scripts/error-codes.ts`.

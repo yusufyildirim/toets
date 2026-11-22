@@ -30,4 +30,4 @@ dpad runs on Playwright Test, so the runner, config, reporters, UI mode, `test.s
 ## Traps
 
 - **Keyboard key names are not remote keys.** `Enter` is not `SELECT` on every platform; `Escape` is not `BACK`. Use `Key` and let the driver map it.
-- **Network mocking needs the app's cooperation.** `page.route` intercepts in the browser; dpad's mock server works on every platform but the app must send traffic to it. See [Network mocking](../../concepts/network-mocking.md).
+- **Network mocking needs the app's cooperation.** `page.route` intercepts in the browser; dpad's mock server works on every platform but is off until `dpad: { mock: true }`, and the app must send traffic to it. See [Network mocking](../../concepts/network-mocking.md).

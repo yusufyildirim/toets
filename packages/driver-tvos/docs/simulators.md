@@ -1,6 +1,6 @@
 # Simulators
 
-Each worker drives one tvOS simulator, held exclusively for the run (VISION decision 7). Where it comes from is the project's device mode.
+Each worker drives one tvOS simulator, held exclusively for the run. Where it comes from is the project's device mode.
 
 ## `managed` (default)
 

@@ -10,7 +10,7 @@ import { isProtocolCompatible } from '../version.js';
 import { listenWebSocket, type WsListener } from './listen.js';
 import { Session } from './session.js';
 
-const DOCS = 'docs/protocol/host';
+const DOCS = 'reference/protocol/docs/host';
 const MAX_REMEMBERED_REJECTIONS = 10;
 
 interface Waiter {

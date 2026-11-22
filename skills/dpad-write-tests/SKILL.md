@@ -29,8 +29,7 @@ Docs are referenced by slug, for example `concepts/focus`: the docs site page `/
 ## Example
 
 ```ts
-import { test, expect, Key } from '@dpad-tv/test';
-import { http, HttpResponse } from '@dpad-tv/mock';
+import { test, expect, Key, http, HttpResponse } from '@dpad-tv/test';
 
 test('shows the empty state when the watchlist is empty', async ({ app }) => {
   app.network.use(http.get('*/api/watchlist', () => HttpResponse.json([])));
@@ -56,7 +55,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 | Check focus                | `expect(l).toBeFocused()`, `expect(container).toHaveFocusWithin()` |
 | Check content              | `toBeVisible`, `toHaveText`, `toContainText`, `toHaveCount`        |
 | Check playback             | `expect(app.media).toBePlaying()`, `toBePaused()`                  |
-| Mock data                  | `app.network.use(http.get(...))` before `launch()`                 |
+| Mock data (`dpad.mock` on) | `app.network.use(http.get(...))` before `launch()`                 |
 | Needs a capability         | `test(name, requires('key.color'), fn)`                            |
 | Run in order, shared `app` | `test.describe.serial(...)`                                        |
 
@@ -65,7 +64,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 - `await` every action and assertion.
 - `navigateTo` to get somewhere; explicit presses when navigation itself is under test.
 - Negative assertions (`.not`) only after a positive assertion proved the screen is in the intended state. (`concepts/idle`)
-- Mock data the test depends on, with paths like `*/api/x`. (`concepts/network-mocking`)
+- Mock data the test depends on (needs `dpad: { mock: true }` and app cooperation); a relative path like `/api/x` matches any origin. (`concepts/network-mocking`)
 - Page objects take `app`, expose locators and intent-level actions, and do not assert except to wait until loaded. (`concepts/page-objects`)
 - App-specific setup (splash, sign-in) lives in a fixture in the project. (`guides/writing-tests`)
 - Serial flows only for journeys that can not be set up directly; prefer named states. (`guides/serial-flows`)
@@ -76,6 +75,6 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 
 - tvOS has only D-pad, select, back, play/pause and home keys. (`platforms/tvos`)
 - Android TV has every TV key; emulators are slower than web. (`platforms/android-tv`)
-- Web focus is `document.activeElement` unless the SDK reports the app's own focus. (`platforms/web`)
+- Web focus is `document.activeElement`, unless the web driver's `focus` selectors or the SDK report the app's own focus. (`platforms/web`)
 
 If a test fails and the cause is not obvious, switch to the dpad-debug-failures skill.

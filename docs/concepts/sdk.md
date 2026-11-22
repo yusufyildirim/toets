@@ -17,7 +17,7 @@ dpad works **black-box**: the first test needs no app changes. The optional **SD
 
 ## How it connects
 
-The test host passes a launch payload to the app (SDK host URL, one-time token, mock server URL). The SDK reads it, connects to the host over WebSocket, and announces the domains it implements. Without a valid payload the SDK does nothing: it never opens a connection in normal use. Exclude it from production builds anyway.
+Turn it on with `dpad: { sdk: true }` in the config, and start the SDK in the app. On every launch the test host passes a launch payload to the app (SDK host URL, one-time token, mock server URL, state). The SDK reads it, connects to the host over WebSocket, and announces the domains it implements; `launch()` waits for that connection and fails with `SDK_NOT_CONNECTED` if it never comes. Without a valid payload the SDK does nothing: it never opens a connection in normal use. Exclude it from production builds anyway.
 
 Packages: [`@dpad-tv/sdk`](../reference/sdk.md) (framework-neutral core and web adapter) and [`@dpad-tv/sdk-react-native`](../reference/sdk-react-native.md). Any framework can implement the [protocol](../reference/protocol.md); a conformance suite verifies it.
 
@@ -34,7 +34,7 @@ test('resumes from the continue-watching rail', requires('app.state'), async ({ 
 });
 ```
 
-The app defines what each state name means; dpad only delivers the name.
+The app defines what each state name means (`onState` in the SDK, see [app state](../reference/sdk/docs/state.md)); dpad only delivers the name and any `flags`.
 
 ## Traps
 
