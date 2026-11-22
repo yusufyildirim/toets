@@ -44,9 +44,9 @@ export const SOURCE_EXCLUDED_ATTRIBUTES = [
 
 /**
  * Element types the tvOS focus engine can focus. XCUITest exposes no "focusable" flag, so
- * this list (plus "is focused now" and the Button/Link traits) approximates it. Custom
- * SwiftUI views made `.focusable()` usually surface as `Button` or `Other` with the Button
- * trait once focused; see the traps page.
+ * this list (plus "is focused now", the Button/Link traits and accessible `Other` elements)
+ * approximates it. Custom SwiftUI views made `.focusable()` usually surface as `Button` or
+ * `Other` with the Button trait once focused; see the traps page.
  */
 const FOCUSABLE_TYPES: ReadonlySet<string> = new Set([
   'Button',
@@ -80,8 +80,10 @@ const BUSY_TYPES: ReadonlySet<string> = new Set(['ActivityIndicator']);
  * Maps one page source fetch to a dpad {@link UITree}.
  *
  * - `testId` = `accessibilityIdentifier`; `label` = accessibility label.
- * - `text`: an accessible element with a label speaks for its subtree (its label); otherwise
- *   its own label/text value joined with its children's text.
+ * - `text`: an accessible or text element with a label speaks for its subtree (its label);
+ *   otherwise its own label/text value joined with its children's text.
+ * - `visible`: XCUITest's `isVisible` and a non-zero size; flattened containers (see below)
+ *   by their frame.
  * - `focused` marks only the deepest element reporting `hasFocus`; ancestors get `focusWithin`.
  * - `selected` comes from the `Selected` trait; `busy` from a visible activity indicator.
  * - Refs are tree paths plus type and identifier: stable while the screen structure is.
@@ -105,20 +107,33 @@ function toNode(
   );
   const bounds = rectOf(n);
   const hasSize = bounds.width > 0 && bounds.height > 0;
-  const visible = hasSize && (n.isVisible === undefined || bool(n.isVisible));
+  const testId = str(n.rawIdentifier);
+  const accessible = bool(n.isAccessible);
+  // A plain view with an identifier but no accessibility of its own (a React Native `View`)
+  // is not an accessibility container: XCUITest lists its descendants as its siblings and its
+  // `isVisible` is unreliable. Judge such a flattened container by its frame.
+  const flattened = n.type === 'Other' && testId !== null && !accessible && children.length === 0;
+  const visible =
+    hasSize &&
+    (flattened ? intersects(bounds, viewport) : n.isVisible === undefined || bool(n.isVisible));
   const focused = path === focusedPath;
   const traits = parseTraits(n.traits);
-  const testId = str(n.rawIdentifier);
   const label = str(n.label);
   // The application's label is its display name, not on-screen text.
   const ownText =
     n.type === 'Application'
       ? null
       : (label ?? (TEXT_VALUE_TYPES.has(n.type) ? str(n.value) : null));
+  // An accessible element speaks for its subtree, and so does a text element: tvOS nests an
+  // accessible copy of the same text inside it. Containers join their own and children's text.
   const text =
-    ownText !== null && bool(n.isAccessible)
+    ownText !== null && (accessible || n.type === 'StaticText')
       ? normalize(ownText)
-      : normalize([ownText, ...children.map((c) => c.text)].filter(Boolean).join(' '));
+      : normalize(
+          [ownText, ...children.map((c) => c.text).filter((t) => t !== normalize(ownText ?? ''))]
+            .filter(Boolean)
+            .join(' '),
+        );
   return {
     ref: refOf(path, n.type, testId),
     testId,
@@ -127,7 +142,13 @@ function toNode(
     bounds,
     visible,
     inViewport: visible && intersects(bounds, viewport),
-    focusable: focused || FOCUSABLE_TYPES.has(n.type) || traits.has('Button') || traits.has('Link'),
+    focusable:
+      focused ||
+      FOCUSABLE_TYPES.has(n.type) ||
+      traits.has('Button') ||
+      traits.has('Link') ||
+      // React Native touchables (cards, menu items) are accessible `Other` views without traits.
+      (n.type === 'Other' && accessible),
     focused,
     focusWithin: focused || children.some((c) => c.focusWithin),
     enabled: n.isEnabled === undefined || bool(n.isEnabled),

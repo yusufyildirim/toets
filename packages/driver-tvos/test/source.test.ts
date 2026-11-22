@@ -119,6 +119,64 @@ const HOME: WdaSourceNode = {
   ],
 };
 
+/**
+ * Shaped like WebDriverAgent's JSON source of a React Native tvOS screen: plain `View`s with a
+ * testID are childless `Other` elements (their descendants are listed as siblings), `Text` is
+ * a StaticText holding an accessible copy of itself, touchables are accessible `Other`s.
+ */
+const REACT_NATIVE: WdaSourceNode = {
+  type: 'Application',
+  label: 'dpad TV',
+  rect: rect(0, 0, 1920, 1080),
+  isVisible: '1',
+  children: [
+    {
+      type: 'Other',
+      rawIdentifier: 'screen_home',
+      rect: rect(300, 0, 1620, 1080),
+      isVisible: '0',
+      isAccessible: '0',
+    },
+    {
+      type: 'Other',
+      rawIdentifier: 'screen_details',
+      rect: rect(2000, 0, 1920, 1080),
+      isVisible: '0',
+      isAccessible: '0',
+    },
+    {
+      type: 'StaticText',
+      rawIdentifier: 'home_hero_title',
+      label: 'Northern Lights',
+      value: 'Northern Lights',
+      rect: rect(364, 120, 1492, 96),
+      isVisible: '1',
+      isAccessible: '0',
+      traits: 'StaticText',
+      children: [
+        {
+          type: 'StaticText',
+          label: 'Northern Lights',
+          rect: rect(364, 120, 1492, 96),
+          isVisible: '1',
+          isAccessible: '1',
+          traits: 'StaticText',
+        },
+      ],
+    },
+    {
+      type: 'Other',
+      rawIdentifier: 'card_1',
+      label: 'Northern Lights, 2025',
+      rect: rect(352, 366, 424, 239),
+      isVisible: '1',
+      isAccessible: '1',
+      isFocused: '0',
+      traits: '',
+    },
+  ],
+};
+
 describe('parseSource', () => {
   const tree = parseSource(HOME);
   const byId = (id: string) => evaluateChain(tree, [{ kind: 'testId', value: id }])[0]!;
@@ -166,6 +224,17 @@ describe('parseSource', () => {
     expect(byId('zero').visible).toBe(false);
     expect(byId('title')).toMatchObject({ visible: true, inViewport: true, focusable: false });
     expect(byId('rail_item_1').bounds).toEqual(rect(80, 320, 300, 200));
+  });
+
+  it('maps React Native screens: flattened containers, nested text copies, touchables', () => {
+    const rn = parseSource(REACT_NATIVE);
+    const id = (testId: string) => evaluateChain(rn, [{ kind: 'testId', value: testId }])[0]!;
+    // XCUITest calls the flattened container invisible; its frame says otherwise.
+    expect(id('screen_home')).toMatchObject({ visible: true, inViewport: true });
+    expect(id('screen_details')).toMatchObject({ visible: false, inViewport: false });
+    expect(id('home_hero_title').text).toBe('Northern Lights');
+    expect(id('card_1')).toMatchObject({ focusable: true, text: 'Northern Lights, 2025' });
+    expect(id('home_hero_title').focusable).toBe(false);
   });
 
   it('issues refs stable across fetches of the same screen', () => {
