@@ -3,8 +3,9 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { DpadError, type DriverModule } from '../src/index.js';
+import { DpadError, Key, type DriverModule } from '../src/index.js';
 import {
+  describeKeyOverride,
   importUserModule,
   loadDriverModule,
   mergeRuntimeConfig,
@@ -209,5 +210,12 @@ describe('RunningTarget', () => {
     ).rejects.toThrow('port in use');
     expect(created.driver?.stopped).toBe(true);
     expect(mock?.closed).toBe(true);
+  });
+});
+
+describe('formatting helpers', () => {
+  it('describes key overrides like the remote step titles', () => {
+    expect(describeKeyOverride({ as: Key.RIGHT, holdMs: 800 })).toBe('hold RIGHT 800ms');
+    expect(describeKeyOverride({ as: Key.SELECT })).toBe('press SELECT');
   });
 });

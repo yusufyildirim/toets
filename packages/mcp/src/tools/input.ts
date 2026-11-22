@@ -1,10 +1,9 @@
 import { DPAD_KEYS, type AppRuntime, type Key } from '@dpad-tv/core';
+import { settleFocus } from '@dpad-tv/core/runner';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { locate, locatorCode } from '../locate.js';
 import { focusLine, guarded, keySchema, targetSchema, text, type ToolContext } from './shared.js';
-
-const SETTLE_POLL_MS = 50;
 
 export function registerInputTools(server: McpServer, { session }: ToolContext): void {
   server.registerTool(
@@ -46,7 +45,8 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
           }
           const before = await runtime.target.focused();
           await press(runtime, keys, holdMs);
-          await settleFocus(runtime);
+          // Like navigateTo between presses: until idle, focus moved, or the settle time passed.
+          await settleFocus(runtime.target, before?.ref, runtime.timeouts.navigationSettleMs);
           const after = await runtime.target.focused();
           const onlyDpad = keys.every((k) => DPAD_KEYS.includes(k));
           const stuck = onlyDpad && before !== null && after?.ref === before.ref;
@@ -135,23 +135,4 @@ function pressCode(keys: readonly Key[], holdMs: number | undefined): string {
     return `await app.remote.repeat(${k(first)}, ${keys.length});`;
   }
   return `await app.remote.sequence([${keys.map(k).join(', ')}]);`;
-}
-
-/**
- * Waits before reporting where focus landed: for app idle when the SDK has `sync.idle`,
- * otherwise until two consecutive focus reads agree. Bounded by `navigationSettleMs`.
- * Reporting only: a test asserts the outcome with `expect` instead.
- */
-async function settleFocus(runtime: AppRuntime): Promise<void> {
-  const budget = runtime.timeouts.navigationSettleMs;
-  const idle = await runtime.target.waitForIdle(budget);
-  if (idle.supported) return;
-  const deadline = performance.now() + budget;
-  let last = (await runtime.target.focused())?.ref;
-  while (performance.now() < deadline) {
-    await new Promise((resolve) => setTimeout(resolve, SETTLE_POLL_MS));
-    const now = (await runtime.target.focused())?.ref;
-    if (now === last) return;
-    last = now;
-  }
 }

@@ -13,6 +13,7 @@ describe('locators', () => {
     expect(String(app.getByText('Home', { exact: true }).first())).toBe(
       "getByText('Home', { exact: true }).first()",
     );
+    expect(String(app.getByText("it's\nnew\\"))).toBe("getByText('it\\'s\\nnew\\\\')");
     expect(await loc.text()).toBe('New 2');
     driver.focus('new_2');
     expect(await loc.isFocused()).toBe(true);

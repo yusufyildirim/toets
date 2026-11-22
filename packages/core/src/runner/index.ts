@@ -14,3 +14,6 @@ export {
   type TargetConfig,
   type TargetContext,
 } from './target.js';
+export { settleFocus } from '../runtime/focus.js';
+export { jsString } from '../runtime/locator.js';
+export { describeKeyOverride } from '../runtime/remote.js';

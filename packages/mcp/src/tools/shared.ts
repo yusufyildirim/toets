@@ -61,13 +61,3 @@ export function focusLine(el: ElementSnapshot | null): string {
     ? `Focus: ${describeElement(el)}`
     : 'Focus: nothing is focused (some TV apps show focus only after the first key press).';
 }
-
-/** A JavaScript string literal, as a test would write it. */
-export function quote(value: string): string {
-  const escaped = value
-    .replace(/\\/g, '\\\\')
-    .replace(/'/g, "\\'")
-    .replace(/\n/g, '\\n')
-    .replace(/\r/g, '\\r');
-  return `'${escaped}'`;
-}

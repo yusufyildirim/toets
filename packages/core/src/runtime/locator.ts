@@ -10,9 +10,9 @@ import { findNode } from './tree.js';
 function describeSelector(step: Selector): string {
   switch (step.kind) {
     case 'testId':
-      return `getByTestId(${quote(step.value)})`;
+      return `getByTestId(${jsString(step.value)})`;
     case 'text': {
-      const value = step.value instanceof RegExp ? String(step.value) : quote(step.value);
+      const value = step.value instanceof RegExp ? String(step.value) : jsString(step.value);
       return `getByText(${value}${step.exact ? ', { exact: true }' : ''})`;
     }
     case 'focused':
@@ -22,7 +22,15 @@ function describeSelector(step: Selector): string {
   }
 }
 
-const quote = (s: string): string => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+/** A single-quoted JavaScript string literal, as a test would write it. */
+export function jsString(value: string): string {
+  const escaped = value
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+  return `'${escaped}'`;
+}
 
 /** Deterministic description of a chain, e.g. `getByTestId('rail').getByText('Alpha').first()`. */
 export function describeChain(chain: SelectorChain): string {

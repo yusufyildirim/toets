@@ -1,7 +1,8 @@
 import { Key, type AppRuntime, type LaunchOptions } from '@dpad-tv/core';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { focusLine, guarded, quote, text, type ToolContext } from './shared.js';
+import { describeKeyOverride, jsString } from '@dpad-tv/core/runner';
+import { focusLine, guarded, text, type ToolContext } from './shared.js';
 
 export function registerAppTools(server: McpServer, { session }: ToolContext): void {
   server.registerTool(
@@ -76,8 +77,7 @@ export function registerAppTools(server: McpServer, { session }: ToolContext): v
           const supported = keys.filter((k) => runtime.checkKey(k) === null);
           const missing = keys.filter((k) => !supported.includes(k));
           const overrides = Object.entries(runtime.keyOverrides).map(
-            ([key, o]) =>
-              `${key} = ${o.holdMs === undefined ? 'press' : 'hold'} ${o.as}${o.holdMs === undefined ? '' : ` ${o.holdMs}ms`}`,
+            ([key, o]) => `${key} = ${describeKeyOverride(o)}`,
           );
           const declared = [...runtime.declaredCapabilities].sort();
           const current = runtime.capabilities;
@@ -108,11 +108,11 @@ function sdkLine(runtime: AppRuntime): string {
 
 function launchCode(opts: LaunchOptions): string {
   const parts: string[] = [];
-  if (opts.state !== undefined) parts.push(`state: ${quote(opts.state)}`);
+  if (opts.state !== undefined) parts.push(`state: ${jsString(opts.state)}`);
   if (opts.flags !== undefined) {
     const flags = Object.entries(opts.flags).map(
       ([k, v]) =>
-        `${/^[A-Za-z_$][\w$]*$/.test(k) ? k : quote(k)}: ${typeof v === 'string' ? quote(v) : String(v)}`,
+        `${/^[A-Za-z_$][\w$]*$/.test(k) ? k : jsString(k)}: ${typeof v === 'string' ? jsString(v) : String(v)}`,
     );
     parts.push(flags.length ? `flags: { ${flags.join(', ')} }` : 'flags: {}');
   }

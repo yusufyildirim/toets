@@ -1,7 +1,7 @@
 import type { Remote } from '../api.js';
 import { KEY_CAPABILITY } from '../capabilities.js';
 import { DpadError, packageDocsLink } from '../errors.js';
-import { Key, type PressOptions } from '../keys.js';
+import { Key, type KeyOverride, type PressOptions } from '../keys.js';
 import type { RuntimeContext } from './context.js';
 import { sleep } from './retry.js';
 
@@ -31,6 +31,11 @@ function assertCount(name: string, value: number): void {
 const describeHold = (holdMs: number | undefined): string =>
   holdMs === undefined ? '' : ` ${holdMs}ms`;
 
+/** How an overridden key is performed, e.g. `hold RIGHT 800ms` or `press SELECT`. */
+export function describeKeyOverride(override: KeyOverride, holdMs = override.holdMs): string {
+  return holdMs === undefined ? `press ${override.as}` : `hold ${override.as} ${holdMs}ms`;
+}
+
 /** How a key press is performed after key overrides. */
 interface PressPlan {
   readonly performed: Key;
@@ -43,9 +48,7 @@ function planPress(ctx: RuntimeContext, key: Key, opts?: PressOptions): PressPla
   const override = ctx.keyOverrides[key];
   const performed = override?.as ?? key;
   const holdMs = override?.holdMs ?? opts?.holdMs;
-  const performedAs = override
-    ? `${holdMs === undefined ? 'press' : 'hold'} ${performed}${describeHold(holdMs)}`
-    : undefined;
+  const performedAs = override ? describeKeyOverride(override, holdMs) : undefined;
   return { performed, holdMs, performedAs };
 }
 

@@ -16,9 +16,9 @@ import {
   type MatchResult,
   type RequestFilter,
 } from '@dpad-tv/core';
+import { jsString } from '@dpad-tv/core/runner';
 import { MEDIA_STATES, type MediaState } from '@dpad-tv/protocol';
 import { locate, locatorCode, type Target } from './locate.js';
-import { quote } from './tools/shared.js';
 
 const STATE_MATCHERS = [
   'toBeVisible',
@@ -144,7 +144,7 @@ function snapshotLiteral(yaml: string): string {
 
 function objectLiteral(entries: readonly [string, string | number | undefined][]): string | null {
   const parts = entries.flatMap(([k, v]) =>
-    v === undefined ? [] : [`${k}: ${typeof v === 'string' ? quote(v) : v}`],
+    v === undefined ? [] : [`${k}: ${typeof v === 'string' ? jsString(v) : v}`],
   );
   return parts.length ? `{ ${parts.join(', ')} }` : null;
 }
@@ -162,7 +162,7 @@ function assertionCode(a: Assertion, subject: string): string {
   const args: string[] = [];
   const push = (arg: string | null) => arg !== null && args.push(arg);
   if (isIn(TEXT_MATCHERS, a.matcher) || a.matcher === 'toHaveMediaState') {
-    push(quote(a.expected ?? ''));
+    push(jsString(a.expected ?? ''));
     push(objectLiteral([timeout]));
   } else if (a.matcher === 'toHaveCount') {
     push(String(a.count));

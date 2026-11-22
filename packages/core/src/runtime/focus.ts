@@ -6,11 +6,32 @@ import type { ElementRef, ElementSnapshot, Rect } from '../snapshot.js';
 import type { RuntimeContext } from './context.js';
 import { createLocator, describeElement, locatorImpl, type LocatorImpl } from './locator.js';
 import type { RemoteImpl } from './remote.js';
+import type { Target } from './target.js';
 import { sleep } from './retry.js';
 import { findNode, walkTree } from './tree.js';
 
 const DIRECTIONS: readonly Direction[] = ['up', 'down', 'left', 'right'];
 const SETTLE_POLL_MS = 50;
+
+/**
+ * Waits after a key press until the app is idle (SDK `sync.idle`), focus left `from`, or
+ * `settleMs` passed. How `navigateTo` lets a press land before reading focus again; runners
+ * use it to report where focus landed.
+ */
+export async function settleFocus(
+  target: Target,
+  from: ElementRef | undefined,
+  settleMs: number,
+): Promise<void> {
+  const idle = await target.waitForIdle(settleMs);
+  if (idle.supported && idle.idle) return;
+  const deadline = performance.now() + settleMs;
+  while (performance.now() < deadline) {
+    const now = await target.focused();
+    if (now?.ref !== from) return;
+    await sleep(SETTLE_POLL_MS);
+  }
+}
 
 const center = (r: Rect) => ({ x: r.x + r.width / 2, y: r.y + r.height / 2 });
 
@@ -236,17 +257,8 @@ export class FocusImpl implements Focus {
     );
   }
 
-  /** Waits until focus leaves `from`, the app is idle, or the settle time passes. */
-  private async settle(from: ElementRef): Promise<void> {
-    const settleMs = this.ctx.timeouts.navigationSettleMs;
-    const idle = await this.ctx.target.waitForIdle(settleMs);
-    if (idle.supported && idle.idle) return;
-    const deadline = performance.now() + settleMs;
-    while (performance.now() < deadline) {
-      const now = await this.ctx.target.focused();
-      if (now?.ref !== from) return;
-      await sleep(SETTLE_POLL_MS);
-    }
+  private settle(from: ElementRef | undefined): Promise<void> {
+    return settleFocus(this.ctx.target, from, this.ctx.timeouts.navigationSettleMs);
   }
 
   private unreachable(
