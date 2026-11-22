@@ -1,6 +1,6 @@
 # React Native integration
 
-`@dpad-tv/sdk-react-native` targets react-native-tvos (Android TV, Fire TV, tvOS) on the new architecture, and react-native-web. It builds on `@dpad-tv/sdk`: the app-facing API (`onState`, `markBusy`, `getDpad`, ...) is re-exported, see that package's docs.
+`@dpad-tv/sdk-react-native` targets react-native-tvos (Android TV, Fire TV, tvOS) on the new architecture, and react-native-web. It builds on `@dpad-tv/sdk`: the app-facing API (`onState`, `markBusy`, `getLaunchPayload`, ...) is re-exported, see that package's docs.
 
 ## Setup
 
@@ -38,7 +38,7 @@ override fun createReactActivityDelegate(): ReactActivityDelegate =
   }
 ```
 
-Gate it the way your test builds are built (`BuildConfig.DEBUG`, a flavor or a `buildConfigField`). On Android the runtime starts when `DpadRoot` first renders, so read `getDpad()` inside components, not at module load.
+Gate it the way your test builds are built (`BuildConfig.DEBUG`, a flavor or a `buildConfigField`). On Android the payload arrives when `DpadRoot` first renders, so read `getDpad()` and `getLaunchPayload()` inside components or lazily (an API client resolving its base URL on first request), not at module load.
 
 ## What it maps
 

@@ -6,6 +6,7 @@
 export {
   createDpad,
   getDpad,
+  getLaunchPayload,
   markBusy,
   onState,
   registerMedia,

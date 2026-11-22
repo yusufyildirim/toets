@@ -15,7 +15,7 @@ The adapter's `startDpad()` looks for the launch payload. Without one (a normal 
 Safe to call unconditionally, before or without the SDK running:
 
 ```ts nocheck
-import { getDpad, markBusy, onState } from '@dpad-tv/sdk';
+import { getLaunchPayload, markBusy, onState } from '@dpad-tv/sdk';
 
 onState(async (state, flags) => {
   if (state === 'logged-in') await session.loginAsTestUser();
@@ -25,7 +25,7 @@ const done = markBusy('hero video decode');
 await player.ready();
 done();
 
-const api = getDpad()?.mockUrl ?? 'https://api.example.com';
+const api = getLaunchPayload()?.mockUrl ?? 'https://api.example.com';
 ```
 
 | Function                                | Purpose                                                          |
@@ -34,6 +34,9 @@ const api = getDpad()?.mockUrl ?? 'https://api.example.com';
 | `markBusy(description)`                 | Work the SDK cannot see ([idle.md](./idle.md)).                  |
 | `registerMedia` / `createMediaReporter` | Players ([media.md](./media.md)).                                |
 | `focusChanged()`                        | Custom focus engines: focus moved.                               |
-| `getDpad()`                             | The running runtime (`mockUrl`, `flags`, `status`) or `null`.    |
+| `getLaunchPayload()`                    | The launch payload (`mockUrl`, `state`, `flags`) or `null`.      |
+| `getDpad()`                             | The running runtime (`status`, `domains`) or `null`.             |
+
+`getDpad()` is `null` in black-box runs (dpad launched the app without the SDK session), while `getLaunchPayload()` still carries the `mockUrl`: route API traffic with it so mocking works with and without the SDK.
 
 Related: [production.md](./production.md) (excluding the SDK), [adapters.md](./adapters.md) (new frameworks), [traps.md](./traps.md).

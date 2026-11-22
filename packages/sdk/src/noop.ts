@@ -41,6 +41,9 @@ export function createDpad(_options?: unknown): Dpad {
 export function getDpad(): Dpad | null {
   return null;
 }
+export function getLaunchPayload(): null {
+  return null;
+}
 export function markBusy(_description: string, _kind?: string): () => void {
   return noop;
 }

@@ -104,6 +104,18 @@ describe('activation', () => {
     expect(rendered.container.children[0]!.props.onFocusCapture).toBeUndefined();
   });
 
+  it('exposes a black-box payload (mockUrl, no sdkUrl) from the root initial props', async () => {
+    const { sdk } = await load('android');
+    sdk.startDpad();
+    const payload = { v: 1 as const, mockUrl: 'http://localhost:9400' };
+    const rendered = render(
+      h(sdk.DpadRoot, { initialProps: { __dpad: JSON.stringify(payload) } }, h(Screen)),
+    );
+    onCleanup(() => rendered.unmount());
+    expect(sdk.getDpad()).toBeNull();
+    expect(sdk.getLaunchPayload()).toEqual(payload);
+  });
+
   it('installs nothing on iOS without launch arguments', async () => {
     const { sdk, RN } = await load('ios');
     sdk.startDpad();

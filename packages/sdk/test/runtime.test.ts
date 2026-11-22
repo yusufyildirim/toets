@@ -8,6 +8,7 @@ import {
   createDpad,
   createMediaReporter,
   getDpad,
+  getLaunchPayload,
   markBusy,
   onState,
   registerMedia,
@@ -63,6 +64,22 @@ describe('inert runtime', () => {
       expect(called).toBe(false);
     },
   );
+
+  it('exposes a payload without sdkUrl through getLaunchPayload (black-box mocking)', () => {
+    const payload = {
+      v: 1 as const,
+      mockUrl: 'http://localhost:9400',
+      state: 's',
+      flags: { a: true },
+    };
+    const dpad = createDpad({ framework: 'test', payload: encodeLaunchPayloadParam(payload) });
+    expect(dpad.active).toBe(false);
+    expect(getDpad()).not.toBe(dpad);
+    expect(getLaunchPayload()).toEqual(payload);
+    // A later lookup that finds nothing keeps what was found.
+    createDpad({ framework: 'test', payload: undefined });
+    expect(getLaunchPayload()).toEqual(payload);
+  });
 
   it('refuses non-loopback hosts unless allowed', () => {
     expect(checkUrl('ws://localhost:1', false)).toBeNull();
@@ -370,6 +387,7 @@ describe('noop module', () => {
     expect(dpad.status).toBe('inert');
     expect(dpad.active).toBe(false);
     expect(noop.getDpad()).toBeNull();
+    expect(noop.getLaunchPayload()).toBeNull();
     noop.markBusy('x')();
     noop.onState(() => {})();
     noop.createMediaReporter('m').update({ state: 'playing' });

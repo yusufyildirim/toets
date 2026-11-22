@@ -7,7 +7,7 @@ Rules:
 - Keep the path and query; only the origin moves to the header. `https://api.tv.example/v2/rails?page=2` becomes `GET {mockUrl}/v2/rails?page=2` with `x-dpad-original-origin: https://api.tv.example`.
 - The header holds an origin only (scheme, host, port), never a path.
 - Route every API client (and absolute URLs found in responses, like pagination links) through the same function.
-- Read `mockUrl` once at startup from the launch payload. The dpad SDK exposes it; without the SDK, read the `__dpad` launch parameter yourself (web: `?__dpad=` query parameter, Android: intent string extra, tvOS: launch argument) and parse `mockUrl` from the JSON.
+- Read `mockUrl` once at startup from the launch payload. The dpad SDK exposes it as `getLaunchPayload()?.mockUrl`, with or without the SDK session; without the SDK, read the `__dpad` launch parameter yourself (web: `?__dpad=` query parameter, Android: intent string extra, tvOS: launch argument) and parse `mockUrl` from the JSON.
 
 ## fetch
 

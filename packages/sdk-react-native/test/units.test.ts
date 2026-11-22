@@ -129,6 +129,7 @@ describe('noop module', () => {
   it('mirrors the app-facing API without doing anything', () => {
     expect(noop.startDpad()).toBeUndefined();
     expect(noop.getDpad()).toBeNull();
+    expect(noop.getLaunchPayload()).toBeNull();
     expect(noop.markBusy('x')).toBeTypeOf('function');
     const App = () => null;
     expect(noop.withDpad(App)).toBe(App);
