@@ -13,6 +13,7 @@ import {
   badOriginError,
   badRequestError,
   handlerError,
+  internalError,
   invalidHandlerError,
   invalidOptionError,
   listenError,
@@ -255,9 +256,9 @@ class MockServerImpl implements MockServer {
     });
     try {
       await this.process(req, res, controller.signal);
-    } catch (error) {
-      // Defensive: process() handles its own failures; never crash the worker.
-      if (!res.headersSent) res.writeHead(500, 'Internal Server Error').end(String(error));
+    } catch {
+      // Unreachable in practice (process() answers its own failures); never crash the worker.
+      if (!res.headersSent) res.writeHead(500, 'Internal Server Error').end();
       else res.destroy();
     } finally {
       this.inflight.delete(controller);
@@ -299,6 +300,26 @@ class MockServerImpl implements MockServer {
     signal.addEventListener('abort', onAbort, { once: true });
     if (signal.aborted) onAbort();
 
+    try {
+      await this.route(req, res, exchange, { method, path, url, rawOrigin, origin, body }, signal);
+    } catch (error) {
+      // Defensive: route() handles expected failures. Anything else is answered, never thrown.
+      if (!res.headersSent) {
+        this.sendError(req, res, exchange, 500, internalError(method, url.href, error));
+      } else {
+        exchange.finish({ code: MockErrorCode.RESPONSE_FAILED, message: messageOf(error) });
+        res.destroy();
+      }
+    }
+  }
+
+  private async route(
+    req: IncomingMessage,
+    res: ServerResponse,
+    exchange: Exchange,
+    { method, path, url, rawOrigin, origin, body }: RouteInput,
+    signal: AbortSignal,
+  ): Promise<void> {
     if (rawOrigin !== undefined && origin === null) {
       return this.sendError(req, res, exchange, 400, badOriginError(rawOrigin));
     }
@@ -385,8 +406,10 @@ class MockServerImpl implements MockServer {
       const prev = headers[name];
       headers[name] = prev === undefined ? value : [...[prev].flat(), value];
     }
+    // The body is buffered, so always send an exact length rather than re-chunking it.
     const hadBody =
       body.byteLength > 0 ||
+      canHaveBody(method) ||
       req.headers['content-length'] !== undefined ||
       req.headers['transfer-encoding'] !== undefined;
     if (hadBody) headers['content-length'] = String(body.byteLength);
@@ -520,6 +543,7 @@ class MockServerImpl implements MockServer {
     status: number,
     error: DpadError,
   ): void {
+    if (exchange.done) return; // already settled, e.g. the app hung up
     exchange.error = { code: error.code, message: error.message };
     const body = Buffer.from(
       JSON.stringify({
@@ -540,6 +564,15 @@ class MockServerImpl implements MockServer {
     res.end(body);
     exchange.finish();
   }
+}
+
+interface RouteInput {
+  readonly method: string;
+  readonly path: string;
+  readonly url: URL;
+  readonly rawOrigin: string | undefined;
+  readonly origin: string | null;
+  readonly body: Buffer;
 }
 
 function assertHandlers(handlers: readonly unknown[]): RequestHandler[] {

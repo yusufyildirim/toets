@@ -19,6 +19,8 @@ export const MockErrorCode = {
   UPSTREAM_UNREACHABLE: 'MOCK_UPSTREAM_UNREACHABLE',
   /** A handler threw. */
   HANDLER_ERROR: 'MOCK_HANDLER_ERROR',
+  /** An unexpected failure inside the mock server (a dpad bug: please report it). */
+  INTERNAL_ERROR: 'MOCK_INTERNAL_ERROR',
   /** A handler returned `HttpResponse.error()`: the connection is dropped on purpose. */
   NETWORK_ERROR: 'MOCK_NETWORK_ERROR',
   /** The response body failed after headers were sent (upstream reset, broken mock stream). */
@@ -41,7 +43,6 @@ const DOCS = {
   concepts: docsLink('mock/concepts'),
   handlers: docsLink('mock/writing-handlers'),
   integration: docsLink('mock/app-integration'),
-  traps: docsLink('mock/tv-traps'),
 };
 
 export function noOriginError(method: string, path: string): DpadError {
@@ -108,6 +109,18 @@ export function handlerError(method: string, url: string, cause: unknown): DpadE
     {
       hint: 'Fix the handler. To simulate a server error return HttpResponse.json(body, { status: 500 }); to simulate a dropped connection return HttpResponse.error() or use failure().',
       docs: DOCS.handlers,
+      cause,
+    },
+  );
+}
+
+export function internalError(method: string, url: string, cause: unknown): DpadError {
+  return new DpadError(
+    MockErrorCode.INTERNAL_ERROR,
+    `The mock server failed while handling ${method} ${url}: ${messageOf(cause)}`,
+    {
+      hint: 'This is likely a dpad bug. Please report it with the request details; mocking this request with app.network.use(...) may work around it.',
+      docs: DOCS.concepts,
       cause,
     },
   );
