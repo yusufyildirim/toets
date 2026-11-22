@@ -200,7 +200,8 @@ describe('@dpad-tv/test end to end', () => {
     expect(t?.result.errors[0]?.message).toContain('expect(locator).toBeFocused() failed');
     expect(t?.result.errors[0]?.message).toContain('Focused:  card_1 "Movie 1"');
     const dump = t?.result.attachments.find((a) => a.name === 'dpad-failure');
-    const text = Buffer.from(dump?.body ?? '', 'base64').toString('utf8');
+    expect(dump?.path).toMatch(/dpad-failure[^/]*\.md$/);
+    const text = readFileSync(dump?.path ?? '', 'utf8');
     expect(text).toContain('- last keys: RIGHT');
     expect(text).toContain('- card_1 "Movie 1" [focused]');
     expect(t?.result.attachments.map((a) => a.name)).toContain('dpad-screenshot');
@@ -210,8 +211,8 @@ describe('@dpad-tv/test end to end', () => {
       "DpadError: [ELEMENT_NOT_FOUND] getByTestId('no_such_element') matched no element",
     );
     expect(message).toContain('\nHint: Check the test ID');
-    expect(message).toContain(
-      '\nDocs: reference/core/docs/locators (offline: node_modules/@dpad-tv/core/docs/locators.md)',
+    expect(message).toMatch(
+      /\nDocs: reference\/core\/docs\/locators \(offline: \S*core\/docs\/locators\.md\)/,
     );
   });
 });

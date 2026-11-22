@@ -1,6 +1,6 @@
 # Failure dumps
 
-When a test fails, dpad attaches a `dpad-failure` Markdown dump and a `dpad-screenshot` to the Playwright report. The dump is everything needed to understand the failure without rerunning it:
+When a test fails, dpad writes a `dpad-failure.md` dump and a `dpad-screenshot.png` to the test's output folder (`test-results/<test>/`) and attaches both to the Playwright report; the console prints their paths. The dump is everything needed to understand the failure without rerunning it:
 
 ````md
 # dpad failure dump
