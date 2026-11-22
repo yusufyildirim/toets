@@ -1,0 +1,515 @@
+import { existsSync, statSync } from 'node:fs';
+import { mkdtemp, rm } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
+import { DpadError, Key, type ElementSnapshot, type Selector, type UINode } from '@dpad-tv/core';
+import { chromium, type Browser } from 'playwright-core';
+import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
+import webDriverModule, { createWebDriver, type WebDriver } from '../src/index.js';
+import { serveFixtures, type FixtureServer } from './server.js';
+
+interface KeyEventRecord {
+  type: string;
+  key: string;
+  code: string;
+  keyCode: number;
+  repeat: boolean;
+}
+
+let server: FixtureServer;
+let artifactsDir: string;
+
+beforeAll(async () => {
+  server = await serveFixtures();
+  artifactsDir = await mkdtemp(join(tmpdir(), 'dpad-driver-web-test-'));
+});
+
+afterAll(async () => {
+  await server.close();
+  await rm(artifactsDir, { recursive: true, force: true });
+});
+
+const testId = (value: string): Selector => ({ kind: 'testId', value });
+
+async function one(driver: WebDriver, ...chain: Selector[]): Promise<ElementSnapshot> {
+  const found = await driver.query(chain);
+  expect(found, `exactly one match for ${JSON.stringify(chain)}`).toHaveLength(1);
+  return found[0] as ElementSnapshot;
+}
+
+async function text(driver: WebDriver, id: string): Promise<string | null> {
+  return (await one(driver, testId(id))).text;
+}
+
+async function keyEvents(driver: WebDriver): Promise<KeyEventRecord[]> {
+  return driver
+    .escapeHatch()
+    .evaluate(() => (window as unknown as { __keys: KeyEventRecord[] }).__keys);
+}
+
+function flatten(node: UINode): UINode[] {
+  return [node, ...node.children.flatMap(flatten)];
+}
+
+/** Width and height from a PNG's IHDR chunk. */
+function pngSize(png: Uint8Array): { width: number; height: number } {
+  const view = new DataView(png.buffer, png.byteOffset, png.byteLength);
+  expect([...png.subarray(1, 4)].map((c) => String.fromCharCode(c)).join('')).toBe('PNG');
+  return { width: view.getUint32(16), height: view.getUint32(20) };
+}
+
+async function expectDpadError(promise: Promise<unknown>, code: string): Promise<DpadError> {
+  const error = await promise.then(
+    () => null,
+    (e: unknown) => e,
+  );
+  expect(error).toBeInstanceOf(DpadError);
+  expect((error as DpadError).code).toBe(code);
+  expect((error as DpadError).hint).toBeTruthy();
+  return error as DpadError;
+}
+
+describe('web driver on the fixture app', () => {
+  let driver: WebDriver;
+
+  beforeAll(async () => {
+    driver = createWebDriver({}, { app: { url: server.url }, artifactsDir });
+    await driver.start();
+  });
+
+  afterAll(async () => {
+    await driver.stop();
+  });
+
+  beforeEach(async () => {
+    await driver.launch({ payload: { v: 1 }, clearData: true });
+    await driver.drainLogs();
+  });
+
+  it('declares an honest capability set', () => {
+    expect([...driver.capabilities].sort()).toEqual(
+      [
+        'key.back',
+        'key.channel',
+        'key.color',
+        'key.info',
+        'key.longpress',
+        'key.media.discrete',
+        'key.media.toggle',
+        'key.media.transport',
+        'key.numeric',
+        'logs',
+        'screenshot.element',
+        'video',
+      ].sort(),
+    );
+    expect(driver.platform).toBe('web');
+  });
+
+  it('passes the launch payload as ?__dpad=base64url(JSON)', async () => {
+    const payload = { v: 1, sdkUrl: 'ws://localhost:9323', token: 't-ü', state: 'home' } as const;
+    await driver.launch({ payload });
+    expect(await text(driver, 'payload-source')).toBe('query');
+    expect(JSON.parse((await text(driver, 'payload')) ?? '')).toEqual(payload);
+  });
+
+  it('maps an element to a snapshot', async () => {
+    const card = await one(driver, testId('card-1'));
+    expect(card).toMatchObject({
+      testId: 'card-1',
+      text: 'Card 1',
+      label: null,
+      visible: true,
+      inViewport: true,
+      focusable: true,
+      focused: true,
+      focusWithin: true,
+      enabled: true,
+      selected: false,
+      busy: false,
+    });
+    expect(card.bounds).toEqual({ x: 220, y: 120, width: 300, height: 170 });
+    expect(typeof card.ref).toBe('string');
+    // Refs are stable for the same element.
+    expect((await one(driver, testId('card-1'))).ref).toBe(card.ref);
+  });
+
+  it('matches text like Playwright: deepest element, substring, case-insensitive by default', async () => {
+    const title = await one(driver, { kind: 'text', value: 'card 3' });
+    expect(title.testId).toBeNull();
+    expect(title.text).toBe('Card 3');
+    expect(await driver.query([{ kind: 'text', value: 'card 3', exact: true }])).toHaveLength(0);
+    expect(await driver.query([{ kind: 'text', value: 'Card 3', exact: true }])).toHaveLength(1);
+    expect(await driver.query([{ kind: 'text', value: /^Card \d+$/g }])).toHaveLength(10);
+    // Raw DOM text: CSS text-transform does not apply.
+    expect(await text(driver, 'title')).toBe('dpad fixture');
+  });
+
+  it('resolves chains within previous matches, in document order', async () => {
+    const inRail = await driver.query([testId('rail-1'), { kind: 'text', value: 'card' }]);
+    expect(inRail.map((s) => s.text)).toEqual(
+      Array.from({ length: 10 }, (_, i) => `Card ${i + 1}`),
+    );
+    const third = await one(driver, { kind: 'text', value: /card/i }, { kind: 'nth', index: 2 });
+    expect(third.text).toBe('Card 3');
+    expect(await driver.query([testId('menu'), testId('card-1')])).toHaveLength(0);
+    expect(await driver.query([testId('rail-1'), { kind: 'focused' }])).toHaveLength(1);
+    expect(await driver.query([testId('menu'), { kind: 'focused' }])).toHaveLength(0);
+    expect(await driver.query([testId('nope')])).toEqual([]);
+    expect(await driver.query([])).toEqual([]);
+  });
+
+  it('follows DOM focus moved by the app on arrow keys', async () => {
+    expect((await driver.focused())?.testId).toBe('card-1');
+    await driver.press(Key.RIGHT);
+    expect((await driver.focused())?.testId).toBe('card-2');
+    expect((await one(driver, testId('rail-1'))).focusWithin).toBe(true);
+    expect((await one(driver, testId('menu'))).focusWithin).toBe(false);
+    await driver.press(Key.LEFT);
+    await driver.press(Key.LEFT);
+    expect((await driver.focused())?.testId).toBe('menu-home');
+    await driver.press(Key.DOWN);
+    expect((await driver.focused())?.testId).toBe('menu-search');
+  });
+
+  it('reports viewport intersection through clipping ancestors', async () => {
+    const last = await one(driver, testId('card-10'));
+    expect(last.visible).toBe(true);
+    expect(last.inViewport).toBe(false); // clipped by the rail's overflow: hidden
+    for (let i = 0; i < 9; i++) await driver.press(Key.RIGHT);
+    expect((await one(driver, testId('card-10'))).inViewport).toBe(true);
+    expect((await one(driver, testId('card-1'))).inViewport).toBe(false);
+    const below = await one(driver, testId('below-fold'));
+    expect(below).toMatchObject({ visible: true, inViewport: false });
+  });
+
+  it('reports hidden elements as not visible, with their text', async () => {
+    expect(await one(driver, testId('hidden-banner'))).toMatchObject({
+      visible: false,
+      inViewport: false,
+      text: 'Secret banner',
+    });
+    expect((await one(driver, testId('invisible'))).visible).toBe(false);
+    expect((await one(driver, testId('zero'))).visible).toBe(false);
+    const contents = await one(driver, testId('contents'));
+    expect(contents.visible).toBe(true);
+    expect(contents.bounds.width).toBeGreaterThan(0);
+  });
+
+  it('reports disabled, selected and busy states', async () => {
+    expect((await one(driver, testId('buy'))).enabled).toBe(false);
+    expect((await one(driver, testId('buy'))).focusable).toBe(false);
+    expect((await one(driver, testId('locked'))).enabled).toBe(false);
+    expect((await one(driver, testId('locked-label'))).enabled).toBe(false); // inherited
+    expect((await one(driver, testId('play-button'))).enabled).toBe(true);
+
+    expect((await one(driver, testId('menu-home'))).selected).toBe(true);
+    await driver.press(Key.SELECT);
+    expect((await one(driver, testId('card-1'))).selected).toBe(true);
+    expect(await text(driver, 'last-action')).toBe('selected card-1');
+
+    expect((await one(driver, testId('rail-2'))).busy).toBe(true);
+    expect((await one(driver, testId('main'))).busy).toBe(true); // descendant is busy
+    expect((await one(driver, testId('spinner'))).busy).toBe(false);
+    await driver.press(Key.GREEN);
+    expect((await one(driver, testId('rail-2'))).busy).toBe(false);
+    expect(await text(driver, 'spinner')).toBe('Loaded');
+  });
+
+  it('activates buttons with SELECT (Enter produces keypress)', async () => {
+    await driver.press(Key.DOWN);
+    expect((await driver.focused())?.testId).toBe('play-button');
+    await driver.press(Key.SELECT);
+    expect(await text(driver, 'last-action')).toBe('play clicked');
+  });
+
+  it('reads labels, form values and open shadow DOM', async () => {
+    expect((await one(driver, testId('logo'))).label).toBe('dpad logo');
+    expect((await one(driver, testId('icon-button'))).label).toBe('Open search');
+    expect(await text(driver, 'search-input')).toBe('query text');
+    expect(await text(driver, 'badge-label')).toBe('New');
+    expect(await text(driver, 'badge')).toBe('New Hot');
+    const slotted = await driver.query([testId('badge'), testId('badge-slotted')]);
+    expect(slotted.map((s) => s.text)).toEqual(['Hot']);
+  });
+
+  it('returns the whole UI tree', async () => {
+    const tree = await driver.tree();
+    expect(tree.viewport).toEqual({ width: 1920, height: 1080 });
+    const nodes = flatten(tree.root);
+    const ids = nodes.map((n) => n.testId).filter((id) => id !== null);
+    expect(ids).toContain('card-10');
+    expect(ids).toContain('badge-label');
+    expect(nodes.filter((n) => n.focused).map((n) => n.testId)).toEqual(['card-1']);
+    // Non-UI elements are skipped.
+    expect(nodes.some((n) => n.text?.includes('use strict'))).toBe(false);
+    const byRef = new Map(nodes.map((n) => [n.ref, n]));
+    expect(byRef.get((await one(driver, testId('card-1'))).ref)?.testId).toBe('card-1');
+  });
+
+  it('sends default key values and TV key codes', async () => {
+    const sent: [Key, string, number][] = [
+      [Key.UP, 'ArrowUp', 38],
+      [Key.BACK, 'Escape', 27],
+      [Key.INFO, 'Info', 457],
+      [Key.PLAY, 'MediaPlay', 415],
+      [Key.PAUSE, 'MediaPause', 19],
+      [Key.FAST_FORWARD, 'MediaFastForward', 417],
+      [Key.RED, 'ColorF0Red', 403],
+      [Key.CHANNEL_UP, 'ChannelUp', 427],
+      [Key.DIGIT_7, '7', 55],
+    ];
+    for (const [key] of sent) await driver.press(key);
+    const downs = (await keyEvents(driver)).filter((e) => e.type === 'keydown');
+    expect(downs.map((e) => [e.key, e.keyCode])).toEqual(sent.map(([, k, c]) => [k, c]));
+    const ups = (await keyEvents(driver)).filter((e) => e.type === 'keyup');
+    expect(ups).toHaveLength(sent.length);
+    expect(await text(driver, 'last-action')).toBe('back');
+  });
+
+  it('long-presses as keydown, auto-repeats, keyup', async () => {
+    const started = performance.now();
+    await driver.press(Key.RIGHT, { holdMs: 800 });
+    expect(performance.now() - started).toBeGreaterThanOrEqual(790);
+    const events = (await keyEvents(driver)).filter((e) => e.key === 'ArrowRight');
+    expect(events[0]).toMatchObject({ type: 'keydown', repeat: false });
+    expect(events.at(-1)).toMatchObject({ type: 'keyup' });
+    const repeats = events.filter((e) => e.type === 'keydown' && e.repeat);
+    // Default timing: first repeat after 500ms, then every 50ms until 800ms.
+    expect(repeats).toHaveLength(6);
+    expect((await driver.focused())?.testId).toBe('card-8');
+  });
+
+  it('controls media with media keys', async () => {
+    const paused = () =>
+      driver.escapeHatch().evaluate(() => document.querySelector('video')?.paused);
+    expect(await paused()).toBe(true);
+    await driver.press(Key.PLAY_PAUSE);
+    await expect.poll(() => text(driver, 'player-state')).toBe('playing');
+    expect(await paused()).toBe(false);
+    await driver.press(Key.PAUSE);
+    await expect.poll(() => text(driver, 'player-state')).toBe('paused');
+  });
+
+  it('takes viewport and element screenshots without scrolling', async () => {
+    expect(pngSize(await driver.screenshot())).toEqual({ width: 1920, height: 1080 });
+    const card = await one(driver, testId('card-1'));
+    expect(pngSize(await driver.screenshot({ element: card.ref }))).toEqual({
+      width: 300,
+      height: 170,
+    });
+
+    const below = await one(driver, testId('below-fold'));
+    await expectDpadError(driver.screenshot({ element: below.ref }), 'web.element-offscreen');
+    expect(await driver.escapeHatch().evaluate(() => window.scrollY)).toBe(0);
+
+    await driver.launch({ payload: { v: 1 } });
+    await expectDpadError(driver.screenshot({ element: card.ref }), 'web.stale-element');
+  });
+
+  it('collects console logs and uncaught errors', async () => {
+    await driver.launch({ payload: { v: 1 } });
+    const startup = [...(await driver.drainLogs())];
+    expect(startup).toContainEqual(
+      expect.objectContaining({ level: 'info', message: 'fixture ready', source: 'app' }),
+    );
+    await driver.press(Key.RED);
+    await expect
+      .poll(async () => {
+        startup.push(...(await driver.drainLogs()));
+        return startup.map((l) => `${l.level}:${l.message.split('\n')[0]}`);
+      })
+      .toEqual(expect.arrayContaining(['error:red pressed', 'error:Uncaught Error: boom']));
+    expect(await driver.drainLogs()).toEqual([]);
+  });
+
+  it('keeps data across launches and clears it on reset or clearData', async () => {
+    expect(await text(driver, 'launches')).toBe('launches 1');
+    await driver.launch({ payload: { v: 1 } });
+    expect(await text(driver, 'launches')).toBe('launches 2');
+    await driver.launch({ payload: { v: 1 }, clearData: true });
+    expect(await text(driver, 'launches')).toBe('launches 1');
+    await driver.launch({ payload: { v: 1 } });
+    await driver.reset();
+    expect(driver.escapeHatch().url()).toBe('about:blank');
+    await driver.launch({ payload: { v: 1 } });
+    expect(await text(driver, 'launches')).toBe('launches 1');
+  });
+
+  it('terminates to an empty page', async () => {
+    await driver.terminate();
+    expect(await driver.query([testId('card-1')])).toEqual([]);
+    expect(await driver.focused()).toBeNull();
+    expect((await driver.tree()).root.children).toEqual([]);
+  });
+
+  it('records video across launches', async () => {
+    await driver.startRecording();
+    await expectDpadError(driver.startRecording(), 'web.recording-active');
+    await driver.press(Key.RIGHT);
+    await driver.launch({ payload: { v: 1 } });
+    await driver.press(Key.RIGHT);
+    const path = await driver.stopRecording();
+    expect(path.startsWith(artifactsDir)).toBe(true);
+    expect(path.endsWith('.webm')).toBe(true);
+    expect(existsSync(path) && statSync(path).size).toBeGreaterThan(0);
+    await expectDpadError(driver.stopRecording(), 'web.not-recording');
+  });
+
+  it('rejects unmapped keys with a hint', async () => {
+    const error = await expectDpadError(driver.press(Key.HOME), 'web.key-unmapped');
+    expect(error.hint).toContain('key.home');
+  });
+});
+
+describe('web driver configuration', () => {
+  let browser: Browser;
+
+  beforeAll(async () => {
+    browser = await chromium.launch();
+  });
+
+  afterAll(async () => {
+    await browser.close();
+  });
+
+  it('is the default export as a DriverModule', async () => {
+    expect(webDriverModule.platform).toBe('web');
+    const driver = await webDriverModule.createDriver(
+      { browser },
+      { app: { url: server.url }, workerIndex: 0, artifactsDir, log: () => {} },
+    );
+    expect(driver.platform).toBe('web');
+    await expectDpadError(driver.query([]), 'web.not-started');
+  });
+
+  it('passes the payload through an init script as window.__DPAD__', async () => {
+    const driver = createWebDriver({ url: server.url, browser, launchTransport: 'initScript' });
+    await driver.start();
+    try {
+      await driver.launch({ payload: { v: 1, mockUrl: 'http://localhost:9999' } });
+      expect(await text(driver, 'payload-source')).toBe('global');
+      expect(JSON.parse((await text(driver, 'payload')) ?? '')).toEqual({
+        v: 1,
+        mockUrl: 'http://localhost:9999',
+      });
+      expect(driver.escapeHatch().url()).toBe(server.url);
+      // A relaunch replaces the payload instead of stacking init scripts.
+      await driver.launch({ payload: { v: 1, state: 'second' } });
+      expect(JSON.parse((await text(driver, 'payload')) ?? '')).toEqual({ v: 1, state: 'second' });
+    } finally {
+      await driver.stop();
+    }
+  });
+
+  it('drives a borrowed page without closing it', async () => {
+    const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+    const page = await context.newPage();
+    const driver = createWebDriver({ url: server.url, page });
+    await driver.start();
+    await driver.launch({ payload: { v: 1 } });
+    expect(driver.escapeHatch()).toBe(page);
+    expect((await driver.tree()).viewport).toEqual({ width: 1280, height: 720 });
+    await driver.stop();
+    await driver.stop();
+    expect(page.isClosed()).toBe(false);
+    await context.close();
+  });
+
+  it('opens and closes its own context in a borrowed browser', async () => {
+    const driver = createWebDriver({ url: server.url, browser });
+    const before = browser.contexts().length;
+    await driver.start();
+    expect(browser.contexts().length).toBe(before + 1);
+    await driver.stop();
+    expect(browser.contexts().length).toBe(before);
+    expect(browser.isConnected()).toBe(true);
+  });
+
+  it('opens and closes only its page in a borrowed context', async () => {
+    const context = await browser.newContext();
+    const driver = createWebDriver({ url: server.url, context });
+    await driver.start();
+    expect(context.pages()).toHaveLength(1);
+    await driver.stop();
+    expect(context.pages()).toHaveLength(0);
+    await context.close();
+  });
+
+  it('applies key overrides and derives capabilities from them', async () => {
+    const driver = createWebDriver({
+      url: server.url,
+      browser,
+      keys: {
+        BACK: { key: 'XF86Back', keyCode: 10009 },
+        HOME: { key: 'BrowserHome', keyCode: 36 },
+        RED: null,
+      },
+    });
+    expect(driver.capabilities.has('key.home')).toBe(true);
+    expect(driver.capabilities.has('key.back')).toBe(true);
+    expect(driver.capabilities.has('key.color')).toBe(false);
+    await driver.start();
+    try {
+      await driver.launch({ payload: { v: 1 } });
+      await driver.press(Key.BACK);
+      await driver.press(Key.HOME);
+      await expectDpadError(driver.press(Key.RED), 'web.key-unmapped');
+      const downs = (await keyEvents(driver)).filter((e) => e.type === 'keydown');
+      // Non-standard key values arrive as an empty string; the keyCode is verbatim.
+      expect(downs.map((e) => [e.key, e.keyCode])).toEqual([
+        ['', 10009],
+        ['BrowserHome', 36],
+      ]);
+    } finally {
+      await driver.stop();
+    }
+  });
+
+  it('supports virtual focus through selectors', async () => {
+    const driver = createWebDriver({
+      url: `${server.url}virtual.html`,
+      browser,
+      focus: { focused: '.is-focused', focusable: '.item' },
+    });
+    await driver.start();
+    try {
+      await driver.launch({ payload: { v: 1 } });
+      expect((await driver.focused())?.testId).toBe('item-1');
+      expect((await one(driver, testId('row'))).focusWithin).toBe(true);
+      expect((await one(driver, testId('item-2'))).focusable).toBe(true);
+      expect((await one(driver, testId('row'))).focusable).toBe(false);
+      await driver.press(Key.RIGHT);
+      expect((await driver.focused())?.testId).toBe('item-2');
+    } finally {
+      await driver.stop();
+    }
+  });
+
+  it('reports an invalid focus selector as a config error', async () => {
+    const driver = createWebDriver({ url: server.url, browser, focus: { focused: '[[nope' } });
+    await driver.start();
+    try {
+      await driver.launch({ payload: { v: 1 } });
+      await expectDpadError(driver.focused(), 'web.invalid-config');
+    } finally {
+      await driver.stop();
+    }
+  });
+
+  it('explains launch failures', async () => {
+    const missing = createWebDriver({ url: `${server.url}missing.html`, browser });
+    await missing.start();
+    await expectDpadError(missing.launch({ payload: { v: 1 } }), 'web.launch-failed');
+    await missing.stop();
+
+    const refused = createWebDriver({ url: 'http://127.0.0.1:9/', browser });
+    await refused.start();
+    await expectDpadError(refused.launch({ payload: { v: 1 } }), 'web.launch-failed');
+    await refused.stop();
+  });
+
+  it('explains a missing URL', () => {
+    expect(() => createWebDriver({})).toThrow(DpadError);
+  });
+});

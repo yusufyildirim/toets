@@ -25,6 +25,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^"
+    "@dpad-tv/core": "workspace:^",
+    "@dpad-tv/protocol": "workspace:^",
+    "playwright-core": "^1.65.1"
   }
 }

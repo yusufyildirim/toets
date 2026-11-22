@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>dpad virtual focus fixture</title>
+    <style>
+      .row {
+        display: flex;
+        gap: 20px;
+      }
+      .item {
+        width: 200px;
+        height: 100px;
+        background: #333;
+        color: #eee;
+      }
+      .is-focused {
+        outline: 4px solid #fc0;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Spatial-navigation style: focus is a class, DOM focus never moves. -->
+    <div class="row is-focused" data-testid="row">
+      <div class="item is-focused" data-testid="item-1">One</div>
+      <div class="item" data-testid="item-2">Two</div>
+      <div class="item" data-testid="item-3">Three</div>
+    </div>
+    <script>
+      const items = [...document.querySelectorAll('.item')];
+      let index = 0;
+      window.addEventListener('keydown', (e) => {
+        const next = { ArrowRight: index + 1, ArrowLeft: index - 1 }[e.key];
+        if (next === undefined || !items[next]) return;
+        items[index].classList.remove('is-focused');
+        index = next;
+        items[index].classList.add('is-focused');
+      });
+    </script>
+  </body>
+</html>
