@@ -17,21 +17,46 @@ Static capabilities of the tvOS driver. A connected dpad SDK adds its own (`focu
 
 One page source fetch (WebDriverAgent JSON) per `query`, `focused` or `tree` call:
 
-| `ElementSnapshot`              | From                                                                       |
-| ------------------------------ | -------------------------------------------------------------------------- |
-| `testId`                       | `accessibilityIdentifier` (never the label fallback XCUITest calls `name`) |
-| `label`                        | accessibility label                                                        |
-| `text`                         | accessible element: its label; container: own label + children's text      |
-| `focused`                      | `hasFocus`, deepest focused element only; ancestors get `focusWithin`      |
-| `selected`                     | `Selected` accessibility trait                                             |
-| `enabled`, `bounds`, `visible` | XCUITest `isEnabled`, frame (points), `isVisible` + non-zero size          |
-| `busy`                         | a visible activity indicator in the subtree                                |
-| `focusable`                    | focusable control types, Button/Link traits, or focused now (heuristic)    |
+| `ElementSnapshot`              | From                                                                                                                          |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------- |
+| `testId`                       | `accessibilityIdentifier` (never the label fallback XCUITest calls `name`)                                                    |
+| `label`                        | accessibility label                                                                                                           |
+| `text`                         | accessible element or `StaticText`: its label; others: own label + children's text, without repeating the own label           |
+| `focused`                      | `hasFocus`, deepest focused element only; ancestors get `focusWithin`                                                         |
+| `selected`                     | `Selected` accessibility trait                                                                                                |
+| `enabled`, `bounds`, `visible` | XCUITest `isEnabled`, frame (points), `isVisible` + non-zero size; flattened views (below): non-zero size inside the viewport |
+| `busy`                         | a visible activity indicator in the subtree                                                                                   |
+| `focusable`                    | focusable control types, Button/Link traits, accessible `Other` views (React Native touchables), or focused now (heuristic)   |
+
+XCUITest flattens a React Native view that has a `testID` but is not accessible (a screen, a rail) into a childless `Other` element, and reports it invisible. dpad treats it as visible when it has a size and lies in the viewport, but its children are siblings elsewhere in the tree: scoping a locator into it or `toHaveFocusWithin` on it only works with the dpad SDK connected.
 
 ## Latency
 
-Every read is one HTTP round trip to WebDriverAgent plus a snapshot of the accessibility tree, so its cost grows with the number of elements on screen; keep screens lean and avoid reading in tight loops (the core's retry engine already paces reads). A press returns once `XCUIRemote` delivered it; the focus change lands a frame or more later. The integration test prints p50/max per action on your machine:
+Every read is one HTTP round trip to WebDriverAgent plus a snapshot of the accessibility tree, so its cost grows with the number of elements on screen; keep screens lean and avoid reading in tight loops (the core's retry engine already paces reads). A press returns once `XCUIRemote` delivered it; the focus change lands a frame or more later.
+
+Measured on an Apple Silicon Mac, Xcode 27.2, Apple TV 4K (3rd generation) (at 1080p) simulator, tvOS 27.2, prebuilt WebDriverAgent cached:
+
+| Action                                    | p50       | p90    |
+| ----------------------------------------- | --------- | ------ |
+| `query` / `focused` / `tree`, 29 elements | ~110ms    | ~150ms |
+| `query` / `focused` / `tree`, 95 elements | ~255ms    | ~260ms |
+| `press` (incl. focus check)               | ~260ms    | ~590ms |
+| `press` with `holdMs: 1500`               | ~1.73s    |        |
+| `screenshot`                              | ~60-120ms |        |
+| element screenshot                        | ~165ms    |        |
+| `launch` (terminate + launch)             | ~1.45s    |        |
+| `terminate`                               | ~1.1s     |        |
+| `reset` (app not running)                 | ~15ms     |        |
+| `start` (booted simulator)                | ~4.2s     |        |
+
+29 elements is the Swift fixture app, 95 the React Native example's home screen. The p90 of `press` is presses right after a screen transition, which wait for focus (see [traps](./traps.md)). A raw `XCUIRemote` press costs ~235ms whatever its duration. The integration test prints p50/p90/max per action on your machine:
 
 ```sh
 DPAD_TVOS_UDID=<udid> pnpm --filter @dpad-tv/driver-tvos test test/integration
+```
+
+The full stack (`@dpad-tv/test` on the fixture app) runs with `DPAD_TVOS_UDID=<udid>` (external) or `DPAD_TVOS_MANAGED=1` (managed provider):
+
+```sh
+DPAD_TVOS_MANAGED=1 pnpm --filter @dpad-tv/test exec vitest run test/tvos.test.ts
 ```
