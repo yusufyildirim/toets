@@ -10,6 +10,8 @@ import { startDpad } from '@dpad-tv/sdk/web';
 startDpad(); // first thing in the entry file, before the router rewrites the URL
 ```
 
+The package is ESM with bare imports: bundle it with the app (any bundler), even for a plain HTML/JS app.
+
 The web driver passes the payload as `?__dpad=<base64url>` (also read inside hash routes) or `window.__DPAD__` through an init script.
 
 ## What it maps

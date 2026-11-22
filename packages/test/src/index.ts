@@ -63,7 +63,7 @@ export type {
 } from '@dpad-tv/driver-tvos';
 export { Key, DpadError } from '@dpad-tv/core';
 /** Network mocking building blocks for `app.network.use(...)` (from `@dpad-tv/mock`, MSW based). */
-export { delay, failure, http, HttpResponse, latency } from '@dpad-tv/mock';
+export { bypass, delay, failure, http, HttpResponse, latency, passthrough } from '@dpad-tv/mock';
 export type { FailureOptions, HttpHandler, LatencySpec } from '@dpad-tv/mock';
 export type {
   App,

@@ -33,7 +33,7 @@ export default defineConfig({
 - **Relative app paths** (`apk`, `app`) resolve against the config file's directory.
 - **Options merge** from the top-level `dpad` into each project's `dpad`. The `app` entry for the platform merges with the project's `app`.
 - **Snapshot baselines are per project, not per host.** dpad projects default `snapshotPathTemplate` to Playwright's default without the host OS suffix; a top-level or project `snapshotPathTemplate` wins.
-- **The parity reporter is added** after your reporters; `parityReport: false` turns it off.
+- **The parity reporter is added** after your reporters; `parityReport: false` turns it off. Without a `reporter`, dpad uses `list` (`dot` in CI) and `html` (`open: 'never'`), so `npx playwright show-report` works.
 
 | `dpad` option  | Meaning                                                                                |
 | -------------- | -------------------------------------------------------------------------------------- |
@@ -41,6 +41,7 @@ export default defineConfig({
 | `mock`         | Run a host-side mock server per worker (`network.mock`).                               |
 | `keyOverrides` | How a semantic key is performed for this app. Flagged in reports.                      |
 | `timeouts`     | `actionMs`, `sdkConnectMs`, `navigationSettleMs`. Assertions use `expect.timeout`.     |
+| `remote`       | `intervalMs` between `repeat`/`sequence` presses (100), `longPressMs` (1000).          |
 | `idle`         | `quietMs`, `budgetMs`: how long assertions wait for idle before polling.               |
 | `steps`        | Attach a screenshot and/or text snapshot after every action (costly on devices).       |
 | `video`        | `off`, `on`, `retain-on-failure`, where the driver supports `video`.                   |

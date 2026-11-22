@@ -7,12 +7,12 @@ description: Investigate failing, flaky or timing-out dpad (@dpad-tv/test) TV te
 
 dpad failures are designed to explain themselves: errors carry a hint and a docs slug, and every failed test has a failure dump. Read before changing anything. The full guide is `guides/debugging-failures`.
 
-Docs are referenced by slug, for example `concepts/idle`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md`. Package reference pages ship offline in `node_modules/@dpad-tv/<package>/docs/`.
+Docs are referenced by slug, for example `concepts/idle`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md` (until the site is hosted: under `docs/` in the dpad repository). Package reference pages (`reference/<package>/docs/<page>`) ship offline in each installed package's `docs/`; errors print the exact path.
 
 ## Workflow
 
 1. **Read the error.** A thrown error prints `DpadError: [CODE] message`, `Hint:` (likely cause and fix) and `Docs:` (a slug, plus its offline path in `node_modules`). Follow the hint first. Any code: `reference/core/docs/errors`. A failed assertion prints expected and received state, the focused element and idle status.
-2. **Read the failure dump** (`dpad-failure` attachment, in `test-results/` or the report): focused element, text snapshot of the screen, last keys pressed, busy resources, recent logs and requests; `dpad-screenshot` next to it. The text snapshot shows which test IDs exist and what is focused. (`reference/core/docs/failure-dumps`)
+2. **Read the failure dump** (`test-results/<test>/dpad-failure.md`, path printed with the failure): focused element, text snapshot of the screen, last keys pressed, busy resources, recent logs and requests; `dpad-screenshot` next to it. The text snapshot shows which test IDs exist and what is focused. (`reference/core/docs/failure-dumps`)
 3. **Read the steps** in the report (`npx playwright show-report`): every action is a step. For a screenshot and text snapshot after every step, rerun with `dpad: { steps: { screenshot: true, snapshot: true } }`. Find the first step where reality diverged from intent; that is usually earlier than the failing line.
 4. **Reproduce narrowly**, without retries:
 

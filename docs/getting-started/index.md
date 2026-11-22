@@ -7,14 +7,16 @@ description: Install dpad, configure platforms and run a first cross-platform TV
 dpad is a set of [Playwright Test](https://playwright.dev/docs/intro) fixtures for TV apps. Every platform is a Playwright project, and every test receives one fixture, `app`: the app under test on the current platform. You keep Playwright's runner, reporters, UI mode, retries and sharding.
 
 ::: warning Pre-alpha
-dpad is not on npm yet and its APIs may change. Until the first release, install the packages from a checkout of the dpad repository:
+dpad is not on npm yet and its APIs may change. Until the first release, install tarballs packed from a checkout of the dpad repository:
 
 ```sh
-pnpm install && pnpm build
-for p in core protocol mock test driver-web; do (cd packages/$p && pnpm pack --pack-destination /tmp/dpad); done
-# in your project, instead of the npm install below:
-npm install --save-dev /tmp/dpad/*.tgz @playwright/test
+# in the dpad checkout: packs every package into /tmp/dpad (absolute path)
+pnpm install && pnpm build && pnpm pack:local /tmp/dpad
+# in your project, instead of the npm install below (add dpad-tv-sdk for the in-app SDK)
+npm install --save-dev /tmp/dpad/dpad-tv-{core,protocol,mock,test,driver-web}-0.0.0.tgz @playwright/test
 ```
+
+Install tarballs, not `link:`s to the checkout: a link loads the checkout's own `@playwright/test` next to yours and fails with `Playwright Test did not expect test() to be called here`. With pnpm, also set `pnpm.overrides` for `@dpad-tv/core`, `@dpad-tv/protocol` and `@dpad-tv/mock` to their `file:` tarballs, or it looks them up on npm.
 
 :::
 

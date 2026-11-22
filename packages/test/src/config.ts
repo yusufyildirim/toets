@@ -225,7 +225,7 @@ function withParityReporter(
 ): ReporterDescription[] {
   const base: ReporterDescription[] =
     reporter === undefined
-      ? [[process.env.CI ? 'dot' : 'list']]
+      ? [[process.env.CI ? 'dot' : 'list'], ['html', { open: 'never' }]]
       : typeof reporter === 'string'
         ? [[reporter]]
         : [...reporter];

@@ -7,7 +7,7 @@ description: Write or change end-to-end tests, page objects and fixtures for TV 
 
 dpad tests run on Playwright Test. Each platform is a project; each test gets one fixture, `app`, the app under test on the current platform. A good test drives the app like a user with a remote, checks what the user would see, and means the same on every platform.
 
-Docs are referenced by slug, for example `concepts/focus`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md` and indexed in `/llms.txt`. Package reference pages ship offline in `node_modules/@dpad-tv/<package>/docs/`.
+Docs are referenced by slug, for example `concepts/focus`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md` and indexed in `/llms.txt` (until the site is hosted: under `docs/` in the dpad repository). Package reference pages (`reference/<package>/docs/<page>`) ship offline in each installed package's `docs/`; errors print the exact path.
 
 ## Mental model
 

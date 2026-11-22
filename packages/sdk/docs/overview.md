@@ -25,7 +25,7 @@ const done = markBusy('hero video decode');
 await player.ready();
 done();
 
-const api = getLaunchPayload()?.mockUrl ?? 'https://api.example.com';
+const mockUrl = getLaunchPayload()?.mockUrl; // route API calls through it, see @dpad-tv/mock app-integration
 ```
 
 | Function                                | Purpose                                                          |

@@ -235,7 +235,8 @@ export class FocusImpl implements Focus {
   ): Promise<Direction | null> {
     const here = visits.get(from) as Visit;
     const graph = await this.ctx.target.focusGraph();
-    if (graph) {
+    // A graph without edges (an SDK that only lists focusables) says nothing about paths.
+    if (graph?.some((n) => DIRECTIONS.some((d) => n[d] !== undefined))) {
       // A `null` edge is known not to move focus: never spend a press on it.
       const node = graph.find((n) => n.id === from);
       for (const d of DIRECTIONS) {
