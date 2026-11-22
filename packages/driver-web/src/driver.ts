@@ -520,7 +520,7 @@ function originOf(url: string): string | null {
 }
 
 function isContextLost(error: unknown): boolean {
-  return /Execution context was destroyed|Cannot find context with specified id|navigation/i.test(
+  return /Execution context was destroyed|Cannot find context with specified id/.test(
     firstLine(error),
   );
 }
