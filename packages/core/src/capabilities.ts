@@ -19,6 +19,12 @@ export type Capability =
   | 'key.channel'
   | 'key.longpress'
   | 'focus.graph'
+  /**
+   * The element tree nests like the app's views: a container's children are its children in
+   * the tree. The DOM and the SDK tree do; accessibility trees may list a plain container's
+   * children as its siblings (React Native on Android TV and tvOS).
+   */
+  | 'tree.hierarchy'
   | 'sync.idle'
   | 'media.state'
   | 'app.state'

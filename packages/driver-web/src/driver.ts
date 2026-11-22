@@ -58,6 +58,8 @@ interface Session {
 /** Capabilities every web driver has, regardless of the key map. */
 const BASE_CAPABILITIES: readonly Capability[] = [
   'key.longpress',
+  // The tree is the DOM, nested as the app renders it.
+  'tree.hierarchy',
   'screenshot.element',
   'logs',
   'video',
