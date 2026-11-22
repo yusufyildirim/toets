@@ -31,23 +31,82 @@ function assertCount(name: string, value: number): void {
 const describeHold = (holdMs: number | undefined): string =>
   holdMs === undefined ? '' : ` ${holdMs}ms`;
 
+/** How a key press is performed after key overrides. */
+interface PressPlan {
+  readonly performed: Key;
+  readonly holdMs: number | undefined;
+  /** Set when an override applied, e.g. `hold RIGHT 800ms`. */
+  readonly performedAs: string | undefined;
+}
+
+function planPress(ctx: RuntimeContext, key: Key, opts?: PressOptions): PressPlan {
+  const override = ctx.keyOverrides[key];
+  const performed = override?.as ?? key;
+  const holdMs = override?.holdMs ?? opts?.holdMs;
+  const performedAs = override
+    ? `${holdMs === undefined ? 'press' : 'hold'} ${performed}${describeHold(holdMs)}`
+    : undefined;
+  return { performed, holdMs, performedAs };
+}
+
+/**
+ * Why pressing `key` would fail on this target (unknown key, missing key capability, no long
+ * press), after key overrides; `null` when the press would be sent.
+ */
+export function keyError(ctx: RuntimeContext, key: unknown, opts?: PressOptions): DpadError | null {
+  try {
+    assertKey(key);
+  } catch (e) {
+    return e as DpadError;
+  }
+  return planError(ctx, key, planPress(ctx, key, opts));
+}
+
+function planError(ctx: RuntimeContext, key: Key, plan: PressPlan): DpadError | null {
+  const { performed, holdMs, performedAs } = plan;
+  const platform = ctx.target.driver.platform;
+  const caps = ctx.target.capabilities;
+  const needed = KEY_CAPABILITY[performed];
+  const via = performedAs ? ` (performed as ${performedAs} by a key override)` : '';
+  if (needed && !caps.has(needed)) {
+    return new DpadError(
+      'KEY_UNSUPPORTED',
+      `${platform} has no ${performed} key${via}: it needs capability '${needed}'.`,
+      {
+        hint: performedAs
+          ? `Fix the key override for ${key} in the dpad config so it uses a key this platform has.`
+          : `Declare requires('${needed}') on the test so it is skipped here, or, if the app maps this action to another gesture on ${platform}, add a key override for ${key}.`,
+        docs: packageDocsLink('core', 'remote'),
+      },
+    );
+  }
+  if (holdMs !== undefined && !caps.has('key.longpress')) {
+    return new DpadError(
+      'KEY_UNSUPPORTED',
+      `${platform} cannot hold keys${via}: long presses need capability 'key.longpress'.`,
+      {
+        hint: `Declare requires('key.longpress') on the test so it is skipped here.`,
+        docs: packageDocsLink('core', 'remote'),
+      },
+    );
+  }
+  return null;
+}
+
 /**
  * The remote: semantic keys only. Every press goes through key overrides, then a capability
- * check, then the driver; each press is one reported step.
+ * check, then the driver; each press is one reported step. `repeat` and `sequence` check every
+ * key before pressing the first, so an unsupported key never leaves the app half-way.
  */
 export class RemoteImpl implements Remote {
   constructor(private readonly ctx: RuntimeContext) {}
 
   async press(key: Key, opts?: PressOptions): Promise<void> {
     assertKey(key);
-    const override = this.ctx.keyOverrides[key];
-    const performed = override?.as ?? key;
-    const holdMs = override?.holdMs ?? opts?.holdMs;
-    const performedAs = override
-      ? `${holdMs === undefined ? 'press' : 'hold'} ${performed}${describeHold(holdMs)}`
-      : undefined;
-
-    this.checkSupported(key, performed, holdMs, performedAs);
+    const plan = planPress(this.ctx, key, opts);
+    const error = planError(this.ctx, key, plan);
+    if (error) throw error;
+    const { performed, holdMs, performedAs } = plan;
 
     const verb = opts?.holdMs === undefined ? 'press' : 'longPress';
     const title = `${verb} ${key}${describeHold(opts?.holdMs)}${performedAs ? ` (override: ${performedAs})` : ''}`;
@@ -77,6 +136,7 @@ export class RemoteImpl implements Remote {
   async repeat(key: Key, times: number, opts?: { intervalMs?: number }): Promise<void> {
     assertKey(key);
     assertCount('times', times);
+    this.checkAll([key]);
     const interval = opts?.intervalMs ?? this.ctx.remote.intervalMs;
     await this.ctx.step({ kind: 'repeat', title: `repeat ${key} x${times}` }, async () => {
       for (let i = 0; i < times; i++) {
@@ -88,6 +148,7 @@ export class RemoteImpl implements Remote {
 
   async sequence(keys: readonly Key[], opts?: { intervalMs?: number }): Promise<void> {
     keys.forEach(assertKey);
+    this.checkAll(keys);
     const interval = opts?.intervalMs ?? this.ctx.remote.intervalMs;
     await this.ctx.step({ kind: 'sequence', title: `sequence ${keys.join(', ')}` }, async () => {
       for (const [i, key] of keys.entries()) {
@@ -97,37 +158,10 @@ export class RemoteImpl implements Remote {
     });
   }
 
-  private checkSupported(
-    key: Key,
-    performed: Key,
-    holdMs: number | undefined,
-    performedAs: string | undefined,
-  ): void {
-    const platform = this.ctx.target.driver.platform;
-    const caps = this.ctx.target.capabilities;
-    const needed = KEY_CAPABILITY[performed];
-    const via = performedAs ? ` (performed as ${performedAs} by a key override)` : '';
-    if (needed && !caps.has(needed)) {
-      throw new DpadError(
-        'KEY_UNSUPPORTED',
-        `${platform} has no ${performed} key${via}: it needs capability '${needed}'.`,
-        {
-          hint: performedAs
-            ? `Fix the key override for ${key} in the dpad config so it uses a key this platform has.`
-            : `Declare requires('${needed}') on the test so it is skipped here, or, if the app maps this action to another gesture on ${platform}, add a key override for ${key}.`,
-          docs: packageDocsLink('core', 'remote'),
-        },
-      );
-    }
-    if (holdMs !== undefined && !caps.has('key.longpress')) {
-      throw new DpadError(
-        'KEY_UNSUPPORTED',
-        `${platform} cannot hold keys${via}: long presses need capability 'key.longpress'.`,
-        {
-          hint: `Declare requires('key.longpress') on the test so it is skipped here.`,
-          docs: packageDocsLink('core', 'remote'),
-        },
-      );
+  private checkAll(keys: readonly Key[]): void {
+    for (const key of keys) {
+      const error = planError(this.ctx, key, planPress(this.ctx, key));
+      if (error) throw error;
     }
   }
 }

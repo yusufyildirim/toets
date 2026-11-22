@@ -11,7 +11,7 @@ await app.remote.longPress(Key.SELECT, 800);
 
 ## Principles
 
-- **Capabilities, not platform checks.** D-pad and `SELECT` work everywhere. Other keys need a capability (`BACK` needs `key.back`, color keys need `key.color`, ...). Pressing an unsupported key fails with `KEY_UNSUPPORTED`. Declare it with `requires('key.color')` so the test is skipped on platforms without it.
+- **Capabilities, not platform checks.** D-pad and `SELECT` work everywhere. Other keys need a capability (`BACK` needs `key.back`, color keys need `key.color`, ...). Pressing an unsupported key fails with `KEY_UNSUPPORTED`; `repeat` and `sequence` check every key before the first press, so they never stop half-way. Declare it with `requires('key.color')` so the test is skipped on platforms without it.
 - **Key overrides describe the app, not the platform.** When an app maps a semantic key to another gesture, configure it once instead of branching in tests:
 
   ```ts nocheck

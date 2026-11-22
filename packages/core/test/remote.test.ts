@@ -43,6 +43,28 @@ describe('remote', () => {
     expect(driver.presses).toEqual([]);
   });
 
+  it('checks every key of a sequence or repeat before pressing the first', async () => {
+    const { app, driver } = setup({ capabilities: [] });
+    await expect(app.remote.sequence([Key.RIGHT, Key.PLAY_PAUSE])).rejects.toMatchObject({
+      code: 'KEY_UNSUPPORTED',
+    });
+    await expect(app.remote.repeat(Key.RED, 2)).rejects.toMatchObject({ code: 'KEY_UNSUPPORTED' });
+    expect(driver.presses).toEqual([]);
+  });
+
+  it('tells whether a key would be sent, after overrides', () => {
+    const { runtime } = setup({
+      capabilities: ['key.longpress'],
+      runtime: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } },
+    });
+    expect(runtime.checkKey(Key.RIGHT)).toBeNull();
+    expect(runtime.checkKey(Key.FAST_FORWARD)).toBeNull();
+    expect(runtime.checkKey(Key.REWIND)?.code).toBe('KEY_UNSUPPORTED');
+    expect(runtime.checkKey('KEYCODE_ENTER' as Key)?.code).toBe('UNKNOWN_KEY');
+    const noHold = setup({ capabilities: [] }).runtime;
+    expect(noHold.checkKey(Key.SELECT, { holdMs: 500 })?.message).toContain('key.longpress');
+  });
+
   it('applies key overrides, checks the performed key and flags the step', async () => {
     const infos: ActionInfo[] = [];
     const { app, driver, runtime } = setup({

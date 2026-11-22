@@ -179,3 +179,17 @@ export function locatorImpl(value: unknown): LocatorImpl | null {
 export function isLocator(value: unknown): value is Locator {
   return value instanceof LocatorImpl;
 }
+
+/**
+ * Current matches of a dpad Locator in tree order, without waiting and without strictness.
+ * For runners and tools (the MCP `query` tool); tests assert with `expect` instead.
+ */
+export function resolveLocator(locator: Locator): Promise<readonly ElementSnapshot[]> {
+  const impl = locatorImpl(locator);
+  if (!impl) {
+    throw new DpadError('INVALID_ARGUMENT', 'resolveLocator() takes a dpad Locator.', {
+      docs: packageDocsLink('core', 'locators'),
+    });
+  }
+  return impl.resolve();
+}

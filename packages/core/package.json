@@ -11,6 +11,11 @@
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json",
+    "./runner": {
+      "@dpad-tv/source": "./src/runner/index.ts",
+      "types": "./dist/runner/index.d.ts",
+      "default": "./dist/runner/index.js"
+    },
     "./testing": {
       "@dpad-tv/source": "./src/testing/index.ts",
       "types": "./dist/testing/index.d.ts",

@@ -1,0 +1,224 @@
+import { mkdir } from 'node:fs/promises';
+import type { SdkHost } from '@dpad-tv/protocol';
+import { createSdkHost } from '@dpad-tv/protocol/host';
+import type { DeviceLease } from '../devices.js';
+import type { AppTargetConfig, Driver, DriverModule } from '../driver.js';
+import { DpadError, packageDocsLink } from '../errors.js';
+import type { MockServerLike } from '../mock.js';
+import type { Platform } from '../platform.js';
+import { AppRuntime } from '../runtime/app.js';
+import type { IdleOptions, KeyOverrides, RemoteOptions, Timeouts } from '../runtime/options.js';
+import { selectDeviceProvider, type DeviceSelection } from './devices.js';
+import { loadDriverModule } from './load.js';
+
+/** Creates the host-side mock server; `createMockServer` from `@dpad-tv/mock` fits. */
+export type MockServerFactory = (opts: { port?: number }) => Promise<MockServerLike>;
+
+/**
+ * Runtime options every runner understands: the `dpad` options of the test config, which the
+ * MCP server reads too.
+ */
+export interface RuntimeConfig {
+  /**
+   * In-app SDK. When on, each launch issues a token and waits for the app to connect, adding
+   * the SDK capabilities (idle sync, focus graph, media, launch states, logs). Default off.
+   */
+  readonly sdk?:
+    | boolean
+    | {
+        readonly port?: number;
+        /** Custom host factory; default `createSdkHost` from `@dpad-tv/protocol/host`. */
+        readonly createHost?: (opts: { port?: number }) => Promise<SdkHost>;
+      };
+  /** Host-side network mocking with `@dpad-tv/mock` (`network.mock`). Default off. */
+  readonly mock?:
+    | boolean
+    | {
+        readonly port?: number;
+        /** Custom server factory; default `createMockServer` from `@dpad-tv/mock`. */
+        readonly createServer?: MockServerFactory;
+      };
+  /**
+   * App-level key overrides: how a semantic key is performed when the app maps it to another
+   * gesture, e.g. `{ FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } }`. Flagged in reports.
+   */
+  readonly keyOverrides?: KeyOverrides;
+  readonly timeouts?: Partial<Timeouts>;
+  readonly idle?: Partial<IdleOptions>;
+  readonly remote?: Partial<RemoteOptions>;
+}
+
+/** Merges runtime options: `over` wins, nested option groups merge key by key. */
+export function mergeRuntimeConfig<T extends RuntimeConfig>(base: T, over: T): T {
+  return {
+    ...base,
+    ...over,
+    keyOverrides: { ...base.keyOverrides, ...over.keyOverrides },
+    timeouts: { ...base.timeouts, ...over.timeouts },
+    idle: { ...base.idle, ...over.idle },
+    remote: { ...base.remote, ...over.remote },
+  };
+}
+
+/** One app target to run: driver, app, device and runtime options. */
+export interface TargetConfig {
+  /** Expected platform; the driver module must drive it. Default: whatever the driver drives. */
+  readonly platform?: Platform;
+  /** Driver package name, path relative to `configDir`, or the `DriverModule` itself. */
+  readonly driver: string | DriverModule<never>;
+  /** The driver's own options, passed to `createDriver` and `createDeviceProvider`. */
+  readonly driverOptions?: Readonly<Record<string, unknown>>;
+  readonly app?: AppTargetConfig;
+  /** What the device provider is asked for. */
+  readonly device?: { readonly model?: string; readonly osVersion?: string };
+  /** Default: `managed` when the driver provides devices. */
+  readonly devices?: DeviceSelection;
+  readonly options?: RuntimeConfig;
+}
+
+export interface TargetContext {
+  /** Playwright's worker index (`0` outside the test runner). */
+  readonly workerIndex: number;
+  /** Worker slot: picks the external device and command lease. `0` outside the test runner. */
+  readonly parallelIndex: number;
+  /** Directory driver paths and relative app paths resolve against. */
+  readonly configDir: string;
+  readonly artifactsDir: string;
+  readonly log: (message: string) => void;
+  /**
+   * Mock server factory used when `options.mock` is on without its own `createServer`. The core
+   * does not depend on `@dpad-tv/mock`; runners pass its `createMockServer`.
+   */
+  readonly createMockServer?: MockServerFactory;
+}
+
+async function startSdkHost(
+  sdk: RuntimeConfig['sdk'],
+  log: (m: string) => void,
+): Promise<SdkHost | undefined> {
+  if (!sdk) return undefined;
+  const port = typeof sdk === 'object' ? sdk.port : undefined;
+  const opts = port === undefined ? {} : { port };
+  if (typeof sdk === 'object' && sdk.createHost) return sdk.createHost(opts);
+  return createSdkHost({
+    ...opts,
+    onEvent: (e) => {
+      if (e.type === 'rejected') log(`SDK host rejected a connection (${e.reason}): ${e.message}`);
+      else if (e.type === 'session') log(`SDK connected: ${e.hello.sdk} (${e.hello.framework})`);
+      else if (e.type === 'session-closed') log(`SDK session closed: ${e.code} ${e.reason}`);
+    },
+  });
+}
+
+async function startMockServer(
+  mock: RuntimeConfig['mock'],
+  fallback: MockServerFactory | undefined,
+): Promise<MockServerLike | undefined> {
+  if (!mock) return undefined;
+  const port = typeof mock === 'object' ? mock.port : undefined;
+  const opts = port === undefined ? {} : { port };
+  const create = (typeof mock === 'object' ? mock.createServer : undefined) ?? fallback;
+  if (!create) {
+    throw new DpadError('MOCK_UNAVAILABLE', 'Network mocking is on, but no mock server is set.', {
+      hint: 'Pass `createMockServer` from @dpad-tv/mock to startTarget, or set `mock.createServer`.',
+      docs: packageDocsLink('core', 'network'),
+    });
+  }
+  return create(opts);
+}
+
+/**
+ * A running target: device lease, started driver, mock server, SDK host and the app runtime.
+ * What one Playwright worker or one MCP session owns.
+ */
+export class RunningTarget {
+  private constructor(
+    readonly runtime: AppRuntime,
+    readonly module: DriverModule,
+    readonly lease: DeviceLease | undefined,
+    private readonly disposers: (() => Promise<void>)[],
+  ) {}
+
+  get driver(): Driver {
+    return this.runtime.driver;
+  }
+
+  /**
+   * Starts everything a target needs, in order: device lease, driver session, mock server, SDK
+   * host, runtime. When a step fails, what already started is stopped before the error is
+   * rethrown.
+   */
+  static async start(config: TargetConfig, ctx: TargetContext): Promise<RunningTarget> {
+    const disposers: (() => Promise<void>)[] = [];
+    const options = config.options ?? {};
+    const driverOptions = config.driverOptions ?? {};
+    try {
+      await mkdir(ctx.artifactsDir, { recursive: true });
+      const module = await loadDriverModule(config.driver, ctx.configDir, config.platform);
+
+      const provider = selectDeviceProvider(config.devices, module, driverOptions);
+      let lease: DeviceLease | undefined;
+      if (provider) {
+        disposers.push(() => provider.dispose());
+        lease = await provider.acquire(
+          { ...config.device, platform: module.platform },
+          { workerIndex: ctx.workerIndex, parallelIndex: ctx.parallelIndex },
+        );
+        const held = lease;
+        disposers.push(() => held.release());
+        ctx.log(`leased ${module.platform} device ${lease.address}`);
+      }
+
+      const driver = await module.createDriver(driverOptions, {
+        app: config.app ?? {},
+        configDir: ctx.configDir,
+        ...(lease ? { device: lease } : {}),
+        workerIndex: ctx.workerIndex,
+        artifactsDir: ctx.artifactsDir,
+        log: ctx.log,
+      });
+      disposers.push(() => driver.stop());
+      await driver.start();
+
+      const mock = await startMockServer(options.mock, ctx.createMockServer);
+      if (mock) disposers.push(() => mock.close());
+      const sdkHost = await startSdkHost(options.sdk, ctx.log);
+      if (sdkHost) disposers.push(() => sdkHost.close());
+
+      const runtime = new AppRuntime({
+        driver,
+        sdkHost,
+        mock,
+        keyOverrides: options.keyOverrides,
+        timeouts: options.timeouts,
+        idle: options.idle,
+        remote: options.remote,
+        log: ctx.log,
+      });
+      disposers.push(() => runtime.dispose());
+      return new RunningTarget(runtime, module, lease, disposers);
+    } catch (error) {
+      await RunningTarget.dispose(disposers, ctx.log);
+      throw error;
+    }
+  }
+
+  private static async dispose(
+    disposers: readonly (() => Promise<void>)[],
+    log: (message: string) => void,
+  ): Promise<void> {
+    for (const dispose of [...disposers].reverse()) {
+      try {
+        await dispose();
+      } catch (e) {
+        log(`teardown step failed: ${String(e)}`);
+      }
+    }
+  }
+
+  /** Stops everything in reverse start order. Teardown errors are logged, never thrown. */
+  async stop(log: (message: string) => void): Promise<void> {
+    const disposers = this.disposers.splice(0);
+    await RunningTarget.dispose(disposers, log);
+  }
+}
