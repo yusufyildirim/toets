@@ -117,7 +117,7 @@ function compilerOptions(stubs: readonly string[]): ts.CompilerOptions {
     jsx: ts.JsxEmit.Preserve,
     moduleDetection: ts.ModuleDetectionKind.Force,
     allowImportingTsExtensions: true,
-    customConditions: ['source'],
+    customConditions: ['@dpad-tv/source'],
     types: ['node'],
     typeRoots: [join(docsDir, 'node_modules/@types')],
     paths: Object.fromEntries(

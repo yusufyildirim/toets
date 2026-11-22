@@ -1,16 +1,17 @@
 import { fileURLToPath } from 'node:url';
-import { defineConfig } from 'vitest/config';
+import { defineConfig, mergeConfig } from 'vitest/config';
+import base from '../../vitest.shared.ts';
 
-export default defineConfig({
-  resolve: {
-    conditions: ['source'],
-    alias: [
-      {
-        find: /^react-native$/,
-        replacement: fileURLToPath(new URL('./test/mocks/react-native.ts', import.meta.url)),
-      },
-    ],
-  },
-  ssr: { resolve: { conditions: ['source'], externalConditions: ['source'] } },
-  test: { include: ['src/**/*.test.ts', 'test/**/*.test.ts'] },
-});
+export default mergeConfig(
+  base,
+  defineConfig({
+    resolve: {
+      alias: [
+        {
+          find: /^react-native$/,
+          replacement: fileURLToPath(new URL('./test/mocks/react-native.ts', import.meta.url)),
+        },
+      ],
+    },
+  }),
+);

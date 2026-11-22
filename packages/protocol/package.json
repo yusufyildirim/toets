@@ -6,17 +6,17 @@
   "type": "module",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
+      "@dpad-tv/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./host": {
-      "source": "./src/server/index.ts",
+      "@dpad-tv/source": "./src/server/index.ts",
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
     },
     "./conformance": {
-      "source": "./src/conformance/index.ts",
+      "@dpad-tv/source": "./src/conformance/index.ts",
       "types": "./dist/conformance/index.d.ts",
       "default": "./dist/conformance/index.js"
     },

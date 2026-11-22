@@ -6,17 +6,17 @@
   "type": "module",
   "exports": {
     ".": {
-      "source": "./src/index.ts",
+      "@dpad-tv/source": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./web": {
-      "source": "./src/web/index.ts",
+      "@dpad-tv/source": "./src/web/index.ts",
       "types": "./dist/web/index.d.ts",
       "default": "./dist/web/index.js"
     },
     "./noop": {
-      "source": "./src/noop.ts",
+      "@dpad-tv/source": "./src/noop.ts",
       "types": "./dist/noop.d.ts",
       "default": "./dist/noop.js"
     },

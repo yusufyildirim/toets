@@ -1,15 +1,4 @@
 {
   "extends": "../../tsconfig.base.json",
-  "compilerOptions": {
-    // Workspace packages map to their sources through `paths` instead of the `source` export
-    // condition, which third-party packages (eventsource, via the MCP client) publish too.
-    // No `rootDir`: tsc only type-checks here (tsdown builds), and mapped sources live outside.
-    "paths": {
-      "@dpad-tv/core/testing": ["../core/src/testing/index.ts"],
-      "@dpad-tv/*": ["../*/src/index.ts"]
-    },
-    "types": ["node"],
-    "noEmit": true
-  },
-  "include": ["src", "test", "*.config.ts", "package.json"]
+  "include": ["src", "test", "*.config.ts"]
 }

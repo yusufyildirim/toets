@@ -5,8 +5,8 @@ coverage
 .DS_Store
 playwright-report
 test-results
-.vitepress/cache
-.vitepress/dist
+**/.vitepress/cache
+**/.vitepress/dist
 .env*
 
 # dpad

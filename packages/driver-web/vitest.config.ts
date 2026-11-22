@@ -1,13 +1,10 @@
-import { defineConfig } from 'vitest/config';
+import { defineConfig, mergeConfig } from 'vitest/config';
+import base from '../../vitest.shared.ts';
 
-export default defineConfig({
-  resolve: { conditions: ['source'] },
-  // Vitest runs tests in the SSR environment, which has its own resolve conditions.
-  ssr: { resolve: { conditions: ['source'] } },
-  test: {
-    include: ['src/**/*.test.ts', 'test/**/*.test.ts'],
+export default mergeConfig(
+  base,
+  defineConfig({
     // Integration tests drive a real Chromium.
-    testTimeout: 30_000,
-    hookTimeout: 60_000,
-  },
-});
+    test: { testTimeout: 30_000, hookTimeout: 60_000 },
+  }),
+);

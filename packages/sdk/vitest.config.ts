@@ -1,7 +1,1 @@
-import { defineConfig } from 'vitest/config';
-
-export default defineConfig({
-  resolve: { conditions: ['source'] },
-  ssr: { resolve: { conditions: ['source'], externalConditions: ['source'] } },
-  test: { include: ['src/**/*.test.ts', 'test/**/*.test.ts'] },
-});
+export { default } from '../../vitest.shared.ts';

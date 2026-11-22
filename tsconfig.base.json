@@ -11,9 +11,12 @@
     "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "declaration": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
     "sourceMap": true,
     "skipLibCheck": true,
     "resolveJsonModule": true,
-    "forceConsistentCasingInFileNames": true
+    "forceConsistentCasingInFileNames": true,
+    "customConditions": ["@dpad-tv/source"]
   }
 }

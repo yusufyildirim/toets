@@ -34,7 +34,7 @@ function playwright(dir: string, args: string[], env: Record<string, string> = {
     encoding: 'utf8',
     env: {
       ...process.env,
-      NODE_OPTIONS: '--conditions=source',
+      NODE_OPTIONS: '--conditions=@dpad-tv/source',
       DPAD_SMOKE_DIR: join(root, dir),
       CI: '',
       ...env,

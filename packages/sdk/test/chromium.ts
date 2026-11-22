@@ -10,7 +10,7 @@ export async function bundleFixture(relative: string): Promise<string> {
   const bundle = await rolldown({
     input: fileURLToPath(new URL(relative, import.meta.url)),
     platform: 'browser',
-    resolve: { conditionNames: ['source', 'import', 'default'] },
+    resolve: { conditionNames: ['@dpad-tv/source', 'import', 'default'] },
     transform: { target: 'es2015' },
     logLevel: 'silent',
   });
