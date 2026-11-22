@@ -17,7 +17,12 @@ export interface PrebuiltWdaOptions {
   readonly projectDir?: string;
 }
 
-const PRODUCT = join('Build', 'Products', 'Debug-appletvsimulator', 'WebDriverAgentRunner_tvOS-Runner.app');
+const PRODUCT = join(
+  'Build',
+  'Products',
+  'Debug-appletvsimulator',
+  'WebDriverAgentRunner_tvOS-Runner.app',
+);
 const MARKER = '.dpad-complete';
 const POLL_MS = 1000;
 
@@ -45,9 +50,7 @@ export async function ensurePrebuiltWda(opts: PrebuiltWdaOptions = {}): Promise<
   const runner = opts.runner ?? defaultRunner;
   const log = opts.log ?? (() => {});
   const buildTimeoutMs = opts.buildTimeoutMs ?? 900_000;
-  const wda = opts.projectDir
-    ? { dir: opts.projectDir, version: 'custom' }
-    : bundledWda();
+  const wda = opts.projectDir ? { dir: opts.projectDir, version: 'custom' } : bundledWda();
   const xcode = await xcodeBuildVersion(runner);
   const dir = join(opts.cacheDir ?? defaultWdaCacheDir(), `wda-${wda.version}-xcode-${xcode}`);
   const app = join(dir, PRODUCT);

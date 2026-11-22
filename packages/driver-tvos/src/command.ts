@@ -20,7 +20,11 @@ export interface RunOptions {
 export interface CommandRunner {
   run(command: string, args: readonly string[], opts?: RunOptions): Promise<CommandResult>;
   /** Starts a long-running process (log streams, screen recording). */
-  spawn(command: string, args: readonly string[], opts?: { readonly env?: NodeJS.ProcessEnv }): ChildProcess;
+  spawn(
+    command: string,
+    args: readonly string[],
+    opts?: { readonly env?: NodeJS.ProcessEnv },
+  ): ChildProcess;
 }
 
 /** The real runner, backed by `node:child_process`. */
@@ -53,7 +57,10 @@ export const defaultRunner: CommandRunner = {
     });
   },
   spawn(command, args, opts = {}) {
-    return spawn(command, args, { env: opts.env ?? process.env, stdio: ['ignore', 'pipe', 'pipe'] });
+    return spawn(command, args, {
+      env: opts.env ?? process.env,
+      stdio: ['ignore', 'pipe', 'pipe'],
+    });
   },
 };
 

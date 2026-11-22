@@ -125,7 +125,9 @@ function levelOf(messageType: unknown): LogEntry['level'] {
 /** `2026-11-22 10:00:00.123456+0100` -> epoch ms. */
 function parseTimestamp(value: unknown): number {
   if (typeof value !== 'string') return Date.now();
-  const m = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})(\.\d{1,3})?\d*([+-]\d{2})(\d{2})$/.exec(value);
+  const m = /^(\d{4}-\d{2}-\d{2}) (\d{2}:\d{2}:\d{2})(\.\d{1,3})?\d*([+-]\d{2})(\d{2})$/.exec(
+    value,
+  );
   if (!m) return Date.now();
   const ms = Date.parse(`${m[1]}T${m[2]}${m[3] ?? ''}${m[4]}:${m[5]}`);
   return Number.isNaN(ms) ? Date.now() : ms;

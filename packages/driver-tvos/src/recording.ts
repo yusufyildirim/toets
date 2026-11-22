@@ -24,8 +24,16 @@ export class ScreenRecorder {
   }
 
   async start(path: string): Promise<void> {
-    if (this.child) throw tvosError(TvosErrorCode.RECORDING_FAILED, 'A recording is already running.');
-    const child = this.simctl.spawn(['io', this.udid, 'recordVideo', '--codec=h264', '--force', path]);
+    if (this.child)
+      throw tvosError(TvosErrorCode.RECORDING_FAILED, 'A recording is already running.');
+    const child = this.simctl.spawn([
+      'io',
+      this.udid,
+      'recordVideo',
+      '--codec=h264',
+      '--force',
+      path,
+    ]);
     this.child = child;
     this.path = path;
     try {

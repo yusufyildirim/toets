@@ -42,7 +42,12 @@ export {
 } from './devices.js';
 export { ensurePrebuiltWda, defaultWdaCacheDir, type PrebuiltWdaOptions } from './wda.js';
 export { startAppiumServer, type AppiumServer, type StartAppiumOptions } from './appium-server.js';
-export { defaultRunner, type CommandRunner, type CommandResult, type RunOptions } from './command.js';
+export {
+  defaultRunner,
+  type CommandRunner,
+  type CommandResult,
+  type RunOptions,
+} from './command.js';
 export { parseSource, type WdaSourceNode } from './source.js';
 export { TvosErrorCode } from './errors.js';
 export type { TvosSession, CreateSession, SessionRequest } from './session.js';

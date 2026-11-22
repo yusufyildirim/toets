@@ -122,7 +122,10 @@ export class Simctl {
 
   /** Path of an installed app's bundle, or `null` when the app is not installed. */
   async appBundlePath(udid: string, bundleId: string): Promise<string | null> {
-    const res = await this.runner.run('xcrun', this.args(['get_app_container', udid, bundleId, 'app']));
+    const res = await this.runner.run(
+      'xcrun',
+      this.args(['get_app_container', udid, bundleId, 'app']),
+    );
     return res.exitCode === 0 ? res.stdout.trim() || null : null;
   }
 

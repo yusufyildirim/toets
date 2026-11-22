@@ -13,7 +13,12 @@ export interface WdaSourceNode {
   readonly name?: string | null;
   readonly label?: string | null;
   readonly value?: string | number | null;
-  readonly rect?: { readonly x: number; readonly y: number; readonly width: number; readonly height: number };
+  readonly rect?: {
+    readonly x: number;
+    readonly y: number;
+    readonly width: number;
+    readonly height: number;
+  };
   readonly isEnabled?: string | boolean | number;
   readonly isVisible?: string | boolean | number;
   readonly isAccessible?: string | boolean | number;
@@ -95,7 +100,9 @@ function toNode(
   viewport: { width: number; height: number },
   focusedPath: string | null,
 ): UINode {
-  const children = (n.children ?? []).map((c, i) => toNode(c, `${path}.${i}`, viewport, focusedPath));
+  const children = (n.children ?? []).map((c, i) =>
+    toNode(c, `${path}.${i}`, viewport, focusedPath),
+  );
   const bounds = rectOf(n);
   const hasSize = bounds.width > 0 && bounds.height > 0;
   const visible = hasSize && (n.isVisible === undefined || bool(n.isVisible));
@@ -105,7 +112,9 @@ function toNode(
   const label = str(n.label);
   // The application's label is its display name, not on-screen text.
   const ownText =
-    n.type === 'Application' ? null : (label ?? (TEXT_VALUE_TYPES.has(n.type) ? str(n.value) : null));
+    n.type === 'Application'
+      ? null
+      : (label ?? (TEXT_VALUE_TYPES.has(n.type) ? str(n.value) : null));
   const text =
     ownText !== null && bool(n.isAccessible)
       ? normalize(ownText)
@@ -118,8 +127,7 @@ function toNode(
     bounds,
     visible,
     inViewport: visible && intersects(bounds, viewport),
-    focusable:
-      focused || FOCUSABLE_TYPES.has(n.type) || traits.has('Button') || traits.has('Link'),
+    focusable: focused || FOCUSABLE_TYPES.has(n.type) || traits.has('Button') || traits.has('Link'),
     focused,
     focusWithin: focused || children.some((c) => c.focusWithin),
     enabled: n.isEnabled === undefined || bool(n.isEnabled),
@@ -155,7 +163,12 @@ function intersects(b: Rect, viewport: { width: number; height: number }): boole
 }
 
 function parseTraits(traits: string | null | undefined): Set<string> {
-  return new Set((traits ?? '').split(',').map((t) => t.trim()).filter(Boolean));
+  return new Set(
+    (traits ?? '')
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean),
+  );
 }
 
 function bool(v: string | boolean | number | undefined): boolean {

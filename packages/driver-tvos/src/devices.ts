@@ -70,7 +70,8 @@ export function createManagedDeviceProvider(
       const existing = devices.find(
         (d) => d.name === name && d.runtimeId === runtime.identifier && d.isAvailable,
       );
-      const udid = existing?.udid ?? (await simctl.create(name, type.identifier, runtime.identifier));
+      const udid =
+        existing?.udid ?? (await simctl.create(name, type.identifier, runtime.identifier));
       if (existing?.state !== 'Booted') bootedByUs.add(udid);
       await boot(simctl, udid, bootTimeoutMs);
       return {

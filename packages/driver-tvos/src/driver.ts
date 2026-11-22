@@ -14,7 +14,12 @@ import type {
   UITree,
 } from '@dpad-tv/core';
 import { LAUNCH_PARAM, encodeLaunchPayload } from '@dpad-tv/protocol';
-import { startAppiumServer, freePort, type AppiumServer, type StartAppiumOptions } from './appium-server.js';
+import {
+  startAppiumServer,
+  freePort,
+  type AppiumServer,
+  type StartAppiumOptions,
+} from './appium-server.js';
 import { defaultRunner, tail, type CommandRunner } from './command.js';
 import { deviceSetFromLease, prepareSimulator, type TvosSimulator } from './devices.js';
 import { TvosErrorCode, errorMessage, tvosError } from './errors.js';
@@ -114,7 +119,9 @@ export class TvosDriver implements Driver {
       });
       const t0 = Date.now();
       session = await this.openSession(serverUrl, capabilities, appium);
-      ctx.log(`tvOS session on ${simulator.name} (${simulator.osVersion}) ready in ${Date.now() - t0}ms`);
+      ctx.log(
+        `tvOS session on ${simulator.name} (${simulator.osVersion}) ready in ${Date.now() - t0}ms`,
+      );
 
       if (this.app.app) await simctl.exec(['install', simulator.udid, this.app.app]);
       const logs = await this.startLogs(simctl, simulator);
@@ -183,28 +190,40 @@ export class TvosDriver implements Driver {
       });
     }
     const holdMs = opts?.holdMs ?? 0;
-    await this.mobile('pressButton', holdMs > 0 ? { name, durationSeconds: holdMs / 1000 } : { name });
+    await this.mobile(
+      'pressButton',
+      holdMs > 0 ? { name, durationSeconds: holdMs / 1000 } : { name },
+    );
   }
 
   async screenshot(opts?: { readonly element?: ElementRef }): Promise<Uint8Array> {
     const { session } = this.require();
-    if (!opts?.element) return decodeBase64(await this.call('screenshot', () => session.takeScreenshot()));
+    if (!opts?.element)
+      return decodeBase64(await this.call('screenshot', () => session.takeScreenshot()));
     // Resolve the element against the current screen, then crop one viewport screenshot.
     const tree = await this.tree();
     const node = findByRef(tree, opts.element);
     if (!node) {
-      throw tvosError(TvosErrorCode.ELEMENT_DETACHED, `Element ${opts.element} is no longer on screen.`, {
-        hint: 'Re-resolve the locator; refs are tied to the screen structure they came from.',
-        docs: 'traps',
-      });
+      throw tvosError(
+        TvosErrorCode.ELEMENT_DETACHED,
+        `Element ${opts.element} is no longer on screen.`,
+        {
+          hint: 'Re-resolve the locator; refs are tied to the screen structure they came from.',
+          docs: 'traps',
+        },
+      );
     }
     const png = decodeBase64(await this.call('screenshot', () => session.takeScreenshot()));
     const cropped = node.visible ? cropPng(png, node.bounds, tree.viewport.width) : null;
     if (!cropped) {
-      throw tvosError(TvosErrorCode.ELEMENT_NOT_VISIBLE, `Element ${opts.element} is not visible on screen.`, {
-        hint: 'Bring it into view (navigate focus to it) before taking its screenshot.',
-        docs: 'traps',
-      });
+      throw tvosError(
+        TvosErrorCode.ELEMENT_NOT_VISIBLE,
+        `Element ${opts.element} is not visible on screen.`,
+        {
+          hint: 'Bring it into view (navigate focus to it) before taking its screenshot.',
+          docs: 'traps',
+        },
+      );
     }
     return cropped;
   }
@@ -318,7 +337,10 @@ export class TvosDriver implements Driver {
     }
   }
 
-  private async startLogs(simctl: Simctl, simulator: TvosSimulator): Promise<AppLogStream | undefined> {
+  private async startLogs(
+    simctl: Simctl,
+    simulator: TvosSimulator,
+  ): Promise<AppLogStream | undefined> {
     const logsOpt = this.options.logs ?? {};
     if (logsOpt.enabled === false) return undefined;
     const processName = logsOpt.process ?? (await this.executableName(simctl, simulator.udid));

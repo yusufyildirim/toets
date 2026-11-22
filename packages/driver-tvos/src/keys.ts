@@ -1,7 +1,8 @@
 import type { Capability, Key } from '@dpad-tv/core';
 
 /** Button names of `XCUIRemote` as accepted by XCUITest's `mobile: pressButton`. */
-export type RemoteButton = 'up' | 'down' | 'left' | 'right' | 'select' | 'menu' | 'playpause' | 'home';
+export type RemoteButton =
+  'up' | 'down' | 'left' | 'right' | 'select' | 'menu' | 'playpause' | 'home';
 
 /**
  * The only keys the tvOS driver presses, each a real Siri Remote button. The Siri Remote has
