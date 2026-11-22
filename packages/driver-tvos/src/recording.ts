@@ -1,6 +1,6 @@
 import type { ChildProcess } from 'node:child_process';
 import { stat } from 'node:fs/promises';
-import { TvosErrorCode, tvosError } from './errors.js';
+import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 import type { Simctl } from './simctl.js';
 
 const START_TIMEOUT_MS = 15_000;
@@ -67,7 +67,7 @@ export class ScreenRecorder {
       child.kill('SIGKILL');
       throw tvosError(TvosErrorCode.RECORDING_FAILED, 'Screen recording did not start.', {
         hint: 'The simulator must be booted and the path writable.',
-        docs: 'capabilities',
+        docs: DOCS.capabilities,
         cause,
       });
     }
@@ -98,7 +98,7 @@ export class ScreenRecorder {
     if (size === 0) {
       throw tvosError(TvosErrorCode.RECORDING_FAILED, `The recording at ${path} is empty.`, {
         hint: 'The recorder was probably killed before it could finalize the file.',
-        docs: 'capabilities',
+        docs: DOCS.capabilities,
       });
     }
     return path;

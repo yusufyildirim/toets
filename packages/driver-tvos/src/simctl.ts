@@ -1,6 +1,6 @@
 import type { ChildProcess } from 'node:child_process';
 import { defaultRunner, tail, type CommandRunner } from './command.js';
-import { TvosErrorCode, tvosError } from './errors.js';
+import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
 export interface SimDevice {
   readonly udid: string;
@@ -54,7 +54,7 @@ export class Simctl {
         `\`xcrun ${this.args(subcommand).join(' ')}\` failed (exit ${res.exitCode}):\n${tail(res.stderr || res.stdout)}`,
         {
           hint: 'Check that Xcode and its command line tools are selected (`xcode-select -p`) and that the simulator exists in the device set dpad uses.',
-          docs: 'simulators',
+          docs: DOCS.simulators,
         },
       );
     }

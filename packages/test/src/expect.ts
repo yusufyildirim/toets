@@ -8,7 +8,7 @@ import {
 import type { MediaState } from '@dpad-tv/protocol';
 import {
   appRuntime,
-  docsLink,
+  packageDocsLink,
   DpadError,
   isLocator,
   locatorMatchers as lm,
@@ -75,7 +75,7 @@ function defaultName(testInfo: TestInfo, ext: string): string {
 function notSupported(name: string): DpadError {
   return new DpadError('NEGATION_UNSUPPORTED', `${name}() cannot be negated.`, {
     hint: 'Assert the expected state instead.',
-    docs: docsLink('core/assertions'),
+    docs: packageDocsLink('core', 'assertions'),
   });
 }
 
@@ -83,7 +83,7 @@ function assertSnapshotSubject(name: string, subject: unknown): asserts subject 
   if (!isLocator(subject) && !appRuntime(subject)) {
     throw new DpadError('INVALID_SUBJECT', `${name}() expects the app or a dpad Locator.`, {
       hint: `e.g. await expect(app).${name}() or await expect(app.getByTestId('rail')).${name}()`,
-      docs: docsLink('core/assertions'),
+      docs: packageDocsLink('core', 'assertions'),
     });
   }
 }

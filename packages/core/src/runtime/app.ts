@@ -15,7 +15,7 @@ import type {
 } from '../api.js';
 import type { Capability } from '../capabilities.js';
 import type { Driver } from '../driver.js';
-import { DpadError, docsLink, fromProtocolError } from '../errors.js';
+import { DpadError, packageDocsLink, fromProtocolError } from '../errors.js';
 import type { MockServerLike } from '../mock.js';
 import type { Platform } from '../platform.js';
 import type { LogEntry, Rect } from '../snapshot.js';
@@ -166,7 +166,7 @@ export class AppRuntime implements RuntimeContext {
     throw new DpadError(
       'CAPABILITY_MISSING',
       `${feature} needs capability '${capability}', which ${platform} does not have here.`,
-      { hint, docs: docsLink('core/capabilities') },
+      { hint, docs: packageDocsLink('core', 'capabilities') },
     );
   }
 
@@ -197,7 +197,7 @@ export class AppRuntime implements RuntimeContext {
       const impl = locatorImpl(mask);
       if (!impl) {
         throw new DpadError('INVALID_ARGUMENT', 'screenshot({ mask }) takes dpad Locators.', {
-          docs: docsLink('core/screenshots'),
+          docs: packageDocsLink('core', 'screenshots'),
         });
       }
       for (const el of await impl.resolve()) if (el.visible) rects.push(el.bounds);
@@ -243,7 +243,7 @@ export class AppRuntime implements RuntimeContext {
         `The app did not connect to the dpad SDK host at ${host.url} within ${timeoutMs}ms.`,
         {
           hint: 'Check that the app includes the dpad SDK and starts it at launch, that it reads the launch payload (__dpad), and that the device can reach the host (drivers set up adb reverse on Android). For black-box runs, disable dpad.sdk.',
-          docs: docsLink('core/sdk'),
+          docs: packageDocsLink('core', 'sdk'),
           cause,
         },
       );

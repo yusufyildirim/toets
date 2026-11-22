@@ -5,7 +5,7 @@ import {
   type DeviceSpec,
 } from '@dpad-tv/core';
 import { defaultRunner, type CommandRunner } from './command.js';
-import { TvosErrorCode, tvosError } from './errors.js';
+import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 import {
   Simctl,
   isTvosRuntime,
@@ -125,7 +125,7 @@ export async function prepareSimulator(
       `No simulator with UDID ${udid} in ${opts.deviceSet ? `device set ${opts.deviceSet}` : "Xcode's default device set"}.`,
       {
         hint: 'If a lease broker created the simulator in its own device set, pass that path as `deviceSet` (driver option or `meta.deviceSet` of the lease).',
-        docs: 'simulators',
+        docs: DOCS.simulators,
       },
     );
   }
@@ -133,7 +133,7 @@ export async function prepareSimulator(
     throw tvosError(
       TvosErrorCode.NOT_TVOS,
       `Simulator ${device.name} (${udid}) runs ${device.runtimeId}, not tvOS.`,
-      { hint: 'Lease or create an Apple TV simulator.', docs: 'simulators' },
+      { hint: 'Lease or create an Apple TV simulator.', docs: DOCS.simulators },
     );
   }
   if (device.state !== 'Booted') await boot(simctl, device.udid, opts.bootTimeoutMs);
@@ -163,7 +163,7 @@ async function boot(simctl: Simctl, udid: string, timeoutMs = DEFAULT_BOOT_TIMEO
   } catch (cause) {
     throw tvosError(TvosErrorCode.BOOT_FAILED, `Simulator ${udid} did not boot.`, {
       hint: `Booting can take minutes on a cold machine; raise \`bootTimeoutMs\` (now ${timeoutMs}ms) or check free memory.`,
-      docs: 'simulators',
+      docs: DOCS.simulators,
       cause,
     });
   }
@@ -181,7 +181,7 @@ export function pickRuntime(runtimes: readonly SimRuntime[], osVersion?: string)
       `No installed tvOS simulator runtime${osVersion ? ` matches ${osVersion}` : ''} (installed: ${installed}).`,
       {
         hint: 'Install one with `xcodebuild -downloadPlatform tvOS`, or change `osVersion`.',
-        docs: 'simulators',
+        docs: DOCS.simulators,
       },
     );
   }
@@ -206,7 +206,7 @@ export function pickDeviceType(
       `${model ? `Device type "${model}" is not` : 'No Apple TV device type is'} available for ${runtime.name}.`,
       {
         hint: `Use one of: ${appleTvs.map((t) => t.name).join(', ') || '(none; reinstall the tvOS runtime)'}.`,
-        docs: 'simulators',
+        docs: DOCS.simulators,
       },
     );
   }

@@ -1,5 +1,5 @@
 import type { Locator, Screenshot, ScreenshotOptions } from '../api.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 import type { Selector, SelectorChain } from '../selectors.js';
 import type { ElementSnapshot } from '../snapshot.js';
 import type { RuntimeContext } from './context.js';
@@ -47,7 +47,7 @@ export function strictModeError(
     `${describeChain(chain)} resolved to ${matches.length} elements:\n${shown.join('\n')}`,
     {
       hint: 'Make the locator unique: prefer a more specific test ID, scope it (getByTestId(rail).getByText(...)), or pick one with .first() / .nth(i).',
-      docs: docsLink('core/locators'),
+      docs: packageDocsLink('core', 'locators'),
     },
   );
 }
@@ -85,7 +85,7 @@ export class LocatorImpl {
   nth(index: number): Locator {
     if (!Number.isInteger(index) || index < 0) {
       throw new DpadError('INVALID_ARGUMENT', `nth() needs a non-negative integer, got ${index}.`, {
-        docs: docsLink('core/locators'),
+        docs: packageDocsLink('core', 'locators'),
       });
     }
     return this.child({ kind: 'nth', index });
@@ -109,7 +109,7 @@ export class LocatorImpl {
       `${this.description} matched no element within ${timeoutMs}ms.`,
       {
         hint: 'Check the test ID or text against app.snapshot(). On TV, lists are often virtualized: an element far from focus may not exist until focus moves near it.',
-        docs: docsLink('core/locators'),
+        docs: packageDocsLink('core', 'locators'),
         cause: result.error,
       },
     );
@@ -155,7 +155,7 @@ export class LocatorImpl {
         `${this.description} resolved to an element missing from the tree.`,
         {
           hint: 'The screen changed between the lookup and the snapshot; retry once it settles. If it persists, the driver reports inconsistent element refs (driver bug).',
-          docs: docsLink('core/text-snapshots'),
+          docs: packageDocsLink('core', 'text-snapshots'),
         },
       );
     }

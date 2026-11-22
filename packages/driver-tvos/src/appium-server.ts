@@ -5,7 +5,7 @@ import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { dirname } from 'node:path';
 import { tail } from './command.js';
-import { TvosErrorCode, tvosError } from './errors.js';
+import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
 /** A running Appium server owned by one driver instance. */
 export interface AppiumServer {
@@ -85,7 +85,7 @@ export async function startAppiumServer(opts: StartAppiumOptions): Promise<Appiu
       `Appium did not start on ${url}: ${cause instanceof Error ? cause.message : String(cause)}\n${tail(recent)}`,
       {
         hint: `Full log: ${opts.logFile}. Make sure the port is free and APPIUM_HOME (${home}) contains appium-xcuitest-driver.`,
-        docs: 'setup',
+        docs: DOCS.setup,
         cause,
       },
     );

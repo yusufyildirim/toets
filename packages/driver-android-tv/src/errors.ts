@@ -1,4 +1,4 @@
-import { DpadError, docsLink } from '@dpad-tv/core';
+import { DpadError, packageDocsLink } from '@dpad-tv/core';
 
 /** Error codes thrown by the Android TV driver. Stable: agents and users branch on them. */
 export type AndroidTvErrorCode =
@@ -26,11 +26,11 @@ export type AndroidTvErrorCode =
  * `node_modules/@dpad-tv/driver-android-tv/docs/<page>.md`.
  */
 export const DOCS = {
-  setup: docsLink('driver-android-tv/setup'),
-  devices: docsLink('driver-android-tv/devices'),
-  keys: docsLink('driver-android-tv/keys'),
-  capabilities: docsLink('driver-android-tv/capabilities'),
-  traps: docsLink('driver-android-tv/traps'),
+  setup: packageDocsLink('driver-android-tv', 'setup'),
+  devices: packageDocsLink('driver-android-tv', 'devices'),
+  keys: packageDocsLink('driver-android-tv', 'keys'),
+  capabilities: packageDocsLink('driver-android-tv', 'capabilities'),
+  traps: packageDocsLink('driver-android-tv', 'traps'),
 } as const;
 
 export function androidError(

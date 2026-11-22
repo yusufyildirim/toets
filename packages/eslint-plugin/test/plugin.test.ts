@@ -6,7 +6,7 @@ import plugin from '../src/index.js';
 describe('plugin', () => {
   it('ships docs metadata for every rule', () => {
     for (const [name, rule] of Object.entries(plugin.rules)) {
-      expect(rule.meta?.docs?.url).toContain(`docs/rules/${name}.md`);
+      expect(rule.meta?.docs?.url).toBe(`reference/eslint-plugin/docs/rules/${name}`);
       expect(rule.meta?.docs?.description).toBeTruthy();
     }
   });

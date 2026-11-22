@@ -170,7 +170,7 @@ export class DriverRuntime implements ScreenRuntime {
         `${key} needs the \`${needed}\` capability, which ${this.platform} does not have.`,
         {
           hint: `Use \`capabilities\` to list the keys this target supports. In tests, gate on it with \`requires: ['${needed}']\`.`,
-          docs: docsLink('concepts/keys'),
+          docs: docsLink('concepts/remote-and-keys'),
         },
       );
     }
@@ -178,7 +178,7 @@ export class DriverRuntime implements ScreenRuntime {
       throw new DpadError(
         'KEY_UNSUPPORTED',
         `Long presses need the \`key.longpress\` capability, which ${this.platform} does not have.`,
-        { hint: 'Omit `holdMs`.', docs: docsLink('concepts/keys') },
+        { hint: 'Omit `holdMs`.', docs: docsLink('concepts/remote-and-keys') },
       );
     }
   }
@@ -210,7 +210,7 @@ function notFound(target: Target, why?: string): DpadError {
     `No element matches ${targetToCode(target)}${why ? `: ${why}` : ''}.`,
     {
       hint: 'Check the current screen with `snapshot`. Lists on TV are often virtualized: elements far offscreen do not exist yet, so move focus toward them first.',
-      docs: docsLink('concepts/locators'),
+      docs: docsLink('concepts/locators-and-assertions'),
     },
   );
 }
@@ -221,7 +221,7 @@ function strictViolation(target: Target, count: number): DpadError {
     `${targetToCode(target)} matches ${count} elements; a locator must match exactly one.`,
     {
       hint: 'Use a test ID, add `exact: true`, or pick one with `nth`. `query` lists the matches.',
-      docs: docsLink('concepts/locators'),
+      docs: docsLink('concepts/locators-and-assertions'),
     },
   );
 }

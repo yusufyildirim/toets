@@ -1,4 +1,4 @@
-import { DpadError, docsLink } from '@dpad-tv/core';
+import { DpadError, packageDocsLink } from '@dpad-tv/core';
 
 /** Error codes thrown by the tvOS driver. Branch on these, not on messages. */
 export const TvosErrorCode = {
@@ -25,16 +25,22 @@ export const TvosErrorCode = {
 export type TvosErrorCode = (typeof TvosErrorCode)[keyof typeof TvosErrorCode];
 
 /** Docs pages shipped in this package (`docs/<page>.md`). */
-export type TvosDocsPage = 'setup' | 'simulators' | 'remote' | 'capabilities' | 'traps';
+export const DOCS = {
+  setup: packageDocsLink('driver-tvos', 'setup'),
+  simulators: packageDocsLink('driver-tvos', 'simulators'),
+  remote: packageDocsLink('driver-tvos', 'remote'),
+  capabilities: packageDocsLink('driver-tvos', 'capabilities'),
+  traps: packageDocsLink('driver-tvos', 'traps'),
+} as const;
 
 export function tvosError(
   code: TvosErrorCode,
   message: string,
-  opts: { hint?: string; docs?: TvosDocsPage; cause?: unknown } = {},
+  opts: { hint?: string; docs?: string; cause?: unknown } = {},
 ): DpadError {
   return new DpadError(code, message, {
     ...(opts.hint === undefined ? {} : { hint: opts.hint }),
-    ...(opts.docs === undefined ? {} : { docs: docsLink(`driver-tvos/${opts.docs}`) }),
+    ...(opts.docs === undefined ? {} : { docs: opts.docs }),
     ...(opts.cause === undefined ? {} : { cause: opts.cause }),
   });
 }

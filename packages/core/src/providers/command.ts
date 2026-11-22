@@ -1,6 +1,6 @@
 import { exec } from 'node:child_process';
 import type { DeviceLease, DeviceProvider, DeviceSpec } from '../devices.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 
 export interface CommandDevicesOptions {
   /**
@@ -64,7 +64,7 @@ function parseLease(stdout: string): {
       `The device acquire command must print JSON with an "address" on its last line; got: ${line ?? '(nothing)'}`,
       {
         hint: 'Print e.g. {"address":"emulator-5554","id":"lease-1"} as the final stdout line.',
-        docs: docsLink('test/devices'),
+        docs: packageDocsLink('test', 'devices'),
       },
     );
   }
@@ -95,7 +95,7 @@ const commandError = (what: string, command: string, cause: unknown): DpadError 
     `The device ${what} command failed: ${command}${stderr ? `\n${stderr}` : ''}`,
     {
       hint: 'Run the command by hand with the same DPAD_* variables to debug it.',
-      docs: docsLink('test/devices'),
+      docs: packageDocsLink('test', 'devices'),
       cause,
     },
   );

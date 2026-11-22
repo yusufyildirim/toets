@@ -1,5 +1,5 @@
 import type { DeviceLease, DeviceProvider } from '../devices.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 
 export interface ExternalDevicesOptions {
   /** Device addresses (Android serials, simulator UDIDs). Default: `DPAD_DEVICES`, comma separated. */
@@ -29,7 +29,7 @@ export function createExternalDeviceProvider(opts: ExternalDevicesOptions = {}):
           `No ${spec.platform} devices configured for external mode.`,
           {
             hint: 'List running devices in the project config (devices: { mode: "external", addresses: [...] }) or in DPAD_DEVICES=emulator-5554,emulator-5556.',
-            docs: docsLink('test/devices'),
+            docs: packageDocsLink('test', 'devices'),
           },
         );
       }
@@ -40,7 +40,7 @@ export function createExternalDeviceProvider(opts: ExternalDevicesOptions = {}):
           `Worker slot ${parallelIndex} has no device: ${addresses.length} external device(s) for more workers.`,
           {
             hint: `Run with --workers=${addresses.length} (one device per worker) or add devices.`,
-            docs: docsLink('test/devices'),
+            docs: packageDocsLink('test', 'devices'),
           },
         );
       }

@@ -78,7 +78,7 @@ export async function listenWebSocket(opts: {
       `The dpad SDK host could not listen: ${(error as Error).message}`,
       {
         hint: 'Pick another port or free the requested one.',
-        docs: 'docs/protocol/host',
+        docs: 'reference/protocol/docs/host',
         cause: error,
       },
     );

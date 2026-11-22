@@ -1,11 +1,11 @@
 import type { Node } from 'estree';
 
 /**
- * Shipped docs page of a rule. Uses the same slug convention as `docsLink` in `@dpad-tv/core`
- * (`node_modules/@dpad-tv/<pkg>/docs/<slug>.md`) until the docs site domain is decided.
+ * Docs site path of a rule's page, like `packageDocsLink` in `@dpad-tv/core`, until the site
+ * domain is decided. Shipped as `node_modules/@dpad-tv/eslint-plugin/docs/rules/<rule>.md`.
  */
 export function ruleDocsUrl(rule: string): string {
-  return `node_modules/@dpad-tv/eslint-plugin/docs/rules/${rule}.md`;
+  return `reference/eslint-plugin/docs/rules/${rule}`;
 }
 
 const TS_WRAPPERS = new Set([

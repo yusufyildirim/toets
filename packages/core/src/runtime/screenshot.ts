@@ -1,6 +1,6 @@
 import { PNG } from 'pngjs';
 import type { Screenshot } from '../api.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 import type { Rect } from '../snapshot.js';
 
 const PNG_BYTES = Symbol('dpad.png');
@@ -20,7 +20,7 @@ export function screenshotPng(shot: Screenshot): Uint8Array {
   if (!bytes) {
     throw new DpadError('INVALID_SCREENSHOT', 'Not a dpad screenshot.', {
       hint: 'Pass the value returned by app.screenshot() or locator.screenshot().',
-      docs: docsLink('core/screenshots'),
+      docs: packageDocsLink('core', 'screenshots'),
     });
   }
   return bytes;
@@ -32,7 +32,7 @@ function decode(png: Uint8Array): PNG {
   } catch (cause) {
     throw new DpadError('INVALID_SCREENSHOT', 'The driver returned bytes that are not a PNG.', {
       hint: 'This is a driver bug: Driver.screenshot() must return PNG bytes.',
-      docs: docsLink('core/screenshots'),
+      docs: packageDocsLink('core', 'screenshots'),
       cause,
     });
   }
@@ -88,7 +88,7 @@ export function cropPng(png: Uint8Array, rect: Rect, viewportWidth: number): Uin
   if (p.w === 0 || p.h === 0) {
     throw new DpadError('ELEMENT_OFFSCREEN', 'Cannot screenshot an element outside the viewport.', {
       hint: 'Bring it on screen first (navigate focus to it), then take the screenshot.',
-      docs: docsLink('core/screenshots'),
+      docs: packageDocsLink('core', 'screenshots'),
     });
   }
   const out = new PNG({ width: p.w, height: p.h });

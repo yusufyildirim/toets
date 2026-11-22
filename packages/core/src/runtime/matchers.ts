@@ -6,7 +6,7 @@
  */
 import type { MediaInfo, MediaState } from '@dpad-tv/protocol';
 import type { App, Locator, Media, Network, RecordedRequest } from '../api.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 import type { RequestFilter } from '../mock.js';
 import type { ElementSnapshot } from '../snapshot.js';
 import { appRuntime } from './app.js';
@@ -114,7 +114,7 @@ function invalidSubject(name: string, wanted: string, got: unknown): DpadError {
   const kind = got === null ? 'null' : typeof got === 'object' ? 'a non-dpad object' : typeof got;
   return new DpadError('INVALID_SUBJECT', `${name}() expects ${wanted}, got ${kind}.`, {
     hint: `Assert on ${wanted}, e.g. expect(app.getByTestId('id')).${name}().`,
-    docs: docsLink('core/assertions'),
+    docs: packageDocsLink('core', 'assertions'),
   });
 }
 
@@ -179,7 +179,7 @@ function textMatcher(name: 'toHaveText' | 'toContainText') {
     const locator = asLocator(name, subject);
     if (typeof expected !== 'string' && !(expected instanceof RegExp)) {
       throw new DpadError('INVALID_ARGUMENT', `${name}() expects a string or RegExp.`, {
-        docs: docsLink('core/assertions'),
+        docs: packageDocsLink('core', 'assertions'),
       });
     }
     const wanted = expected instanceof RegExp ? expected : (normalizeText(expected) ?? '');
@@ -275,7 +275,7 @@ export const locatorMatchers = {
         'INVALID_ARGUMENT',
         `toHaveCount() needs a non-negative integer, got ${count}.`,
         {
-          docs: docsLink('core/assertions'),
+          docs: packageDocsLink('core', 'assertions'),
         },
       );
     }

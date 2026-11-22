@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import { isAbsolute, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { DpadError, docsLink } from '@dpad-tv/core';
+import { DpadError, packageDocsLink } from '@dpad-tv/core';
 
 const isPath = (specifier: string): boolean =>
   specifier.startsWith('.') || isAbsolute(specifier) || specifier.startsWith('file:');
@@ -48,7 +48,7 @@ export async function importUserModule(
             ? `Paths are resolved from the config directory (${baseDir}).`
             : `Install it in your project: npm install -D ${specifier}`
           : 'The module threw while loading; see the cause.',
-        docs: docsLink('test/config'),
+        docs: packageDocsLink('test', 'config'),
         cause,
       },
     );

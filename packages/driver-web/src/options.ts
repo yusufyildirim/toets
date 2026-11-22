@@ -1,4 +1,4 @@
-import { DpadError } from '@dpad-tv/core';
+import { DpadError, packageDocsLink } from '@dpad-tv/core';
 import type {
   Browser,
   BrowserContext,
@@ -88,7 +88,7 @@ export interface ResolvedWebOptions {
 /** Default viewport of contexts the driver creates: a 1080p TV screen. */
 export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 } as const;
 
-const DOCS = 'driver-web/options';
+const DOCS = packageDocsLink('driver-web', 'options');
 
 function invalid(message: string, hint: string): DpadError {
   return new DpadError('web.invalid-config', message, { hint, docs: DOCS });

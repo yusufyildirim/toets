@@ -1,6 +1,6 @@
 import type { Remote } from '../api.js';
 import { KEY_CAPABILITY } from '../capabilities.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 import { Key, type PressOptions } from '../keys.js';
 import type { RuntimeContext } from './context.js';
 import { sleep } from './retry.js';
@@ -11,7 +11,7 @@ function assertKey(key: unknown): asserts key is Key {
   if (typeof key !== 'string' || !KEYS.has(key)) {
     throw new DpadError('UNKNOWN_KEY', `Unknown key ${JSON.stringify(key)}.`, {
       hint: 'Use the semantic Key constants (Key.SELECT, Key.PLAY_PAUSE, ...). Raw platform keycodes are not accepted.',
-      docs: docsLink('core/remote'),
+      docs: packageDocsLink('core', 'remote'),
     });
   }
 }
@@ -22,7 +22,7 @@ function assertCount(name: string, value: number): void {
       'INVALID_ARGUMENT',
       `${name} must be a non-negative integer, got ${value}.`,
       {
-        docs: docsLink('core/remote'),
+        docs: packageDocsLink('core', 'remote'),
       },
     );
   }
@@ -115,7 +115,7 @@ export class RemoteImpl implements Remote {
           hint: performedAs
             ? `Fix the key override for ${key} in the dpad config so it uses a key this platform has.`
             : `Declare requires('${needed}') on the test so it is skipped here, or, if the app maps this action to another gesture on ${platform}, add a key override for ${key}.`,
-          docs: docsLink('core/remote'),
+          docs: packageDocsLink('core', 'remote'),
         },
       );
     }
@@ -125,7 +125,7 @@ export class RemoteImpl implements Remote {
         `${platform} cannot hold keys${via}: long presses need capability 'key.longpress'.`,
         {
           hint: `Declare requires('key.longpress') on the test so it is skipped here.`,
-          docs: docsLink('core/remote'),
+          docs: packageDocsLink('core', 'remote'),
         },
       );
     }

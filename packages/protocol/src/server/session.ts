@@ -17,7 +17,7 @@ import {
 import { RpcPeer, RpcTimeoutError } from '../peer.js';
 import { protocolSupportsMethod } from '../version.js';
 
-const DOCS = 'docs/protocol/host';
+const DOCS = 'reference/protocol/docs/host';
 /** Extra time granted on top of `sync.waitForIdle`'s own timeout for the round trip. */
 const IDLE_MARGIN_MS = 2000;
 /** Per-method cap of notifications buffered before the first listener subscribes. */
@@ -109,7 +109,7 @@ export class Session implements SdkSession {
             hint: this.domains.has(domain)
               ? `${method} needs a newer protocol minor version; upgrade the SDK in the app.`
               : `The SDK did not announce the "${domain}" domain. Check the adapter supports it on this platform.`,
-            docs: 'docs/protocol/spec',
+            docs: 'reference/protocol/docs/spec',
             rpcCode: RpcErrorCode.DomainUnavailable,
           },
         ),
@@ -260,7 +260,12 @@ export class Session implements SdkSession {
       return new ProtocolError(
         unsupported ? 'sdk.method-unsupported' : 'sdk.remote-error',
         `The app's SDK failed ${method}: ${error.message} (code ${error.code}).`,
-        { rpcCode: error.code, data: error.data, docs: 'docs/protocol/spec', cause: error },
+        {
+          rpcCode: error.code,
+          data: error.data,
+          docs: 'reference/protocol/docs/spec',
+          cause: error,
+        },
       );
     }
     return error;

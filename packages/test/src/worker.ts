@@ -4,7 +4,7 @@ import {
   AppRuntime,
   createCommandDeviceProvider,
   createExternalDeviceProvider,
-  docsLink,
+  packageDocsLink,
   DpadError,
   type DeviceLease,
   type DeviceProvider,
@@ -45,7 +45,7 @@ export async function loadDriverModule(
       `${config.driver} does not default-export a dpad DriverModule.`,
       {
         hint: 'A driver package must `export default { platform, createDriver }` (see DriverModule in @dpad-tv/core).',
-        docs: docsLink('test/config'),
+        docs: packageDocsLink('test', 'config'),
       },
     );
   }
@@ -53,7 +53,10 @@ export async function loadDriverModule(
     throw new DpadError(
       'INVALID_DRIVER',
       `${config.driver} drives ${candidate.platform}, but the project is ${config.platform}.`,
-      { hint: 'Use the platform helper that matches the driver.', docs: docsLink('test/config') },
+      {
+        hint: 'Use the platform helper that matches the driver.',
+        docs: packageDocsLink('test', 'config'),
+      },
     );
   }
   return candidate;
@@ -81,7 +84,7 @@ export function selectDeviceProvider(
           `${config.driver} cannot manage ${config.platform} devices.`,
           {
             hint: "Use devices: { mode: 'external' } with running devices, or { mode: 'command' } with lease commands.",
-            docs: docsLink('test/devices'),
+            docs: packageDocsLink('test', 'devices'),
           },
         );
       }

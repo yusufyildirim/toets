@@ -1,4 +1,4 @@
-import { DpadError, docsLink } from '@dpad-tv/core';
+import { DpadError, packageDocsLink } from '@dpad-tv/core';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { assertionToCode, MATCHERS } from '../runtime/matchers.js';
@@ -139,7 +139,7 @@ export function registerInspectTools(server: McpServer, { session }: ToolContext
           if (textMatcher && expected === undefined) {
             throw new DpadError('MCP_BAD_INPUT', `${matcher} needs \`expected\` text.`, {
               hint: 'Pass `expected`, e.g. { "matcher": "toHaveText", "expected": "Home" }.',
-              docs: docsLink('mcp/tools'),
+              docs: packageDocsLink('mcp', 'tools'),
             });
           }
           const assertion = { matcher, expected, not };

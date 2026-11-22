@@ -43,9 +43,17 @@ export function fromProtocolError(error: unknown): unknown {
 }
 
 /**
- * Docs are referenced by page slug (e.g. `concepts/focus`), resolved against the docs site
- * once its domain is decided. Shipped docs live at `node_modules/@dpad-tv/<pkg>/docs/<slug>.md`.
+ * `DpadError.docs` holds a docs site path (e.g. `concepts/focus`), resolved against the site
+ * once its domain is decided. This names a guide page: `docs/<slug>.md` in the repository.
  */
 export function docsLink(slug: string): string {
-  return `docs/${slug}`;
+  return slug;
+}
+
+/**
+ * Docs site path of a page a package ships, `reference/<pkg>/docs/<page>`. In an install it is
+ * `node_modules/@dpad-tv/<pkg>/docs/<page>.md`.
+ */
+export function packageDocsLink(pkg: string, page: string): string {
+  return `reference/${pkg}/docs/${page}`;
 }

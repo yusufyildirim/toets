@@ -2,7 +2,7 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { DpadError, docsLink, type AppTargetConfig, type DriverModule } from '@dpad-tv/core';
+import { DpadError, packageDocsLink, type AppTargetConfig, type DriverModule } from '@dpad-tv/core';
 import { z } from 'zod';
 
 /** Where a target's device comes from (device-backed platforms only). */
@@ -109,7 +109,7 @@ export function validateMcpConfig(value: unknown, source = 'config'): McpConfig 
     .join('\n');
   throw new DpadError('MCP_CONFIG_INVALID', `Invalid dpad MCP ${source}:\n${problems}`, {
     hint: 'Fix the listed fields. A config needs `targets` with at least one `{ driver }` entry.',
-    docs: docsLink('mcp/setup'),
+    docs: packageDocsLink('mcp', 'setup'),
   });
 }
 
@@ -137,7 +137,7 @@ export async function loadMcpConfig(
   if (!existsSync(path)) {
     throw new DpadError('MCP_CONFIG_NOT_FOUND', `dpad MCP config not found at ${path}.`, {
       hint: 'Check the `--config` path (relative paths resolve against the working directory).',
-      docs: docsLink('mcp/setup'),
+      docs: packageDocsLink('mcp', 'setup'),
     });
   }
   let value: unknown;
@@ -151,7 +151,7 @@ export async function loadMcpConfig(
   } catch (cause) {
     throw new DpadError('MCP_CONFIG_INVALID', `Could not load dpad MCP config ${path}.`, {
       hint: `${(cause as Error).message ?? String(cause)}. TypeScript configs must use erasable syntax only (Node type stripping).`,
-      docs: docsLink('mcp/setup'),
+      docs: packageDocsLink('mcp', 'setup'),
       cause,
     });
   }

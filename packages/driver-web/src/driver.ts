@@ -5,6 +5,7 @@ import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import {
   DpadError,
+  packageDocsLink,
   KEY_CAPABILITY,
   type Capability,
   type Driver,
@@ -150,7 +151,7 @@ export class WebDriver implements Driver {
         `Could not load the app at ${this.#opts.url.href}: ${firstLine(error)}`,
         {
           hint: 'Check that the app is served at the configured `url` (dev server running, right port) and loads without a network error.',
-          docs: 'driver-web/setup',
+          docs: packageDocsLink('driver-web', 'setup'),
           cause: error,
         },
       );
@@ -161,7 +162,7 @@ export class WebDriver implements Driver {
         `The app URL ${this.#opts.url.href} answered HTTP ${response.status()}.`,
         {
           hint: 'Check the configured `url` path and that the server serves the app there.',
-          docs: 'driver-web/setup',
+          docs: packageDocsLink('driver-web', 'setup'),
         },
       );
     }
@@ -225,7 +226,7 @@ export class WebDriver implements Driver {
         hint: `Map it in the web config, e.g. \`keys: { ${key}: { key: '...', keyCode: 0 } }\`.${
           capability ? ` Tests pressing it should declare \`requires: ['${capability}']\`.` : ''
         }`,
-        docs: 'driver-web/keys',
+        docs: packageDocsLink('driver-web', 'keys'),
       });
     }
     const { cdp } = this.#require();
@@ -374,7 +375,7 @@ export class WebDriver implements Driver {
           hint: missingBrowser
             ? 'Install the browser: `npx playwright install chromium`.'
             : 'Check `launchOptions`/`contextOptions`, or the page/context/browser you passed.',
-          docs: 'driver-web/setup',
+          docs: packageDocsLink('driver-web', 'setup'),
           cause: error,
         },
       );
@@ -382,7 +383,7 @@ export class WebDriver implements Driver {
     if (page.isClosed()) {
       throw new DpadError('web.page-closed', 'The page passed to the web driver is closed.', {
         hint: 'Pass an open page, or let the driver create one.',
-        docs: 'driver-web/setup',
+        docs: packageDocsLink('driver-web', 'setup'),
       });
     }
 
@@ -393,7 +394,7 @@ export class WebDriver implements Driver {
       await close().catch(() => {});
       throw new DpadError('web.not-chromium', 'The web driver needs a Chromium page.', {
         hint: 'Use Chromium (Playwright `chromium`, or `channel: "chrome"`); Firefox and WebKit are not supported.',
-        docs: 'driver-web/setup',
+        docs: packageDocsLink('driver-web', 'setup'),
         cause: error,
       });
     }
@@ -460,7 +461,7 @@ export class WebDriver implements Driver {
         `A \`focus\` selector is not valid CSS: ${message}`,
         {
           hint: 'Fix `focus.focused` / `focus.focusable` in the web config.',
-          docs: 'driver-web/options',
+          docs: packageDocsLink('driver-web', 'options'),
           cause: error,
         },
       );

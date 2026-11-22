@@ -1,4 +1,4 @@
-import { DpadError, docsLink } from '@dpad-tv/core';
+import { DpadError, packageDocsLink } from '@dpad-tv/core';
 import { ORIGINAL_ORIGIN_HEADER } from '@dpad-tv/protocol';
 
 /**
@@ -40,9 +40,9 @@ export const MockErrorCode = {
 export type MockErrorCode = (typeof MockErrorCode)[keyof typeof MockErrorCode];
 
 const DOCS = {
-  concepts: docsLink('mock/concepts'),
-  handlers: docsLink('mock/writing-handlers'),
-  integration: docsLink('mock/app-integration'),
+  concepts: packageDocsLink('mock', 'concepts'),
+  handlers: packageDocsLink('mock', 'writing-handlers'),
+  integration: packageDocsLink('mock', 'app-integration'),
 };
 
 export function noOriginError(method: string, path: string): DpadError {

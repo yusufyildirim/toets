@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import {
   DpadError,
-  docsLink,
+  packageDocsLink,
   type DeviceLease,
   type DeviceProvider,
   type Driver,
@@ -102,7 +102,7 @@ export class Session {
     if (!this.active?.launched) {
       throw new DpadError('MCP_NOT_LAUNCHED', 'The app is not running yet.', {
         hint: 'Call `launch` first. It starts the target and the app; every device tool needs it.',
-        docs: docsLink('mcp/tools'),
+        docs: packageDocsLink('mcp', 'tools'),
       });
     }
     return this.active.runtime;
@@ -124,7 +124,7 @@ export class Session {
     if (!config) {
       throw new DpadError('MCP_NO_CONFIG', 'No dpad MCP config, so there is no target to drive.', {
         hint: 'Create `dpad.mcp.config.ts` (or pass `--config <file>`) with `targets`, e.g. `{ targets: { web: { driver: "@dpad-tv/driver-web", app: { url: "http://localhost:3000" } } } }`, then restart the MCP server. `docs_search` works without it.',
-        docs: docsLink('mcp/setup'),
+        docs: packageDocsLink('mcp', 'setup'),
       });
     }
     const wanted = name ?? this.active?.name ?? this.defaultTargetName();
@@ -132,7 +132,7 @@ export class Session {
     if (wanted === null || !spec) {
       throw new DpadError('MCP_UNKNOWN_TARGET', `Unknown target "${String(wanted)}".`, {
         hint: `Configured targets: ${this.targetNames.join(', ')}.`,
-        docs: docsLink('mcp/setup'),
+        docs: packageDocsLink('mcp', 'setup'),
       });
     }
     if (this.active && this.active.name !== wanted) {
@@ -167,7 +167,7 @@ export class Session {
         throw new DpadError(
           'MCP_DEVICE_UNSUPPORTED',
           `Driver for ${module.platform} has no managed devices.`,
-          { hint: 'Remove `device`, or give an `address`.', docs: docsLink('mcp/setup') },
+          { hint: 'Remove `device`, or give an `address`.', docs: packageDocsLink('mcp', 'setup') },
         );
       }
       provider = module.createDeviceProvider(options);

@@ -1,7 +1,7 @@
 import { resolve } from 'node:path';
 import type { AppTargetConfig } from '@dpad-tv/core';
 import type { TvosManagedDeviceOptions } from './devices.js';
-import { TvosErrorCode, tvosError } from './errors.js';
+import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
 /**
  * The app under test, from the user's dpad config (`app.tvOS`). App-specific, so it lives in
@@ -75,7 +75,7 @@ export function resolveAppConfig(
   const fail = (what: string) =>
     tvosError(TvosErrorCode.CONFIG, `Invalid tvOS app config: ${what}.`, {
       hint: "Set `app: { tvOS: { bundleId: 'com.example.tv', app: './build/App.app' } }` in your dpad config.",
-      docs: 'setup',
+      docs: DOCS.setup,
     });
   if (typeof bundleId !== 'string' || bundleId === '') throw fail('`bundleId` is required');
   if (appPath !== undefined && typeof appPath !== 'string') throw fail('`app` must be a path');

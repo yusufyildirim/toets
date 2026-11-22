@@ -4,7 +4,7 @@ import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { defaultRunner, tail, type CommandRunner } from './command.js';
-import { TvosErrorCode, tvosError } from './errors.js';
+import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
 export interface PrebuiltWdaOptions {
   /** Where built WebDriverAgent bundles are cached. Default `~/Library/Caches/dpad/tvos-wda`. */
@@ -93,7 +93,7 @@ export async function ensurePrebuiltWda(opts: PrebuiltWdaOptions = {}): Promise<
         `Building WebDriverAgent for tvOS Simulator failed (exit ${res.exitCode}):\n${tail(res.stderr || res.stdout)}`,
         {
           hint: `Full log: ${join(dir, 'build.log')}. Check that Xcode with the tvOS platform is installed (\`xcodebuild -downloadPlatform tvOS\`).`,
-          docs: 'setup',
+          docs: DOCS.setup,
         },
       );
     }
@@ -111,7 +111,7 @@ export async function xcodeBuildVersion(runner: CommandRunner): Promise<string> 
   if (res.exitCode !== 0 || !build) {
     throw tvosError(TvosErrorCode.WDA_BUILD_FAILED, 'Could not read the Xcode version.', {
       hint: 'Install Xcode and select it with `sudo xcode-select -s /Applications/Xcode.app`.',
-      docs: 'setup',
+      docs: DOCS.setup,
     });
   }
   return build;

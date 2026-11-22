@@ -1,6 +1,6 @@
 import type { FocusGraphNode } from '@dpad-tv/protocol';
 import type { Focus, Locator, NavigateOptions } from '../api.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 import { DIRECTION_KEY, type Direction } from '../keys.js';
 import type { ElementRef, ElementSnapshot, Rect } from '../snapshot.js';
 import type { RuntimeContext } from './context.js';
@@ -126,7 +126,7 @@ export class FocusImpl implements Focus {
     const goal = locatorImpl(target);
     if (!goal) {
       throw new DpadError('INVALID_ARGUMENT', 'navigateTo() needs a dpad Locator.', {
-        docs: docsLink('core/focus-navigation'),
+        docs: packageDocsLink('core', 'focus-navigation'),
       });
     }
     const maxPresses = opts?.maxPresses ?? 50;
@@ -187,7 +187,7 @@ export class FocusImpl implements Focus {
         `${goal.description} is not focusable and contains nothing focusable.`,
         {
           hint: 'Navigate to the focusable element itself (a card or button), or to a container holding one. Check focusability in app.snapshot().',
-          docs: docsLink('core/focus-navigation'),
+          docs: packageDocsLink('core', 'focus-navigation'),
         },
       );
     }
@@ -202,7 +202,7 @@ export class FocusImpl implements Focus {
     if (result.value) return result.value;
     throw new DpadError('NO_FOCUS', 'Nothing is focused, so focus cannot be navigated.', {
       hint: 'Launch the app and wait until it is ready (e.g. expect(app.focus.current()).toBeVisible()) before navigating.',
-      docs: docsLink('core/focus-navigation'),
+      docs: packageDocsLink('core', 'focus-navigation'),
     });
   }
 
@@ -260,7 +260,7 @@ export class FocusImpl implements Focus {
       `Could not move focus to ${goal.description}: ${reason}. Focus is on ${describeElement(focused)}. Path: ${path.length ? path.join(', ') : '(none)'}.`,
       {
         hint: 'The target may be disabled, hidden, behind a focus trap, or not reachable with the D-pad from here. Inspect app.snapshot(), navigate in smaller steps, or raise maxPresses for long lists.',
-        docs: docsLink('core/focus-navigation'),
+        docs: packageDocsLink('core', 'focus-navigation'),
       },
     );
   }
@@ -280,7 +280,7 @@ export class FocusImpl implements Focus {
           `Focus stayed on ${describeElement(before)} for ${timeoutMs}ms after the action.`,
           {
             hint: 'The action did not move focus. Check the key and the screen state; raise timeoutMs only if the app is known to react slowly.',
-            docs: docsLink('core/focus-navigation'),
+            docs: packageDocsLink('core', 'focus-navigation'),
           },
         );
       }

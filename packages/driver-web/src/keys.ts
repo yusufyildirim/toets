@@ -1,4 +1,4 @@
-import { DpadError, KEY_CAPABILITY, Key, type Capability } from '@dpad-tv/core';
+import { DpadError, packageDocsLink, KEY_CAPABILITY, Key, type Capability } from '@dpad-tv/core';
 
 /**
  * How one semantic {@link Key} is delivered to the page as a real (trusted) keyboard event.
@@ -128,7 +128,7 @@ function validateSpec(key: Key, spec: unknown): WebKeySpec {
 function invalidKeys(message: string, hint?: string): DpadError {
   return new DpadError('web.invalid-config', message, {
     hint: hint ?? 'Fix the `keys` option of the web app config.',
-    docs: 'driver-web/keys',
+    docs: packageDocsLink('driver-web', 'keys'),
   });
 }
 

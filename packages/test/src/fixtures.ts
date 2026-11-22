@@ -2,7 +2,7 @@ import { rm } from 'node:fs/promises';
 import { dirname, extname } from 'node:path';
 import { test as base, type TestInfo } from '@playwright/test';
 import {
-  docsLink,
+  packageDocsLink,
   DpadError,
   formatFailureDump,
   screenshotPng,
@@ -42,7 +42,7 @@ const debug = (workerIndex: number) => (message: string) => {
 function notADpadProject(project: string): DpadError {
   return new DpadError('NOT_A_DPAD_PROJECT', `Project "${project}" is not a dpad project.`, {
     hint: 'Create projects with platforms.web() / platforms.androidTV() / platforms.tvOS() in defineConfig from @dpad-tv/test.',
-    docs: docsLink('test/config'),
+    docs: packageDocsLink('test', 'config'),
   });
 }
 

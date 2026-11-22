@@ -1,7 +1,7 @@
 import { createRequire } from 'node:module';
 import { isAbsolute, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { DpadError, docsLink, type DriverModule } from '@dpad-tv/core';
+import { DpadError, packageDocsLink, type DriverModule } from '@dpad-tv/core';
 
 /**
  * Imports a driver package or module path lazily (users install only the platforms they
@@ -22,7 +22,7 @@ export async function loadDriverModule(
       hint: driver.startsWith('.')
         ? `Check the path; it resolves against ${baseDir}.`
         : `Install it next to your config (e.g. \`pnpm add -D ${driver}\`). Cause: ${(cause as Error).message}`,
-      docs: docsLink('mcp/setup'),
+      docs: packageDocsLink('mcp', 'setup'),
       cause,
     });
   }
@@ -50,7 +50,7 @@ function checkModule(value: unknown, name: string): DriverModule<Record<string, 
   ) {
     throw new DpadError('MCP_DRIVER_INVALID', `${name} does not default-export a DriverModule.`, {
       hint: 'A driver package default-exports `{ platform, createDriver }` (see `DriverModule` in @dpad-tv/core). Point `driver` at a dpad driver package such as `@dpad-tv/driver-web`.',
-      docs: docsLink('mcp/setup'),
+      docs: packageDocsLink('mcp', 'setup'),
     });
   }
   return mod as DriverModule<Record<string, unknown>>;

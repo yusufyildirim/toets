@@ -1,7 +1,7 @@
 import type { MediaInfo } from '@dpad-tv/protocol';
 import type { Media, Network, PlatformEvent, PlatformInfo, RecordedRequest } from '../api.js';
 import type { Capability } from '../capabilities.js';
-import { DpadError, docsLink } from '../errors.js';
+import { DpadError, packageDocsLink } from '../errors.js';
 import type { MockServerLike, RequestFilter } from '../mock.js';
 import type { Platform } from '../platform.js';
 import type { RuntimeContext } from './context.js';
@@ -27,7 +27,7 @@ export class NetworkImpl implements Network {
     if (!mock) {
       throw new DpadError('MOCK_DISABLED', 'Network mocking is not enabled for this project.', {
         hint: "Enable it in the dpad config (dpad: { mock: true }), or declare requires('network.mock') to skip where it is off.",
-        docs: docsLink('core/network'),
+        docs: packageDocsLink('core', 'network'),
       });
     }
     return mock;
@@ -74,7 +74,7 @@ export class PlatformInfoImpl implements PlatformInfo {
         `${driver.platform} declares 'platform.events' but does not implement emit().`,
         {
           hint: 'This is a driver bug; report it to the driver package.',
-          docs: docsLink('core/capabilities'),
+          docs: packageDocsLink('core', 'capabilities'),
         },
       );
     }

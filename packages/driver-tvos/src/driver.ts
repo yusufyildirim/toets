@@ -25,7 +25,7 @@ import {
 } from './appium-server.js';
 import { defaultRunner, tail, type CommandRunner } from './command.js';
 import { deviceSetFromLease, prepareSimulator, type TvosSimulator } from './devices.js';
-import { TvosErrorCode, errorMessage, tvosError } from './errors.js';
+import { DOCS, TvosErrorCode, errorMessage, tvosError } from './errors.js';
 import { cropPng } from './image.js';
 import { REMOTE_BUTTONS, TVOS_CAPABILITIES } from './keys.js';
 import { AppLogStream } from './logs.js';
@@ -95,7 +95,7 @@ export class TvosDriver implements Driver {
     if (!udid) {
       throw tvosError(TvosErrorCode.NO_DEVICE, 'No tvOS simulator to drive.', {
         hint: 'Use the `managed` device provider, lease one through `external`/`command`, or set the `udid` driver option.',
-        docs: 'simulators',
+        docs: DOCS.simulators,
       });
     }
     const deviceSet = options.deviceSet ?? deviceSetFromLease(ctx.device);
@@ -190,7 +190,7 @@ export class TvosDriver implements Driver {
     if (!name) {
       throw tvosError(TvosErrorCode.KEY_UNSUPPORTED, `The Siri Remote has no button for ${key}.`, {
         hint: 'Gate the test with `requires`, or declare an app-level key override (e.g. FAST_FORWARD = hold RIGHT) in your dpad config.',
-        docs: 'remote',
+        docs: DOCS.remote,
       });
     }
     const holdMs = opts?.holdMs ?? 0;
@@ -213,7 +213,7 @@ export class TvosDriver implements Driver {
         `Element ${opts.element} is no longer on screen.`,
         {
           hint: 'Re-resolve the locator; refs are tied to the screen structure they came from.',
-          docs: 'traps',
+          docs: DOCS.traps,
         },
       );
     }
@@ -225,7 +225,7 @@ export class TvosDriver implements Driver {
         `Element ${opts.element} is not visible on screen.`,
         {
           hint: 'Bring it into view (navigate focus to it) before taking its screenshot.',
-          docs: 'traps',
+          docs: DOCS.traps,
         },
       );
     }
@@ -286,7 +286,7 @@ export class TvosDriver implements Driver {
         hint: appiumLog
           ? `See the Appium log at ${appiumLog} for details.`
           : 'See the Appium server log for details.',
-        docs: 'traps',
+        docs: DOCS.traps,
         cause,
       });
     }
@@ -334,7 +334,7 @@ export class TvosDriver implements Driver {
           hint: appium
             ? `See the Appium log at ${appium.logFile}. WebDriverAgent install/launch problems show up there.`
             : 'Check the log of your Appium server and that the XCUITest driver is installed in it.',
-          docs: 'setup',
+          docs: DOCS.setup,
           cause,
         },
       );
@@ -362,7 +362,7 @@ export class TvosDriver implements Driver {
         `${this.app.bundleId} is not installed on simulator ${udid}.`,
         {
           hint: 'Set `app` in the tvOS app config to a simulator .app build so dpad installs it, or install it before the run.',
-          docs: 'setup',
+          docs: DOCS.setup,
         },
       );
     }
@@ -379,7 +379,7 @@ export class TvosDriver implements Driver {
       throw tvosError(
         TvosErrorCode.APP_NOT_INSTALLED,
         `Could not read CFBundleExecutable of ${bundle}: ${tail(res.stderr)}`,
-        { hint: 'Set the `logs.process` driver option to the app process name.', docs: 'setup' },
+        { hint: 'Set the `logs.process` driver option to the app process name.', docs: DOCS.setup },
       );
     }
     return name;
