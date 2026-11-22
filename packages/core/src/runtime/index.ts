@@ -30,9 +30,11 @@ export { normalizeTextSnapshot, renderTextSnapshot } from './text-snapshot.js';
 export {
   evaluateChain,
   findNode,
+  focusedIn,
   matchText,
   normalizeText,
   protocolToTree,
+  testRegExp,
   toSnapshot,
   walkTree,
 } from './tree.js';

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { SelectorChain } from '../src/index.js';
 import { evaluateChain, matchText, normalizeText, protocolToTree } from '../src/index.js';
-import { FakeDriver } from '../src/testing/index.js';
+import { FakeDriver, type FakeScreen } from '../src/testing/index.js';
 import { homeScreen } from './fixtures.js';
 
 describe('matchText', () => {
@@ -12,10 +12,13 @@ describe('matchText', () => {
     expect(matchText(null, 'x', undefined)).toBe(false);
   });
 
-  it('tests regexes against normalized text, ignoring the global flag state', () => {
+  it('tests regexes statelessly: lastIndex and the g/y flags have no effect', () => {
     const re = /buck/gi;
     expect(matchText('Big Buck', re, undefined)).toBe(true);
     expect(matchText('Big Buck', re, undefined)).toBe(true);
+    const sticky = /Buck/y;
+    expect(matchText('Big Buck', sticky, undefined)).toBe(true);
+    expect(sticky.lastIndex).toBe(0);
   });
 
   it('normalizes empty text to null', () => {
@@ -23,41 +26,110 @@ describe('matchText', () => {
   });
 });
 
-describe('evaluateChain', () => {
-  const chains: SelectorChain[] = [
-    [{ kind: 'testId', value: 'rail_new' }],
-    [{ kind: 'text', value: 'trending' }],
-    [{ kind: 'text', value: 'Trending', exact: true }],
+describe('evaluateChain: the selector semantics of every driver and the SDK path', () => {
+  const screen: FakeScreen = {
+    initialFocus: 'card_1',
+    root: {
+      id: 'root',
+      children: [
+        {
+          testId: 'menu',
+          children: [
+            { testId: 'menu_home', text: 'Home', focusable: true },
+            { testId: 'menu_settings', text: 'Settings', focusable: true },
+          ],
+        },
+        {
+          testId: 'rail',
+          children: [
+            { id: 'card_0', testId: 'card_0', text: 'Item 0', focusable: true },
+            { id: 'card_1', testId: 'card_1', text: 'Item 1', focusable: true },
+            {
+              id: 'card_2',
+              testId: 'card_2',
+              focusable: true,
+              children: [{ testId: 'title', text: 'Item 2' }, { text: 'Comedy' }],
+            },
+          ],
+        },
+        { testId: 'footer', text: 'item' },
+      ],
+    },
+  };
+  const cases: [string, SelectorChain, string[]][] = [
+    ['testId', [{ kind: 'testId', value: 'card_0' }], ['card_0']],
+    ['missing', [{ kind: 'testId', value: 'nope' }], []],
     [
-      { kind: 'testId', value: 'rail_trending' },
-      { kind: 'text', value: /^Trending \d$/ },
+      'substring, case-insensitive, deepest',
+      [{ kind: 'text', value: 'item' }],
+      ['card_0', 'card_1', 'title', 'footer'],
+    ],
+    ['exact', [{ kind: 'text', value: 'Item 2', exact: true }], ['title']],
+    ['exact is case-sensitive', [{ kind: 'text', value: 'item 2', exact: true }], []],
+    ['regex', [{ kind: 'text', value: /^Item \d$/ }], ['card_0', 'card_1', 'title']],
+    ['text across children', [{ kind: 'text', value: 'Item 2 Comedy' }], ['card_2']],
+    ['deepest only', [{ kind: 'text', value: 'Comedy' }], ['Comedy']],
+    [
+      'scoped',
+      [
+        { kind: 'testId', value: 'rail' },
+        { kind: 'text', value: 'item' },
+      ],
+      ['card_0', 'card_1', 'title'],
     ],
     [
-      { kind: 'testId', value: 'rail_trending' },
-      { kind: 'text', value: 'trending' },
-      { kind: 'nth', index: 2 },
+      'nth',
+      [
+        { kind: 'testId', value: 'rail' },
+        { kind: 'text', value: 'item' },
+        { kind: 'nth', index: 2 },
+      ],
+      ['title'],
     ],
-    [{ kind: 'focused' }],
-    [{ kind: 'testId', value: 'nope' }],
     [
-      { kind: 'testId', value: 'side_menu' },
-      { kind: 'testId', value: 'side_menu' },
+      'nth out of range',
+      [
+        { kind: 'text', value: 'item' },
+        { kind: 'nth', index: 9 },
+      ],
+      [],
+    ],
+    ['focused', [{ kind: 'focused' }], ['card_1']],
+    ['focused in scope', [{ kind: 'testId', value: 'rail' }, { kind: 'focused' }], ['card_1']],
+    ['focused out of scope', [{ kind: 'testId', value: 'menu' }, { kind: 'focused' }], []],
+    [
+      'scopes are deduplicated',
+      [
+        { kind: 'testId', value: 'rail' },
+        { kind: 'testId', value: 'card_2' },
+        { kind: 'text', value: 'item' },
+      ],
+      ['title'],
     ],
   ];
 
-  it.each(
-    chains.map((c) => [JSON.stringify(c, (_k, v) => (v instanceof RegExp ? String(v) : v)), c]),
-  )('matches FakeDriver.query for %s', async (_name, chain) => {
-    const driver = new FakeDriver(homeScreen());
-    const fromDriver = await driver.query(chain);
-    const fromTree = evaluateChain(await driver.tree(), chain);
-    expect(fromTree.map((s) => s.ref)).toEqual(fromDriver.map((s) => s.ref));
+  it.each(cases)('%s', async (_name, chain, expected) => {
+    const tree = await new FakeDriver(screen).tree();
+    const matches = evaluateChain(tree, chain);
+    expect(matches.map((m) => m.testId ?? m.text)).toEqual(expected);
+    for (const m of matches) expect(m).not.toHaveProperty('children');
   });
 
-  it('returns the deepest text matches, not their ancestors', async () => {
+  it('is stateless for global and sticky regexes', async () => {
+    const tree = await new FakeDriver(screen).tree();
+    for (const value of [/Item/g, /Item/y]) {
+      const chain: SelectorChain = [{ kind: 'text', value }];
+      const first = evaluateChain(tree, chain).map((m) => m.testId);
+      expect(first).toEqual(['card_0', 'card_1', 'title']);
+      expect(evaluateChain(tree, chain).map((m) => m.testId)).toEqual(first);
+      expect(value.lastIndex).toBe(0);
+    }
+  });
+
+  it('is what FakeDriver.query answers', async () => {
     const driver = new FakeDriver(homeScreen());
-    const matches = evaluateChain(await driver.tree(), [{ kind: 'text', value: 'New 2' }]);
-    expect(matches.map((m) => m.testId)).toEqual(['new_2']);
+    const chain: SelectorChain = [{ kind: 'text', value: 'New 2' }];
+    expect((await driver.query(chain)).map((m) => m.testId)).toEqual(['new_2']);
   });
 });
 

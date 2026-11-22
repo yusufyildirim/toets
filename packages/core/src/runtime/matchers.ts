@@ -16,7 +16,7 @@ import { MediaImpl, NetworkImpl } from './domains.js';
 import { describeElement, locatorImpl, strictModeError, type LocatorImpl } from './locator.js';
 import { describeIdle } from './retry.js';
 import { normalizeTextSnapshot } from './text-snapshot.js';
-import { normalizeText } from './tree.js';
+import { normalizeText, testRegExp } from './tree.js';
 
 export interface MatchContext {
   /** Called with `.not`. */
@@ -196,8 +196,7 @@ function textMatcher(name: 'toHaveText' | 'toContainText') {
         const text = normalizeText(el.text) ?? '';
         let pass: boolean;
         if (wanted instanceof RegExp) {
-          wanted.lastIndex = 0;
-          pass = wanted.test(text);
+          pass = testRegExp(wanted, text);
         } else {
           pass = name === 'toHaveText' ? text === wanted : text.includes(wanted);
         }

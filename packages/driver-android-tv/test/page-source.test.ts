@@ -1,15 +1,14 @@
-import type { ElementRef, UINode } from '@dpad-tv/core';
+import { evaluateChain, focusedIn, walkTree, type ElementRef, type UINode } from '@dpad-tv/core';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { findByRef, parseBounds, parsePageSource } from '../src/page-source.js';
-import { descendants, findFocused, queryTree } from '../src/query.js';
 
 /** Real UiAutomator2 page source of the fixture's home screen (API 33 `tv_1080p`). */
 const homeXml = readFileSync(join(import.meta.dirname, 'fixtures', 'home.xml'), 'utf8');
 
 const byTestId = (root: UINode, testId: string) =>
-  [root, ...descendants(root)].find((n) => n.testId === testId);
+  [...walkTree(root)].find((n) => n.testId === testId);
 
 describe('parsePageSource', () => {
   const tree = parsePageSource(homeXml);
@@ -73,8 +72,8 @@ describe('parsePageSource', () => {
 
   it('supports content-desc as the test ID attribute', () => {
     const t = parsePageSource(homeXml, { testIdAttribute: 'content-desc' });
-    expect(queryTree(t.root, [{ kind: 'testId', value: 'Not available yet' }])).toHaveLength(1);
-    expect(queryTree(t.root, [{ kind: 'testId', value: 'card_0' }])).toHaveLength(0);
+    expect(evaluateChain(t, [{ kind: 'testId', value: 'Not available yet' }])).toHaveLength(1);
+    expect(evaluateChain(t, [{ kind: 'testId', value: 'card_0' }])).toHaveLength(0);
   });
 
   it('works on a uiautomator dump and edge-case attributes', () => {
@@ -115,9 +114,9 @@ describe('parseBounds', () => {
   });
 });
 
-describe('findFocused', () => {
+describe('focusedIn', () => {
   it('returns the focused element without children', () => {
-    const focused = findFocused(parsePageSource(homeXml).root);
+    const focused = focusedIn(parsePageSource(homeXml));
     expect(focused?.testId).toBe('card_0');
     expect(focused).not.toHaveProperty('children');
   });

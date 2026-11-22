@@ -44,7 +44,6 @@ export {
   type RemoteProfile,
 } from './keys.js';
 export { parsePageSource, type PageSourceOptions, type TestIdAttribute } from './page-source.js';
-export { queryTree, findFocused } from './query.js';
 export type { LogcatScope } from './logcat.js';
 export {
   ManagedDeviceProvider,

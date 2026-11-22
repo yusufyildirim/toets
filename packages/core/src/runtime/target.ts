@@ -10,7 +10,7 @@ import type { Driver } from '../driver.js';
 import type { SelectorChain } from '../selectors.js';
 import type { ElementSnapshot, UITree } from '../snapshot.js';
 import type { IdleCheck } from './retry.js';
-import { evaluateChain, protocolToTree, toSnapshot, walkTree } from './tree.js';
+import { evaluateChain, focusedIn, protocolToTree } from './tree.js';
 
 /** Capabilities each SDK domain adds to a target. */
 export const DOMAIN_CAPABILITIES: Readonly<Record<Domain, readonly Capability[]>> = {
@@ -125,9 +125,7 @@ export class Target {
 
   async focused(): Promise<ElementSnapshot | null> {
     const tree = await this.sdkTree();
-    if (!tree) return await this.driver.focused();
-    for (const node of walkTree(tree.root)) if (node.focused) return toSnapshot(node);
-    return null;
+    return tree ? focusedIn(tree) : await this.driver.focused();
   }
 
   /** The SDK focus graph, or `null` without the `focus` domain. */

@@ -11,6 +11,7 @@ import type { Driver, DriverLaunchOptions } from '../driver.js';
 import { DIRECTION_KEY, type Direction, type Key, type PressOptions } from '../keys.js';
 import type { Platform } from '../platform.js';
 import type { SelectorChain } from '../selectors.js';
+import { evaluateChain } from '../runtime/tree.js';
 import type { ElementRef, ElementSnapshot, LogEntry, Rect, UINode, UITree } from '../snapshot.js';
 
 export interface FakeNodeSpec {
@@ -117,25 +118,9 @@ export class FakeDriver implements Driver {
   }
   async reset(): Promise<void> {}
 
+  /** Selectors are evaluated by the core over {@link tree}, like every real driver. */
   async query(chain: SelectorChain): Promise<readonly ElementSnapshot[]> {
-    // `null` scope = the whole document, root included; later steps search descendants only.
-    let current: (FakeNode | null)[] = [null];
-    for (const step of chain) {
-      if (step.kind === 'nth') {
-        const picked = current[step.index];
-        current = picked ? [picked] : [];
-        continue;
-      }
-      const next: FakeNode[] = [];
-      for (const scope of current) {
-        const candidates = scope ? this.descendants(scope) : this.allNodes();
-        for (const n of candidates) {
-          if (this.matches(n, step) && !next.includes(n)) next.push(n);
-        }
-      }
-      current = next;
-    }
-    return current.filter((n): n is FakeNode => n !== null).map((n) => this.snapshotOf(n));
+    return evaluateChain(await this.tree(), chain);
   }
 
   async focused(): Promise<ElementSnapshot | null> {
@@ -265,40 +250,11 @@ export class FakeDriver implements Driver {
     return node;
   }
 
-  private *allNodes(): Generator<FakeNode> {
-    yield this.rootNode;
-    yield* this.descendants(this.rootNode);
-  }
-
   private *descendants(n: FakeNode): Generator<FakeNode> {
     for (const c of n.children) {
       yield c;
       yield* this.descendants(c);
     }
-  }
-
-  private matches(n: FakeNode, step: SelectorChain[number]): boolean {
-    switch (step.kind) {
-      case 'testId':
-        return n.spec.testId === step.value;
-      case 'focused':
-        return n.id === this.focusedId;
-      case 'text':
-        // Like Playwright: the deepest elements whose text matches, not their ancestors.
-        return (
-          this.textMatches(n, step.value, step.exact) &&
-          !n.children.some((c) => this.textMatches(c, step.value, step.exact))
-        );
-      default:
-        return false;
-    }
-  }
-
-  private textMatches(n: FakeNode, value: string | RegExp, exact: boolean | undefined): boolean {
-    const text = this.textOf(n);
-    if (text === null) return false;
-    if (value instanceof RegExp) return value.test(text);
-    return exact ? text === value : text.toLowerCase().includes(value.toLowerCase());
   }
 
   private textOf(n: FakeNode): string | null {

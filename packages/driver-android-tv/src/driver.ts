@@ -1,15 +1,17 @@
-import type {
-  Capability,
-  Driver,
-  DriverCreateContext,
-  DriverLaunchOptions,
-  ElementRef,
-  ElementSnapshot,
-  Key,
-  LogEntry,
-  PressOptions,
-  SelectorChain,
-  UITree,
+import {
+  evaluateChain,
+  focusedIn,
+  type Capability,
+  type Driver,
+  type DriverCreateContext,
+  type DriverLaunchOptions,
+  type ElementRef,
+  type ElementSnapshot,
+  type Key,
+  type LogEntry,
+  type PressOptions,
+  type SelectorChain,
+  type UITree,
 } from '@dpad-tv/core';
 import { encodeLaunchPayload, LAUNCH_PARAM, type LaunchPayload } from '@dpad-tv/protocol';
 import { join } from 'node:path';
@@ -29,7 +31,6 @@ import { LogcatCollector } from './logcat.js';
 import { parseAppConfig, type AndroidTvAppConfig, type AndroidTvDriverOptions } from './options.js';
 import { findByRef, parsePageSource } from './page-source.js';
 import { cropPng } from './png.js';
-import { findFocused, queryTree } from './query.js';
 import { ScreenRecorder } from './recorder.js';
 import { resolveAndroidSdk } from './sdk.js';
 
@@ -288,11 +289,11 @@ export class AndroidTvDriver implements Driver {
   }
 
   async query(chain: SelectorChain): Promise<readonly ElementSnapshot[]> {
-    return queryTree((await this.tree()).root, chain);
+    return evaluateChain(await this.tree(), chain);
   }
 
   async focused(): Promise<ElementSnapshot | null> {
-    return findFocused((await this.tree()).root);
+    return focusedIn(await this.tree());
   }
 
   /** One page-source round trip; `query` and `focused` are computed from it on the host. */

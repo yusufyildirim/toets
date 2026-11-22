@@ -1,5 +1,6 @@
 import type { RecordedRequest } from '../api.js';
 import type { MockServerLike, RequestFilter } from '../mock.js';
+import { testRegExp } from '../runtime/tree.js';
 
 /**
  * In-memory stand-in for `@dpad-tv/mock`'s server. Tests record requests with
@@ -35,7 +36,7 @@ export class FakeMockServer implements MockServerLike {
   requests(filter: RequestFilter = {}): readonly RecordedRequest[] {
     return this.recorded.filter((r) => {
       if (filter.method && r.method.toUpperCase() !== filter.method.toUpperCase()) return false;
-      if (filter.url instanceof RegExp) return filter.url.test(r.url);
+      if (filter.url instanceof RegExp) return testRegExp(filter.url, r.url);
       if (typeof filter.url === 'string') return r.url.includes(filter.url);
       return true;
     });

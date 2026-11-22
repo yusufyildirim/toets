@@ -13,9 +13,26 @@ export function normalizeText(text: string | null | undefined): string | null {
   return out.length ? out : null;
 }
 
+const statelessCopies = new WeakMap<RegExp, RegExp>();
+
+/**
+ * Tests `re` against `text` statelessly, the way dpad applies every user RegExp (`getByText`,
+ * `toHaveText`, request filters): `lastIndex` is ignored and left untouched, so the `g` and `y`
+ * flags have no effect and repeated tests never skip matches.
+ */
+export function testRegExp(re: RegExp, text: string): boolean {
+  if (!re.global && !re.sticky) return re.test(text);
+  let copy = statelessCopies.get(re);
+  if (!copy) {
+    copy = new RegExp(re.source, re.flags.replace(/[gy]/g, ''));
+    statelessCopies.set(re, copy);
+  }
+  return copy.test(text);
+}
+
 /**
  * The single definition of text matching for `getByText`:
- * - `RegExp`: tested against the normalized text.
+ * - `RegExp`: tested against the normalized text ({@link testRegExp}).
  * - `exact`: normalized text equals `value` (case-sensitive).
  * - default: normalized text contains `value`, case-insensitive.
  */
@@ -26,10 +43,7 @@ export function matchText(
 ): boolean {
   const normalized = normalizeText(text);
   if (normalized === null) return false;
-  if (value instanceof RegExp) {
-    value.lastIndex = 0;
-    return value.test(normalized);
-  }
+  if (value instanceof RegExp) return testRegExp(value, normalized);
   const wanted = normalizeText(value) ?? '';
   return exact ? normalized === wanted : normalized.toLowerCase().includes(wanted.toLowerCase());
 }
@@ -48,6 +62,12 @@ export function* walkTree(root: UINode): Generator<UINode> {
 
 function* descendants(node: UINode): Generator<UINode> {
   for (const child of node.children) yield* walkTree(child);
+}
+
+/** The focused element of a tree (first in document order), or `null`. */
+export function focusedIn(tree: UITree): ElementSnapshot | null {
+  for (const node of walkTree(tree.root)) if (node.focused) return toSnapshot(node);
+  return null;
 }
 
 /** Finds a node by ref. */

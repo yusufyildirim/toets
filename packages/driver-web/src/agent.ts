@@ -411,7 +411,7 @@ export function pageAgent(req: AgentRequest): string {
       case 'regex': {
         let test: (text: string) => boolean;
         if (step.kind === 'regex') {
-          // Global/sticky flags make `test` stateful; matching is per element.
+          // Stateless like the core's testRegExp: the g/y flags never carry state between elements.
           const re = new RegExp(step.source, step.flags.replace(/[gy]/g, ''));
           test = (t) => re.test(t);
         } else if (step.exact) {

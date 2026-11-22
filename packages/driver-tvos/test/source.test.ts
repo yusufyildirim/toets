@@ -1,6 +1,5 @@
-import type { ElementRef } from '@dpad-tv/core';
+import { evaluateChain, findNode, focusedIn, type ElementRef } from '@dpad-tv/core';
 import { describe, expect, it } from 'vitest';
-import { findByRef, focusedIn, queryTree } from '../src/query.js';
 import { parseSource, type WdaSourceNode } from '../src/source.js';
 
 const rect = (x: number, y: number, width: number, height: number) => ({ x, y, width, height });
@@ -122,7 +121,7 @@ const HOME: WdaSourceNode = {
 
 describe('parseSource', () => {
   const tree = parseSource(HOME);
-  const byId = (id: string) => queryTree(tree, [{ kind: 'testId', value: id }])[0]!;
+  const byId = (id: string) => evaluateChain(tree, [{ kind: 'testId', value: id }])[0]!;
 
   it('uses the root frame as viewport', () => {
     expect(tree.viewport).toEqual({ width: 1920, height: 1080 });
@@ -130,8 +129,8 @@ describe('parseSource', () => {
 
   it('takes testId from rawIdentifier only, never the label fallback in name', () => {
     expect(byId('rail_item_1').testId).toBe('rail_item_1');
-    expect(queryTree(tree, [{ kind: 'testId', value: 'Disabled' }])).toEqual([]);
-    const disabled = queryTree(tree, [{ kind: 'text', value: 'Disabled', exact: true }])[0]!;
+    expect(evaluateChain(tree, [{ kind: 'testId', value: 'Disabled' }])).toEqual([]);
+    const disabled = evaluateChain(tree, [{ kind: 'text', value: 'Disabled', exact: true }])[0]!;
     expect(disabled.testId).toBeNull();
     expect(disabled.label).toBe('Disabled');
   });
@@ -159,7 +158,7 @@ describe('parseSource', () => {
   it('maps enabled, selected, busy, visibility and viewport', () => {
     expect(byId('rail_item_2').selected).toBe(true);
     expect(byId('rail_item_1').selected).toBe(false);
-    expect(queryTree(tree, [{ kind: 'text', value: 'Disabled' }])[0]!.enabled).toBe(false);
+    expect(evaluateChain(tree, [{ kind: 'text', value: 'Disabled' }])[0]!.enabled).toBe(false);
     expect(byId('spinner').busy).toBe(true);
     expect(tree.root.busy).toBe(true);
     expect(byId('rail_item_1').busy).toBe(false);
@@ -173,8 +172,8 @@ describe('parseSource', () => {
     const again = parseSource(structuredClone(HOME));
     const ref = byId('rail_item_2').ref;
     expect(ref).toBe('0.0.1.1:Button#rail_item_2');
-    expect(findByRef(again, ref)?.testId).toBe('rail_item_2');
-    expect(findByRef(again, 'nope' as ElementRef)).toBeNull();
+    expect(findNode(again, ref)?.testId).toBe('rail_item_2');
+    expect(findNode(again, 'nope' as ElementRef)).toBeNull();
   });
 
   it('returns a null focus when nothing is focused', () => {
@@ -184,10 +183,10 @@ describe('parseSource', () => {
   });
 });
 
-describe('queryTree', () => {
+describe('evaluateChain', () => {
   const tree = parseSource(HOME);
-  const ids = (chain: Parameters<typeof queryTree>[1]) =>
-    queryTree(tree, chain).map((s) => s.testId ?? s.label);
+  const ids = (chain: Parameters<typeof evaluateChain>[1]) =>
+    evaluateChain(tree, chain).map((s) => s.testId ?? s.label);
 
   it('matches text case-insensitively by substring, exactly, or by RegExp, deepest first', () => {
     // The button's own StaticText child is deeper than the button, so it wins (like the DOM).
@@ -220,6 +219,8 @@ describe('queryTree', () => {
   });
 
   it('returns snapshots without children', () => {
-    expect(queryTree(tree, [{ kind: 'testId', value: 'rail' }])[0]).not.toHaveProperty('children');
+    expect(evaluateChain(tree, [{ kind: 'testId', value: 'rail' }])[0]).not.toHaveProperty(
+      'children',
+    );
   });
 });

@@ -1,17 +1,20 @@
 import { mkdir } from 'node:fs/promises';
 import { join } from 'node:path';
-import type {
-  Capability,
-  Driver,
-  DriverCreateContext,
-  DriverLaunchOptions,
-  ElementRef,
-  ElementSnapshot,
-  Key,
-  LogEntry,
-  PressOptions,
-  SelectorChain,
-  UITree,
+import {
+  evaluateChain,
+  findNode,
+  focusedIn,
+  type Capability,
+  type Driver,
+  type DriverCreateContext,
+  type DriverLaunchOptions,
+  type ElementRef,
+  type ElementSnapshot,
+  type Key,
+  type LogEntry,
+  type PressOptions,
+  type SelectorChain,
+  type UITree,
 } from '@dpad-tv/core';
 import { LAUNCH_PARAM, encodeLaunchPayload } from '@dpad-tv/protocol';
 import {
@@ -27,7 +30,6 @@ import { cropPng } from './image.js';
 import { REMOTE_BUTTONS, TVOS_CAPABILITIES } from './keys.js';
 import { AppLogStream } from './logs.js';
 import { resolveAppConfig, type TvosAppConfig, type TvosDriverOptions } from './options.js';
-import { findByRef, focusedIn, queryTree } from './query.js';
 import { ScreenRecorder } from './recording.js';
 import { createWebdriverioSession, type CreateSession, type TvosSession } from './session.js';
 import { Simctl } from './simctl.js';
@@ -168,7 +170,7 @@ export class TvosDriver implements Driver {
   }
 
   async query(chain: SelectorChain): Promise<readonly ElementSnapshot[]> {
-    return queryTree(await this.tree(), chain);
+    return evaluateChain(await this.tree(), chain);
   }
 
   async focused(): Promise<ElementSnapshot | null> {
@@ -204,7 +206,7 @@ export class TvosDriver implements Driver {
       return decodeBase64(await this.call('screenshot', () => session.takeScreenshot()));
     // Resolve the element against the current screen, then crop one viewport screenshot.
     const tree = await this.tree();
-    const node = findByRef(tree, opts.element);
+    const node = findNode(tree, opts.element);
     if (!node) {
       throw tvosError(
         TvosErrorCode.ELEMENT_DETACHED,
