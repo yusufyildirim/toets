@@ -1,5 +1,3 @@
-import { remote } from 'webdriverio';
-
 /** The part of a WebdriverIO `Browser` the driver uses. Kept small so tests can fake it. */
 export interface TvosSession {
   execute(script: string, ...args: unknown[]): Promise<unknown>;
@@ -22,6 +20,8 @@ export const createWebdriverioSession: CreateSession = async ({
   capabilities,
   timeoutMs,
 }) => {
+  // Loaded on demand: the device provider runs in the runner's main process without it.
+  const { remote } = await import('webdriverio');
   const url = new URL(serverUrl);
   const browser = await remote({
     protocol: url.protocol === 'https:' ? 'https' : 'http',
