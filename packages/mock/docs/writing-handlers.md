@@ -1,10 +1,9 @@
 # Writing handlers
 
-Handlers are standard [MSW `http` handlers](https://mswjs.io/docs/api/http). Import them from `@dpad-tv/mock` so the server and your handlers share one MSW copy.
+Handlers are standard [MSW `http` handlers](https://mswjs.io/docs/api/http). In tests, import the helpers on this page from `@dpad-tv/test`, which re-exports them from `@dpad-tv/mock` so the server and your handlers share one MSW copy.
 
 ```ts
-import { test, expect } from '@dpad-tv/test';
-import { http, HttpResponse } from '@dpad-tv/mock';
+import { test, expect, http, HttpResponse } from '@dpad-tv/test';
 
 test('shows an empty state when there are no rails', async ({ app }) => {
   app.network.use(http.get('/v1/rails', () => HttpResponse.json([])));
@@ -33,7 +32,7 @@ test('shows an empty state when there are no rails', async ({ app }) => {
 Two helpers build handlers for the unhappy path. They work on mocked and proxied traffic alike.
 
 ```ts nocheck
-import { failure, latency } from '@dpad-tv/mock';
+import { failure, latency } from '@dpad-tv/test';
 
 app.network.use(latency(3000, { url: '/v1/rails' })); // slow, then normal response
 app.network.use(failure({ url: '/v1/rails', status: 503, times: 1 })); // fails once, then recovers

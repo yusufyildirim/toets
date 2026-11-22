@@ -1,3 +1,5 @@
+import { createRequire } from 'node:module';
+import { dirname, join, relative } from 'node:path';
 import { ProtocolError } from '@dpad-tv/protocol';
 
 /**
@@ -39,7 +41,35 @@ export class DpadError extends Error {
 /** A docs path plus, for package pages, where the installed package ships it. */
 function describeDocs(path: string): string {
   const pkg = /^reference\/([^/]+)\/docs\/(.+)$/.exec(path);
-  return pkg ? `${path} (offline: node_modules/@dpad-tv/${pkg[1]}/docs/${pkg[2]}.md)` : path;
+  if (!pkg) return path;
+  const page = `docs/${pkg[2]}.md`;
+  const dir = packageDir(pkg[1]!);
+  const offline = dir
+    ? relative(process.cwd(), join(dir, page))
+    : `node_modules/@dpad-tv/${pkg[1]}/${page}`;
+  return `${path} (offline: ${offline})`;
+}
+
+const packageDirs = new Map<string, string | null>();
+
+/**
+ * Where `@dpad-tv/<pkg>` is installed. Package managers that do not hoist (pnpm) keep
+ * transitive packages like core out of the top `node_modules`, so resolve from the project
+ * first, then from this package.
+ */
+function packageDir(pkg: string): string | null {
+  if (packageDirs.has(pkg)) return packageDirs.get(pkg)!;
+  let dir: string | null = null;
+  for (const from of [join(process.cwd(), 'package.json'), import.meta.url]) {
+    try {
+      dir = dirname(createRequire(from).resolve(`@dpad-tv/${pkg}/package.json`));
+      break;
+    } catch {
+      // not resolvable from here
+    }
+  }
+  packageDirs.set(pkg, dir);
+  return dir;
 }
 
 /**

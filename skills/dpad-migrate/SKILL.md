@@ -7,7 +7,7 @@ description: Port existing end-to-end tests to dpad (@dpad-tv/test) from Playwri
 
 Translate intent, not syntax. Old tests encode the old tool's model (pointer clicks, explicit waits, platform selectors, keycodes, per-platform files). dpad's model is focus, the remote, retrying assertions and capabilities; a literal port keeps the old problems.
 
-Docs are referenced by slug, for example `guides/migrating/from-appium`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md`.
+Docs are referenced by slug, for example `guides/migrating/from-appium`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md` (until the site is hosted: under `docs/` in the dpad repository).
 
 ## Source-specific mappings
 

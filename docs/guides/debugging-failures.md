@@ -9,7 +9,7 @@ dpad failures are meant to explain themselves. Read what they say before changin
 ## 1. Read the failure
 
 - **The error.** A thrown error reads `DpadError: [CODE] what happened`, then `Hint:` (likely cause and fix) and `Docs:` (the page, with its offline path). Every code is listed in the [error code index](../reference/core/docs/errors.md). A failed assertion shows the locator, expected and received state, what was focused and whether the app was idle.
-- **The failure dump** (`dpad-failure`, with `dpad-screenshot`), attached to the failed test: platform and capabilities, the focused element, a [text snapshot](../concepts/text-snapshots.md) of the screen, the last keys pressed, what kept the app busy, recent logs and requests. See [failure dumps](../reference/core/docs/failure-dumps.md).
+- **The failure dump** (`dpad-failure.md`, with `dpad-screenshot.png`), in the failed test's `test-results/` folder and attached to the report: platform and capabilities, the focused element, a [text snapshot](../concepts/text-snapshots.md) of the screen, the last keys pressed, what kept the app busy, recent logs and requests. See [failure dumps](../reference/core/docs/failure-dumps.md).
 - **The report.** `npx playwright show-report` lists every action as a step (`press RIGHT`, `navigateTo getByTestId('card')`). Per test: `dpad-logs` and, with mocking on, `dpad-network.har`. Per-step screenshots and snapshots (`dpad.steps`) and video (`dpad.video`) are off by default; turn them on while debugging. Web runs also record Playwright traces (`--trace on`).
 
 ## 2. Reproduce narrowly

@@ -8,6 +8,7 @@
   },
   "scripts": {
     "build": "pnpm -r --filter './packages/**' build",
+    "pack:local": "pnpm -r --filter './packages/**' exec pnpm pack --pack-destination",
     "test": "pnpm -r --filter './packages/**' --filter './examples/**' test",
     "typecheck": "pnpm -r --filter './packages/**' --filter './examples/**' typecheck",
     "lint": "eslint .",

@@ -110,14 +110,15 @@ describe('defineConfig', () => {
     expect(reporters[1]?.[1]).toEqual({});
   });
 
-  it('adds a default console reporter when none is configured', () => {
+  it('adds console and HTML reporters when none is configured', () => {
     const reporters = defineConfig({ parityReport: { summary: false } }).reporter as [
       string,
       unknown,
     ][];
-    expect(reporters).toHaveLength(2);
+    expect(reporters).toHaveLength(3);
     expect(['list', 'dot']).toContain(reporters[0]?.[0]);
-    expect(reporters[1]?.[1]).toEqual({ summary: false });
+    expect(reporters[1]).toEqual(['html', { open: 'never' }]);
+    expect(reporters[2]?.[1]).toEqual({ summary: false });
   });
 
   it('leaves reporters alone when the parity report is off', () => {

@@ -1,4 +1,4 @@
-import { rm } from 'node:fs/promises';
+import { rm, writeFile } from 'node:fs/promises';
 import { dirname, extname } from 'node:path';
 import { test as base, type TestInfo } from '@playwright/test';
 import {
@@ -88,17 +88,19 @@ const formatLogs = (logs: readonly LogEntry[]): string =>
     .map((l) => `${new Date(l.timestamp).toISOString()} ${l.level} [${l.source}] ${l.message}`)
     .join('\n') + '\n';
 
+/**
+ * The failure dump and screenshot as files in the test's output dir, so the console reporter
+ * prints their paths (it truncates inline text) and agents can read them from `test-results/`.
+ */
 async function attachFailure(runtime: AppRuntime, testInfo: TestInfo): Promise<void> {
   const dump = await runtime.failureDump();
-  await testInfo.attach('dpad-failure', {
-    body: formatFailureDump(dump),
-    contentType: 'text/markdown',
-  });
+  const dumpPath = testInfo.outputPath('dpad-failure.md');
+  await writeFile(dumpPath, formatFailureDump(dump));
+  await testInfo.attach('dpad-failure', { path: dumpPath, contentType: 'text/markdown' });
   if (dump.screenshot?.length) {
-    await testInfo.attach('dpad-screenshot', {
-      body: Buffer.from(dump.screenshot),
-      contentType: 'image/png',
-    });
+    const pngPath = testInfo.outputPath('dpad-screenshot.png');
+    await writeFile(pngPath, dump.screenshot);
+    await testInfo.attach('dpad-screenshot', { path: pngPath, contentType: 'image/png' });
   }
 }
 
