@@ -4,7 +4,10 @@ import { createDpadMcp } from './server.js';
 
 /** Options of {@link runStdio}. */
 export interface RunStdioOptions {
-  /** Config file path. Default: `DPAD_MCP_CONFIG`, else `dpad.mcp.config.*` in `cwd`. */
+  /**
+   * Config file: a dpad MCP config or a dpad test (Playwright) config. Default: `DPAD_MCP_CONFIG`,
+   * else `dpad.mcp.config.*`, else `playwright.config.*` in `cwd`.
+   */
   readonly configFile?: string;
   readonly cwd?: string;
 }
@@ -20,10 +23,10 @@ export async function runStdio(options: RunStdioOptions = {}): Promise<void> {
   console.info = console.error;
 
   const cwd = options.cwd ?? process.cwd();
-  const loaded = await loadMcpConfig(options.configFile ?? process.env.DPAD_MCP_CONFIG, cwd);
+  const loaded = await loadMcpConfig(options.configFile ?? process.env.DPAD_MCP_CONFIG, cwd, log);
   log(
     loaded
-      ? `dpad mcp: config ${loaded.file}, targets: ${Object.keys(loaded.config.targets).join(', ')}`
+      ? `dpad mcp: ${loaded.kind === 'test' ? 'test config' : 'config'} ${loaded.file}, targets: ${Object.keys(loaded.config.targets).join(', ')}`
       : 'dpad mcp: no config found; only docs_search is available',
   );
 
