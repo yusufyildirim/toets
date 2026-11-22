@@ -214,7 +214,10 @@ export class AndroidTvDriver implements Driver {
       'appium:autoLaunch': false,
       'appium:skipUnlock': true,
       'appium:skipLogcatCapture': true,
-      'appium:newCommandTimeout': 600,
+      // A driver-owned server dies with the worker, so idle sessions (debugging) may live on.
+      'appium:newCommandTimeout': this.options.appium?.url ? 600 : 0,
+      // Loaded CI hosts and cold emulators exceed Appium's 20 s default.
+      'appium:adbExecTimeout': 60_000,
       'appium:uiautomator2ServerLaunchTimeout': 120_000,
       'appium:uiautomator2ServerInstallTimeout': 120_000,
       // Explicit per-worker port: the driver's own pick races between parallel servers.

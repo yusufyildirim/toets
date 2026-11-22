@@ -131,6 +131,7 @@ describe('ScreenRecorder', () => {
       runner,
       ffmpeg: '/usr/bin/ffmpeg',
       log: (m) => logs.push(m),
+      minSegmentMs: 0,
     });
     await recorder.start();
     runner.processes[0]!.exit(0); // time limit reached
@@ -160,5 +161,23 @@ describe('ScreenRecorder', () => {
     });
     expect(await recorder.stop()).toMatch(/-1\.mp4$/);
     expect(logs.join('\n')).toContain('split into 2 segments');
+  });
+
+  it('does not restart a failing screenrecord and explains the failure', async () => {
+    const runner = new FakeRunner();
+    const outputDir = mkdtempSync(join(tmpdir(), 'dpad-rec-'));
+    const recorder = new ScreenRecorder(new Adb(runner, 'adb', 'emulator-5554', {}), {
+      outputDir,
+      runner,
+    });
+    runner.on(' pull ', { exitCode: 1, stderr: 'remote object does not exist' });
+    await recorder.start();
+    runner.processes[0]!.emit('ERROR: unable to configure video encoder');
+    runner.processes[0]!.exit(1);
+    await new Promise((r) => setTimeout(r, 0));
+    expect(runner.lines('spawn')).toHaveLength(1);
+    const err = await recorder.stop().catch((e: unknown) => e);
+    expect(err).toMatchObject({ code: 'ANDROID_RECORDING_FAILED' });
+    expect((err as Error).message).toContain('unable to configure video encoder');
   });
 });

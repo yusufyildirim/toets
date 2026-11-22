@@ -16,13 +16,20 @@ export interface RecorderOptions {
   readonly ffmpeg?: string;
   readonly runner: CommandRunner;
   readonly log?: (message: string) => void;
+  /**
+   * A segment that ends earlier than this (or with an error) is a failure, not the time
+   * limit, and is not restarted. Default 10 000 ms.
+   */
+  readonly minSegmentMs?: number;
 }
 
 interface RecordingSession {
   readonly id: string;
   readonly segments: string[];
+  readonly output: string[];
   proc: SpawnedProcess | undefined;
   stopping: boolean;
+  failure: string | undefined;
 }
 
 /**
@@ -47,7 +54,14 @@ export class ScreenRecorder {
   async start(): Promise<void> {
     if (this.session) return;
     const id = `dpad-${Date.now()}-${this.counter++}`;
-    const session: RecordingSession = { id, segments: [], proc: undefined, stopping: false };
+    const session: RecordingSession = {
+      id,
+      segments: [],
+      output: [],
+      proc: undefined,
+      stopping: false,
+      failure: undefined,
+    };
     this.session = session;
     this.startSegment(session);
   }
@@ -73,14 +87,20 @@ export class ScreenRecorder {
     const local: string[] = [];
     for (const remote of session.segments) {
       const file = join(this.opts.outputDir, remote.slice(remote.lastIndexOf('/') + 1));
-      await this.adb.pull(remote, file);
+      try {
+        await this.adb.pull(remote, file);
+        local.push(file);
+      } catch (e) {
+        session.failure ??= (e as Error).message;
+      }
       await this.adb.run(['shell', 'rm', '-f', remote]);
-      local.push(file);
     }
     if (local.length === 0) {
-      throw androidError('ANDROID_RECORDING_FAILED', 'screenrecord produced no video.', {
-        hint: 'Some emulator images lack a hardware video encoder; try another system image.',
-      });
+      throw androidError(
+        'ANDROID_RECORDING_FAILED',
+        `screenrecord produced no video${session.failure ? `: ${session.failure}` : '.'}`,
+        { hint: 'Some emulator images lack a hardware video encoder; try another system image.' },
+      );
     }
     if (local.length === 1) return local[0]!;
     return this.join(local, session.id);
@@ -89,19 +109,34 @@ export class ScreenRecorder {
   private startSegment(session: RecordingSession): void {
     const remote = `/sdcard/${session.id}-${session.segments.length}.mp4`;
     session.segments.push(remote);
-    const proc = this.adb.spawn([
-      'shell',
-      'screenrecord',
-      '--bit-rate',
-      String(this.opts.bitRate ?? 4_000_000),
-      '--time-limit',
-      String(SEGMENT_SECONDS),
-      remote,
-    ]);
+    const startedAt = Date.now();
+    const proc = this.adb.spawn(
+      [
+        'shell',
+        'screenrecord',
+        '--bit-rate',
+        String(this.opts.bitRate ?? 4_000_000),
+        '--time-limit',
+        String(SEGMENT_SECONDS),
+        remote,
+      ],
+      {
+        onLine: (line) => {
+          session.output.push(line);
+          if (session.output.length > 20) session.output.shift();
+        },
+      },
+    );
     session.proc = proc;
-    void proc.exited.then(() => {
-      // Hit the time limit while still recording: continue in a new segment.
-      if (this.session === session && !session.stopping) this.startSegment(session);
+    void proc.exited.then((code) => {
+      if (this.session !== session || session.stopping) return;
+      if (code === 0 && Date.now() - startedAt >= (this.opts.minSegmentMs ?? 10_000)) {
+        // Hit the time limit while still recording: continue in a new segment.
+        this.startSegment(session);
+        return;
+      }
+      session.failure = `screenrecord exited with code ${code}: ${session.output.join(' ').trim()}`;
+      this.opts.log?.(`video: ${session.failure}`);
     });
   }
 
