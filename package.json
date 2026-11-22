@@ -13,7 +13,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test",
+    "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm test && pnpm docs:check",
     "docs:dev": "pnpm --filter @dpad-tv/docs dev",
     "docs:build": "pnpm --filter @dpad-tv/docs build",
     "docs:check": "pnpm --filter @dpad-tv/docs check",
