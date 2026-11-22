@@ -1,8 +1,7 @@
-import { DpadError, Key, type ElementSnapshot } from '@dpad-tv/core';
+import { describeElement, DpadError, Key, type ElementSnapshot } from '@dpad-tv/core';
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { DocsIndex } from '../docs/search.js';
-import { describeElement } from '../runtime/text-snapshot.js';
 import type { Session } from '../session.js';
 
 /** What tool handlers share. */
@@ -28,7 +27,7 @@ export const targetSchema = z
       .min(1)
       .optional()
       .describe(
-        'Visible text. Case-insensitive substring unless `exact`. Searched inside `testId` when both are given.',
+        'Visible text. Case-insensitive substring unless `exact`; matches the deepest element with that text. Searched inside `testId` when both are given.',
       ),
     exact: z.boolean().optional().describe('Match the full text exactly, case-sensitive.'),
     nth: z.number().int().min(0).optional().describe('0-based pick when several elements match.'),
@@ -56,6 +55,7 @@ export async function guarded(fn: () => Promise<CallToolResult>): Promise<CallTo
   }
 }
 
+/** `Focus: card_1 "Movie 1"`, in the vocabulary of dpad failure messages. */
 export function focusLine(el: ElementSnapshot | null): string {
   return el
     ? `Focus: ${describeElement(el)}`

@@ -10,9 +10,9 @@ import { findNode } from './tree.js';
 function describeSelector(step: Selector): string {
   switch (step.kind) {
     case 'testId':
-      return `getByTestId(${quote(step.value)})`;
+      return `getByTestId(${jsString(step.value)})`;
     case 'text': {
-      const value = step.value instanceof RegExp ? String(step.value) : quote(step.value);
+      const value = step.value instanceof RegExp ? String(step.value) : jsString(step.value);
       return `getByText(${value}${step.exact ? ', { exact: true }' : ''})`;
     }
     case 'focused':
@@ -22,7 +22,15 @@ function describeSelector(step: Selector): string {
   }
 }
 
-const quote = (s: string): string => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
+/** A single-quoted JavaScript string literal, as a test would write it. */
+export function jsString(value: string): string {
+  const escaped = value
+    .replace(/\\/g, '\\\\')
+    .replace(/'/g, "\\'")
+    .replace(/\n/g, '\\n')
+    .replace(/\r/g, '\\r');
+  return `'${escaped}'`;
+}
 
 /** Deterministic description of a chain, e.g. `getByTestId('rail').getByText('Alpha').first()`. */
 export function describeChain(chain: SelectorChain): string {
@@ -178,4 +186,18 @@ export function locatorImpl(value: unknown): LocatorImpl | null {
 
 export function isLocator(value: unknown): value is Locator {
   return value instanceof LocatorImpl;
+}
+
+/**
+ * Current matches of a dpad Locator in tree order, without waiting and without strictness.
+ * For runners and tools (the MCP `query` tool); tests assert with `expect` instead.
+ */
+export function resolveLocator(locator: Locator): Promise<readonly ElementSnapshot[]> {
+  const impl = locatorImpl(locator);
+  if (!impl) {
+    throw new DpadError('INVALID_ARGUMENT', 'resolveLocator() takes a dpad Locator.', {
+      docs: packageDocsLink('core', 'locators'),
+    });
+  }
+  return impl.resolve();
 }

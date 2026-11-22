@@ -18,13 +18,15 @@ The MCP tools are the test API in interactive form. Explore with them until each
 4. Check the outcome with `assert` (`toBeFocused`, `toBeVisible`, `toHaveText`).
 5. Copy the `Code:` lines from the responses into the test.
 
+When a test fails, the same loop reproduces it: `launch` with the test's `state`, repeat its steps and `assert` the failing matcher to read the same message.
+
 ## Example
 
 Exploration (tool calls and the code they return):
 
 ```text
 launch
-  -> Focus: focusable [testId=card_1, focused]: "Movie 1"
+  -> Focus: card_1 "Movie 1"
 navigate_to { target: { testId: "card_2" } }
   -> Code: await app.focus.navigateTo(app.getByTestId('card_2'));
 press { keys: ["SELECT"] }

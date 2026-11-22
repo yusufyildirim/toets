@@ -9,7 +9,8 @@ const USAGE = `dpad-mcp ${pkg.version} - dpad MCP server (stdio)
 Usage: dpad-mcp [--config <file>]
 
 Options:
-  -c, --config <file>  Config file. Default: $DPAD_MCP_CONFIG, else dpad.mcp.config.{ts,mts,js,mjs,json}
+  -c, --config <file>  dpad MCP config or dpad test (Playwright) config. Default: $DPAD_MCP_CONFIG,
+                       else dpad.mcp.config.{ts,mts,js,mjs,json}, else playwright.config.{ts,mts,js,mjs}
   -h, --help           Show this help
   -v, --version        Show the version
 

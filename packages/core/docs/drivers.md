@@ -25,6 +25,10 @@ export default module;
 - **Devices:** use `DeviceAcquireOptions.parallelIndex` to pick an exclusive device per worker slot.
 - **Errors** are `DpadError` with a `hint` and a `docs` slug.
 
+## Runners
+
+`@dpad-tv/core/runner` brings a target up and down for a runner: `RunningTarget.start` loads the driver module, picks the device provider (`managed`, `external`, `command`), leases a device, starts the driver, the mock server and the SDK host, and builds the `AppRuntime`. `@dpad-tv/test` (per worker) and `@dpad-tv/mcp` (per session) both use it, so a target behaves the same in tests and in agent exploration. It also has the small helpers interactive runners need to report like tests: `settleFocus` (wait for a press to land, as `navigateTo` does), `jsString` and `describeKeyOverride`.
+
 ## Testing a driver
 
 `@dpad-tv/core/testing` has `FakeDriver` (a scripted screen with geometry-based focus), `FakeSdkHost` and `FakeMockServer`. Run the core behaviour against the fake, and keep real-device tests for the mapping your driver owns.

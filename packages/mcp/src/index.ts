@@ -5,12 +5,12 @@
  */
 export {
   CONFIG_FILES,
+  TEST_CONFIG_FILES,
   defineMcpConfig,
   loadMcpConfig,
   validateMcpConfig,
   type LoadedMcpConfig,
   type McpConfig,
-  type McpDeviceConfig,
   type McpTargetConfig,
 } from './config.js';
 export { createDpadMcp, SERVER_INSTRUCTIONS, type DpadMcp, type DpadMcpOptions } from './server.js';

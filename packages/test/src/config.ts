@@ -6,62 +6,23 @@ import {
   type Project,
   type ReporterDescription,
 } from '@playwright/test';
-import type {
-  AppTargetConfig,
-  CommandDevicesOptions,
-  IdleOptions,
-  KeyOverrides,
-  MockServerLike,
-  Platform,
-  RemoteOptions,
-  Timeouts,
-} from '@dpad-tv/core';
+import type { AppTargetConfig, Platform, Timeouts } from '@dpad-tv/core';
+import { mergeRuntimeConfig, type DeviceSelection, type RuntimeConfig } from '@dpad-tv/core/runner';
 import type { AndroidTvAppConfig, AndroidTvDriverOptions } from '@dpad-tv/driver-android-tv';
 import type { TvosAppConfig, TvosDriverOptions } from '@dpad-tv/driver-tvos';
 import type { WebDriverOptions } from '@dpad-tv/driver-web';
-import type { SdkHost } from '@dpad-tv/protocol';
 import type { ParityReporterOptions } from './reporter.js';
 
-/** How a project gets its device. Web needs none. */
-export type DeviceSelection =
-  /** dpad boots, snapshots and resets emulators/simulators through the driver package. */
-  | 'managed'
-  | { readonly mode: 'managed' }
-  /** Already running devices: listed here or in `DPAD_DEVICES` (comma separated). */
-  | { readonly mode: 'external'; readonly addresses?: readonly string[] }
-  /** Shell commands lease and release devices (device farms, lease brokers). */
-  | ({ readonly mode: 'command' } & CommandDevicesOptions);
+export type { DeviceSelection };
 
-/** Runtime options shared by all projects; a project's `dpad` field overrides them. */
-export interface DpadOptions {
-  /**
-   * In-app SDK. When on, each launch issues a token and waits for the app to connect, adding
-   * the SDK capabilities (idle sync, focus graph, media, launch states, logs). Default off.
-   */
-  readonly sdk?:
-    | boolean
-    | {
-        readonly port?: number;
-        /** Custom host factory; default `createSdkHost` from `@dpad-tv/protocol/host`. */
-        readonly createHost?: (opts: { port?: number }) => Promise<SdkHost>;
-      };
-  /** Host-side network mocking with `@dpad-tv/mock` (`network.mock`). Default off. */
-  readonly mock?:
-    | boolean
-    | {
-        readonly port?: number;
-        /** Custom server factory; default `createMockServer` from `@dpad-tv/mock`. */
-        readonly createServer?: (opts: { port?: number }) => Promise<MockServerLike>;
-      };
-  /**
-   * App-level key overrides: how a semantic key is performed when the app maps it to another
-   * gesture, e.g. `{ FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } }`. Flagged in reports.
-   */
-  readonly keyOverrides?: KeyOverrides;
+/**
+ * Runtime options shared by all projects; a project's `dpad` field overrides them. `sdk`,
+ * `mock`, `keyOverrides`, `idle` and `remote` are the core's runtime options (the MCP server
+ * reads the same ones); `steps` and `video` are test-only.
+ */
+export interface DpadOptions extends Omit<RuntimeConfig, 'timeouts'> {
   /** Assertion timeouts come from Playwright's `expect.timeout`. */
   readonly timeouts?: Partial<Omit<Timeouts, 'expectMs'>>;
-  readonly idle?: Partial<IdleOptions>;
-  readonly remote?: Partial<RemoteOptions>;
   /** Per-step artifacts attached to every action step. Both default off (they cost time on devices). */
   readonly steps?: { readonly screenshot?: boolean; readonly snapshot?: boolean };
   /** Screen recording per test, where the driver has `video`. Default `off`. */
@@ -241,15 +202,7 @@ export interface DpadConfig extends PlaywrightTestConfig {
 }
 
 function mergeOptions(base: DpadOptions, over: DpadOptions): DpadOptions {
-  return {
-    ...base,
-    ...over,
-    keyOverrides: { ...base.keyOverrides, ...over.keyOverrides },
-    timeouts: { ...base.timeouts, ...over.timeouts },
-    idle: { ...base.idle, ...over.idle },
-    remote: { ...base.remote, ...over.remote },
-    steps: { ...base.steps, ...over.steps },
-  };
+  return { ...mergeRuntimeConfig(base, over), steps: { ...base.steps, ...over.steps } };
 }
 
 /** Absolute path of the reporter module next to this file (`.ts` in source, `.js` built). */

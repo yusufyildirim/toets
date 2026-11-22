@@ -1,6 +1,6 @@
 # @dpad-tv/mcp
 
-dpad MCP server: drive TV apps from agents with the same primitives tests use (launch, remote keys, focus navigation, text snapshots, matchers) and search the dpad docs.
+dpad MCP server: drive TV apps from agents with the same core code tests run (launch, remote keys, focus navigation, text snapshots, matchers) and search the dpad docs. It reads the targets from your dpad test config.
 
 ```sh
 pnpm add -D @dpad-tv/mcp

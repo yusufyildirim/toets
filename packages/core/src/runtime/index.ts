@@ -1,7 +1,7 @@
 export { AppRuntime, appRuntime } from './app.js';
 export type { KeyLogEntry } from './context.js';
 export { formatFailureDump, type FailureDump } from './failure-dump.js';
-export { isLocator } from './locator.js';
+export { describeElement, isLocator, resolveLocator } from './locator.js';
 export {
   locatorMatchers,
   mediaMatchers,

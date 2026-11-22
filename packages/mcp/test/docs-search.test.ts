@@ -75,13 +75,15 @@ describe('docs search', () => {
   it('ranks the most relevant section first', async () => {
     const root = await project();
     const index = await DocsIndex.build(findDocsSources([root]));
-    expect(index.search('navigateTo')[0]).toMatchObject({
+    // Only the fake project's pages: the real workspace packages are found too.
+    const search = (q: string) => index.search(q).filter((hit) => hit.path.startsWith(root));
+    expect(search('navigateTo')[0]).toMatchObject({
       packageName: '@dpad-tv/test',
       page: 'concepts/focus.md',
       heading: 'navigateTo',
     });
-    expect(index.search('long press')[0]?.page).toBe('concepts/keys.md');
-    expect(index.search('msw handlers')[0]?.packageName).toBe('@dpad-tv/mock');
+    expect(search('long press')[0]?.page).toBe('concepts/keys.md');
+    expect(search('msw handlers')[0]?.packageName).toBe('@dpad-tv/mock');
     expect(index.search('zebra')).toEqual([]);
   });
 

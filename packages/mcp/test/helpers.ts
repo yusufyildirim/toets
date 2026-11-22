@@ -2,7 +2,7 @@ import type { Capability, DriverModule } from '@dpad-tv/core';
 import { FakeDriver, type FakeNodeSpec, type FakeScreen } from '@dpad-tv/core/testing';
 import { Client, InMemoryTransport, type CallToolResult } from '@modelcontextprotocol/client';
 import { afterEach } from 'vitest';
-import type { McpConfig } from '../src/config.js';
+import type { McpConfig, McpTargetConfig } from '../src/config.js';
 import { createDpadMcp, type DpadMcpOptions } from '../src/server.js';
 
 const card = (id: string, label: string, x: number, y: number): FakeNodeSpec => ({
@@ -77,6 +77,8 @@ export interface Harness {
   ok(name: string, args?: Record<string, unknown>): Promise<string>;
   /** Text of a failed call; fails the test when the call succeeds. */
   err(name: string, args?: Record<string, unknown>): Promise<string>;
+  /** Stops the server's target (device, driver, SDK host, mock server). */
+  dispose(): Promise<void>;
 }
 
 const cleanups: (() => Promise<void>)[] = [];
@@ -109,17 +111,34 @@ export function fakeDriverModule(capabilities: Capability[] = ['key.back', 'key.
   };
 }
 
+/** Fast timeouts for the default `web` target (unit-test speed, same semantics). */
+export const FAST_TIMEOUTS = { actionMs: 500, navigationSettleMs: 50, sdkConnectMs: 200 };
+
 /** Connects an MCP client to a dpad MCP server over an in-memory transport. */
 export async function connect(
-  opts: { capabilities?: Capability[]; config?: McpConfig | null } & Omit<
-    DpadMcpOptions,
-    'config'
-  > = {},
+  opts: {
+    capabilities?: Capability[];
+    config?: McpConfig | null;
+    /** Extra fields of the default `web` target (SDK, mock, key overrides, ...). */
+    target?: (driver: () => FakeDriver) => Partial<McpTargetConfig>;
+  } & Omit<DpadMcpOptions, 'config'> = {},
 ): Promise<Harness> {
   const fake = fakeDriverModule(opts.capabilities);
+  const { target: extras, capabilities: _caps, ...rest } = opts;
+  const extra = extras?.(fake.driver) ?? {};
   const config: McpConfig | null =
-    opts.config === undefined ? { targets: { web: { driver: fake.module } } } : opts.config;
-  const dpad = createDpadMcp({ log: () => {}, ...opts, config });
+    opts.config === undefined
+      ? {
+          targets: {
+            web: {
+              driver: fake.module,
+              ...extra,
+              dpad: { ...extra.dpad, timeouts: { ...FAST_TIMEOUTS, ...extra.dpad?.timeouts } },
+            },
+          },
+        }
+      : opts.config;
+  const dpad = createDpadMcp({ log: () => {}, ...rest, config });
   const server = dpad.createServer();
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
@@ -152,5 +171,6 @@ export async function connect(
       if (!result.isError) throw new Error(`${name} unexpectedly passed:\n${textOf(result)}`);
       return textOf(result);
     },
+    dispose: () => dpad.close(),
   };
 }

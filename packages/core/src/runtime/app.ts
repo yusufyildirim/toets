@@ -16,6 +16,7 @@ import type {
 import type { Capability } from '../capabilities.js';
 import type { Driver } from '../driver.js';
 import { DpadError, packageDocsLink, fromProtocolError } from '../errors.js';
+import type { Key, PressOptions } from '../keys.js';
 import type { MockServerLike } from '../mock.js';
 import type { Platform } from '../platform.js';
 import type { LogEntry, Rect } from '../snapshot.js';
@@ -37,7 +38,7 @@ import {
   type RemoteOptions,
   type Timeouts,
 } from './options.js';
-import { RemoteImpl } from './remote.js';
+import { keyError, RemoteImpl } from './remote.js';
 import { describeIdle, retry, type RetryResult } from './retry.js';
 import { createScreenshot, maskPng } from './screenshot.js';
 import { DOMAIN_CAPABILITIES, SDK_CAPABILITIES, Target } from './target.js';
@@ -168,6 +169,15 @@ export class AppRuntime implements RuntimeContext {
       `${feature} needs capability '${capability}', which ${platform} does not have here.`,
       { hint, docs: packageDocsLink('core', 'capabilities') },
     );
+  }
+
+  /**
+   * Why pressing `key` would fail on this target right now (unknown key, missing capability,
+   * no long press), after key overrides; `null` when the press would be sent. Tools use it to
+   * list the keys a target has without pressing them.
+   */
+  checkKey(key: Key, opts?: PressOptions): DpadError | null {
+    return keyError(this, key, opts);
   }
 
   recordKey(entry: KeyLogEntry): void {

@@ -1,4 +1,4 @@
-import { mkdtemp } from 'node:fs/promises';
+import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -6,10 +6,10 @@ import type { DeviceLease, DriverCreateContext, DriverModule } from '@dpad-tv/co
 import { FakeDriver } from '@dpad-tv/core/testing';
 import { describe, expect, it } from 'vitest';
 import { loadMcpConfig, validateMcpConfig } from '../src/config.js';
-import { loadDriverModule } from '../src/driver-loader.js';
 import { connect } from './helpers.js';
 
 const fixtures = fileURLToPath(new URL('./fixtures', import.meta.url));
+const fakeDriver = join(fixtures, 'fake-driver-module.ts');
 
 describe('config', () => {
   it('lists every problem of an invalid config', () => {
@@ -20,13 +20,19 @@ describe('config', () => {
       validateMcpConfig({ targets: { web: { driver: 'x' } }, defaultTarget: 'tv' }),
     ).toThrow(/defaultTarget: defaultTarget must name one of the targets/);
     expect(() => validateMcpConfig({ targets: {} })).toThrow(/at least one target/);
+    expect(() =>
+      validateMcpConfig({ targets: { tv: { driver: 'x', devices: { mode: 'farm' } } } }),
+    ).toThrow(/targets\.tv\.devices/);
+    expect(() =>
+      validateMcpConfig({ targets: { tv: { driver: 'x', dpad: { sdk: true, steps: {} } } } }),
+    ).toThrow(/targets\.tv\.dpad: Unrecognized key: "steps"/);
   });
 
   it('loads a JSON config and lazily imports its driver module by path', async () => {
     const loaded = await loadMcpConfig('json-config/dpad.mcp.config.json', fixtures);
-    expect(loaded?.config.expectTimeoutMs).toBe(1000);
+    expect(loaded).toMatchObject({ kind: 'mcp', config: { expectTimeoutMs: 1000 } });
     const h = await connect({ config: loaded!.config, baseDir: loaded!.baseDir });
-    expect(await h.ok('launch')).toContain('Focus: focusable [testId=hello, focused]: "From JSON"');
+    expect(await h.ok('launch')).toContain('Focus: hello "From JSON"');
   });
 
   it('discovers a TS config in the working directory and honors defaultTarget', async () => {
@@ -50,21 +56,78 @@ describe('config', () => {
   });
 });
 
-describe('driver loading', () => {
-  it('rejects modules that are not drivers', async () => {
-    await expect(loadDriverModule('./not-a-driver.ts', fixtures)).rejects.toMatchObject({
-      code: 'MCP_DRIVER_INVALID',
+describe('dpad test config', () => {
+  it('turns platforms.*() projects into targets, like the test runner sees them', async () => {
+    const loaded = await loadMcpConfig(undefined, join(fixtures, 'test-config'));
+    expect(loaded).toMatchObject({
+      kind: 'test',
+      file: expect.stringMatching(/playwright\.config\.ts$/),
     });
+    const { targets } = loaded!.config;
+    expect(Object.keys(targets)).toEqual(['web', 'web-kids']);
+    expect(targets.web).toMatchObject({
+      driver: '../fake-driver-module.ts',
+      platform: 'web',
+      options: { label: 'From Playwright' },
+      expectTimeoutMs: 1500,
+      dpad: { keyOverrides: { FAST_FORWARD: { as: 'RIGHT', holdMs: 800 } } },
+    });
+    expect(targets['web-kids']).toMatchObject({
+      expectTimeoutMs: 700,
+      dpad: { timeouts: { actionMs: 900 }, keyOverrides: { FAST_FORWARD: { as: 'RIGHT' } } },
+    });
+
+    const h = await connect({ config: loaded!.config, baseDir: loaded!.baseDir });
+    expect(await h.ok('capabilities')).toContain('FAST_FORWARD = hold RIGHT 800ms');
+    expect(await h.ok('launch')).toContain('Focus: hello "From Playwright"');
+    expect(await h.ok('launch', { target: 'web-kids' })).toContain('"Kids"');
+  });
+
+  it('prefers an MCP config and skips test configs without dpad projects', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'dpad-mcp-'));
+    await writeFile(
+      join(dir, 'playwright.config.mjs'),
+      'export default { projects: [{ name: "unit" }] };',
+    );
+    const logs: string[] = [];
+    expect(await loadMcpConfig(undefined, dir, (m) => logs.push(m))).toBeNull();
+    expect(logs.join('\n')).toContain('has no dpad projects; skipped');
+    await expect(loadMcpConfig('playwright.config.mjs', dir)).rejects.toThrow(/no dpad projects/);
+
+    await writeFile(
+      join(dir, 'dpad.mcp.config.json'),
+      JSON.stringify({ targets: { fake: { driver: fakeDriver } } }),
+    );
+    expect(await loadMcpConfig(undefined, dir)).toMatchObject({ kind: 'mcp' });
+  });
+});
+
+describe('targets come up like test workers', () => {
+  it('rejects modules that are not drivers and drivers of another platform', async () => {
+    const h = await connect({
+      config: {
+        targets: {
+          bogus: { driver: './not-a-driver.ts' },
+          tv: { driver: './fake-driver-module.ts', platform: 'android-tv' },
+        },
+      },
+      baseDir: fixtures,
+    });
+    expect(await h.err('launch')).toContain('INVALID_DRIVER');
+    expect(await h.err('launch', { target: 'tv' })).toContain('but the project is android-tv');
   });
 
   it('explains how to install a missing driver package', async () => {
-    await expect(loadDriverModule('@dpad-tv/driver-nope', fixtures)).rejects.toMatchObject({
-      code: 'MCP_DRIVER_NOT_FOUND',
-      hint: expect.stringContaining('pnpm add -D @dpad-tv/driver-nope'),
+    const h = await connect({
+      config: { targets: { tv: { driver: '@dpad-tv/driver-nope' } } },
+      baseDir: fixtures,
     });
+    const out = await h.err('capabilities');
+    expect(out).toContain('MODULE_NOT_FOUND');
+    expect(out).toContain('npm install -D @dpad-tv/driver-nope');
   });
 
-  it('passes external and managed devices to the driver and releases them', async () => {
+  it('passes managed and external devices to the driver and releases them', async () => {
     const events: string[] = [];
     const contexts: DriverCreateContext[] = [];
     const module: DriverModule<never> = {
@@ -75,7 +138,7 @@ describe('driver loading', () => {
       },
       createDeviceProvider: () => ({
         async acquire(spec): Promise<DeviceLease> {
-          events.push(`acquire ${spec.model}`);
+          events.push(`acquire ${spec.model}@${spec.osVersion}`);
           return {
             id: 'lease',
             platform: 'android-tv',
@@ -90,15 +153,21 @@ describe('driver loading', () => {
     const h = await connect({
       config: {
         targets: {
-          managed: { driver: module, device: { managed: true, model: 'tv_1080p' } },
-          external: { driver: module, device: { address: 'emulator-5556' } },
+          managed: { driver: module, devices: 'managed', model: 'tv_1080p', osVersion: '34' },
+          external: { driver: module, devices: { mode: 'external', addresses: ['emulator-5556'] } },
         },
       },
     });
     await h.ok('capabilities', { target: 'managed' });
     expect(contexts[0]?.device?.address).toBe('emulator-5554');
     await h.ok('capabilities', { target: 'external' });
-    expect(events).toEqual(['acquire tv_1080p', 'release', 'dispose']);
+    expect(events).toEqual(['acquire tv_1080p@34', 'release', 'dispose']);
     expect(contexts[1]?.device?.address).toBe('emulator-5556');
+  });
+
+  it('starts the @dpad-tv/mock server when mocking is on', async () => {
+    const h = await connect({ target: () => ({ dpad: { mock: { port: 0 } } }) });
+    const out = await h.ok('capabilities');
+    expect(out).toMatch(/Network mocking: on \(http:\/\/[^)]+\)/);
   });
 });

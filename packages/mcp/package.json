@@ -29,10 +29,16 @@
   },
   "dependencies": {
     "@dpad-tv/core": "workspace:^",
+    "@dpad-tv/mock": "workspace:^",
+    "@dpad-tv/protocol": "workspace:^",
     "@modelcontextprotocol/server": "^2.4.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@modelcontextprotocol/client": "^2.4.0"
+    "@dpad-tv/driver-web": "workspace:^",
+    "@dpad-tv/test": "workspace:^",
+    "@modelcontextprotocol/client": "^2.4.0",
+    "@playwright/test": "^1.65.1",
+    "playwright-core": "^1.65.1"
   }
 }

@@ -17,6 +17,6 @@ dpad matchers work on platform-neutral element snapshots. The web driver fills t
 | `selected`    | `aria-selected="true"` (or a selected `<option>`)                                          |
 | `busy`        | `aria-busy="true"` on it or a descendant                                                   |
 
-Elements are walked in the rendered (flat) tree: open shadow roots and slots are followed; `script`, `style`, `template` and SVG internals are skipped; iframes are not entered. Text selectors match the deepest elements whose text matches, like Playwright.
+Elements are walked in the rendered (flat) tree: open shadow roots and slots are followed; `script`, `style`, `template` and SVG internals are skipped; iframes are not entered. Selector chains are evaluated in the page with exactly the semantics of the core's `evaluateChain` (what every other driver and the SDK path use; a parity test enforces it): text selectors match the deepest elements whose text matches, like Playwright, and `nth` picks among the previous step's matches.
 
-A hidden element still reports its full text, so `getByText('Loading')` finds a hidden spinner and `toBeHidden()` can pass.
+A hidden element still reports its full text, so `getByText('Loading')` finds a hidden spinner and `not.toBeVisible()` can pass.

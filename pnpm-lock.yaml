@@ -244,6 +244,12 @@ importers:
       '@dpad-tv/core':
         specifier: workspace:^
         version: link:../core
+      '@dpad-tv/mock':
+        specifier: workspace:^
+        version: link:../mock
+      '@dpad-tv/protocol':
+        specifier: workspace:^
+        version: link:../protocol
       '@modelcontextprotocol/server':
         specifier: ^2.4.0
         version: 2.4.0
@@ -251,9 +257,21 @@ importers:
         specifier: ^4.2.0
         version: 4.6.7
     devDependencies:
+      '@dpad-tv/driver-web':
+        specifier: workspace:^
+        version: link:../driver-web
+      '@dpad-tv/test':
+        specifier: workspace:^
+        version: link:../test
       '@modelcontextprotocol/client':
         specifier: ^2.4.0
         version: 2.4.0
+      '@playwright/test':
+        specifier: ^1.65.1
+        version: 1.65.1
+      playwright-core:
+        specifier: ^1.65.1
+        version: 1.65.1
 
   packages/mock:
     dependencies:

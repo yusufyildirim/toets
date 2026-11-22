@@ -158,7 +158,8 @@ describe('web driver on the fixture app', () => {
     expect(await driver.query([testId('rail-1'), { kind: 'focused' }])).toHaveLength(1);
     expect(await driver.query([testId('menu'), { kind: 'focused' }])).toHaveLength(0);
     expect(await driver.query([testId('nope')])).toEqual([]);
-    expect(await driver.query([])).toEqual([]);
+    // The empty chain is the document scope, the root, like core `evaluateChain`.
+    expect((await driver.query([])).map((s) => s.ref)).toEqual([(await driver.tree()).root.ref]);
   });
 
   it('follows DOM focus moved by the app on arrow keys', async () => {

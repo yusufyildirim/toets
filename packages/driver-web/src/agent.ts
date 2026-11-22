@@ -431,11 +431,14 @@ export function pageAgent(req: AgentRequest): string {
 
   let result: AgentResponses[AgentRequest['op']];
   if (req.op === 'query') {
-    // `null` = the document scope (root included); later steps search strict descendants.
+    // Same semantics as the core's `evaluateChain`. `null` = the document scope: the first
+    // search step covers the whole tree (root included), while `nth` and an empty chain treat it
+    // as the root alone. Later steps search strict descendants of the previous matches.
+    const documentScope = els.length > 0 ? [0] : [];
     let current: number[] | null = null;
     for (const step of req.chain) {
       if (step.kind === 'nth') {
-        const picked: number | undefined = current?.[step.index];
+        const picked: number | undefined = (current ?? documentScope)[step.index];
         current = picked === undefined ? [] : [picked];
         continue;
       }
@@ -454,7 +457,7 @@ export function pageAgent(req: AgentRequest): string {
       }
       current = next;
     }
-    result = (current ?? []).map(snapshotAt);
+    result = (current ?? documentScope).map(snapshotAt);
   } else if (req.op === 'focused') {
     result = activeIdx >= 0 ? snapshotAt(activeIdx) : null;
   } else {

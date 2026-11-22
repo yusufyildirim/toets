@@ -1,25 +1,16 @@
-import { mkdir } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import {
-  DpadError,
-  packageDocsLink,
-  type DeviceLease,
-  type DeviceProvider,
-  type Driver,
-  type Platform,
-} from '@dpad-tv/core';
+import { DpadError, packageDocsLink, type AppRuntime, type LaunchOptions } from '@dpad-tv/core';
+import { mergeRuntimeConfig, RunningTarget, type TargetConfig } from '@dpad-tv/core/runner';
+import { createMockServer } from '@dpad-tv/mock';
 import type { McpConfig, McpTargetConfig } from './config.js';
-import { loadDriverModule } from './driver-loader.js';
-import { DriverRuntime, type ScreenRuntime } from './runtime/runtime.js';
+
+const DEFAULT_EXPECT_TIMEOUT_MS = 5000;
 
 interface ActiveTarget {
   readonly name: string;
-  readonly driver: Driver;
-  readonly runtime: ScreenRuntime;
-  readonly lease: DeviceLease | undefined;
-  readonly provider: DeviceProvider | undefined;
-  started: boolean;
+  readonly target: RunningTarget;
+  readonly expectTimeoutMs: number;
   launched: boolean;
 }
 
@@ -33,9 +24,11 @@ export interface SessionOptions {
 }
 
 /**
- * One agent session: at most one active target (driver + device) at a time, created lazily on
- * first use and switched by `launch({ target })`. All device work runs one call at a time so
- * parallel tool calls can not interleave key presses.
+ * One agent session: at most one active target at a time, started lazily on first use and
+ * switched by `launch({ target })`. A target comes up exactly like in a test worker
+ * (`RunningTarget` from `@dpad-tv/core/runner`: device, driver, mock server, SDK host and the
+ * core `AppRuntime`). All device work runs one call at a time so parallel tool calls can not
+ * interleave key presses.
  */
 export class Session {
   private active: ActiveTarget | null = null;
@@ -53,16 +46,8 @@ export class Session {
     return this.active?.name ?? this.defaultTargetName();
   }
 
-  get expectTimeoutMs(): number {
-    return this.opts.config?.expectTimeoutMs ?? 5000;
-  }
-
   get docsDirs(): readonly string[] {
     return (this.opts.config?.docsDirs ?? []).map((d) => resolve(this.opts.baseDir, d));
-  }
-
-  get baseDir(): string {
-    return this.opts.baseDir;
   }
 
   /** Runs `fn` after every previously queued call finished. */
@@ -72,58 +57,56 @@ export class Session {
     return run;
   }
 
-  /** Driver facts of a target without starting it (`capabilities`). */
-  async describe(
-    name?: string,
-  ): Promise<{ name: string; platform: Platform; runtime: ScreenRuntime; launched: boolean }> {
-    const target = await this.ensure(name, false);
-    return {
-      name: target.name,
-      platform: target.driver.platform,
-      runtime: target.runtime,
-      launched: target.launched,
-    };
+  /** The runtime of a target, started if needed, without launching the app. */
+  async describe(name?: string): Promise<{ name: string; runtime: AppRuntime; launched: boolean }> {
+    const active = await this.ensure(name);
+    return { name: active.name, runtime: active.target.runtime, launched: active.launched };
   }
 
-  /** Starts the target if needed and (re)launches the app on it. */
+  /**
+   * (Re)launches the app on a target, isolated like a fresh test: the previous app is
+   * terminated; mock handlers, recorded requests, the key log and logs are reset.
+   */
   async launch(
     name: string | undefined,
-    run: (runtime: ScreenRuntime) => Promise<void>,
-  ): Promise<{ name: string; runtime: ScreenRuntime }> {
-    const target = await this.ensure(name, true);
-    target.launched = false;
-    await run(target.runtime);
-    target.launched = true;
-    return { name: target.name, runtime: target.runtime };
+    opts: LaunchOptions,
+  ): Promise<{ name: string; runtime: AppRuntime }> {
+    const active = await this.ensure(name);
+    const runtime = active.target.runtime;
+    active.launched = false;
+    await runtime.isolate();
+    await runtime.app.launch(opts);
+    active.launched = true;
+    return { name: active.name, runtime };
   }
 
-  /** The runtime of the launched app; throws a guiding error when nothing is launched. */
-  launchedRuntime(): ScreenRuntime {
+  /** The launched app's runtime and assert timeout; throws a guiding error before `launch`. */
+  launched(): { runtime: AppRuntime; expectTimeoutMs: number } {
     if (!this.active?.launched) {
       throw new DpadError('MCP_NOT_LAUNCHED', 'The app is not running yet.', {
         hint: 'Call `launch` first. It starts the target and the app; every device tool needs it.',
         docs: packageDocsLink('mcp', 'tools'),
       });
     }
-    return this.active.runtime;
+    return { runtime: this.active.target.runtime, expectTimeoutMs: this.active.expectTimeoutMs };
   }
 
-  /** Stops the active driver and releases its device. Safe to call more than once. */
+  /** Stops the active target and releases its device. Safe to call more than once. */
   async dispose(): Promise<void> {
-    const target = this.active;
+    const active = this.active;
     this.active = null;
-    if (target) await this.teardown(target);
+    await active?.target.stop(this.opts.log);
   }
 
   private defaultTargetName(): string | null {
     return this.opts.config?.defaultTarget ?? this.targetNames[0] ?? null;
   }
 
-  private async ensure(name: string | undefined, start: boolean): Promise<ActiveTarget> {
+  private async ensure(name: string | undefined): Promise<ActiveTarget> {
     const config = this.opts.config;
     if (!config) {
-      throw new DpadError('MCP_NO_CONFIG', 'No dpad MCP config, so there is no target to drive.', {
-        hint: 'Create `dpad.mcp.config.ts` (or pass `--config <file>`) with `targets`, e.g. `{ targets: { web: { driver: "@dpad-tv/driver-web", app: { url: "http://localhost:3000" } } } }`, then restart the MCP server. `docs_search` works without it.',
+      throw new DpadError('MCP_NO_CONFIG', 'No dpad config, so there is no target to drive.', {
+        hint: 'Start the server where your dpad test config (playwright.config.ts with platforms.*() projects) lives, create `dpad.mcp.config.ts` with `targets`, or pass `--config <file>`; then restart the MCP server. `docs_search` works without it.',
         docs: packageDocsLink('mcp', 'setup'),
       });
     }
@@ -135,97 +118,39 @@ export class Session {
         docs: packageDocsLink('mcp', 'setup'),
       });
     }
-    if (this.active && this.active.name !== wanted) {
-      const previous = this.active;
-      this.active = null;
-      await this.teardown(previous);
-    }
-    this.active ??= await this.create(wanted, spec);
-    if (start && !this.active.started) {
-      await this.active.driver.start();
-      this.active.started = true;
-    }
-    return this.active;
-  }
-
-  private async create(name: string, spec: McpTargetConfig): Promise<ActiveTarget> {
-    const module = await loadDriverModule(spec.driver, this.opts.baseDir);
-    const options = spec.options ?? {};
-    let provider: DeviceProvider | undefined;
-    let lease: DeviceLease | undefined;
-
-    if (spec.device && 'address' in spec.device) {
-      lease = {
-        id: spec.device.address,
-        platform: module.platform,
-        address: spec.device.address,
-        meta: {},
-        release: async () => {},
-      };
-    } else if (spec.device) {
-      if (!module.createDeviceProvider) {
-        throw new DpadError(
-          'MCP_DEVICE_UNSUPPORTED',
-          `Driver for ${module.platform} has no managed devices.`,
-          { hint: 'Remove `device`, or give an `address`.', docs: packageDocsLink('mcp', 'setup') },
-        );
-      }
-      provider = module.createDeviceProvider(options);
-      const { model, osVersion } = spec.device;
-      lease = await provider.acquire(
-        {
-          platform: module.platform,
-          ...(model !== undefined && { model }),
-          ...(osVersion !== undefined && { osVersion }),
-        },
-        { workerIndex: 0, parallelIndex: 0 },
-      );
-    }
-
-    const artifactsDir = resolve(
-      this.opts.baseDir,
-      this.opts.config?.artifactsDir ?? join(tmpdir(), 'dpad-mcp'),
-    );
-    let driver: Driver;
-    try {
-      await mkdir(artifactsDir, { recursive: true });
-      driver = await module.createDriver(options, {
-        app: spec.app ?? {},
-        configDir: this.opts.baseDir,
-        ...(lease && { device: lease }),
-        workerIndex: 0,
-        artifactsDir,
-        log: this.opts.log,
-      });
-    } catch (error) {
-      await lease?.release().catch(() => undefined);
-      await provider?.dispose().catch(() => undefined);
-      throw error;
-    }
-    this.opts.log(`dpad mcp: target "${name}" (${module.platform}) ready`);
-    return {
-      name,
-      driver,
-      runtime: new DriverRuntime(driver),
-      lease,
-      provider,
-      started: false,
+    if (this.active?.name === wanted) return this.active;
+    await this.dispose();
+    const target = await RunningTarget.start(targetConfig(config, spec), {
+      workerIndex: 0,
+      parallelIndex: 0,
+      configDir: this.opts.baseDir,
+      artifactsDir: resolve(this.opts.baseDir, config.artifactsDir ?? join(tmpdir(), 'dpad-mcp')),
+      log: this.opts.log,
+      createMockServer,
+    });
+    this.opts.log(`dpad mcp: target "${wanted}" (${target.driver.platform}) ready`);
+    this.active = {
+      name: wanted,
+      target,
+      expectTimeoutMs: spec.expectTimeoutMs ?? config.expectTimeoutMs ?? DEFAULT_EXPECT_TIMEOUT_MS,
       launched: false,
     };
+    return this.active;
   }
+}
 
-  private async teardown(target: ActiveTarget): Promise<void> {
-    const steps: (() => Promise<void>)[] = [
-      () => target.driver.stop(),
-      async () => target.lease?.release(),
-      async () => target.provider?.dispose(),
-    ];
-    for (const step of steps) {
-      try {
-        await step();
-      } catch (error) {
-        this.opts.log(`dpad mcp: cleanup of "${target.name}" failed: ${String(error)}`);
-      }
-    }
-  }
+function targetConfig(config: McpConfig, spec: McpTargetConfig): TargetConfig {
+  const { model, osVersion } = spec;
+  return {
+    driver: spec.driver,
+    ...(spec.platform === undefined ? {} : { platform: spec.platform }),
+    driverOptions: spec.options ?? {},
+    app: spec.app ?? {},
+    device: {
+      ...(model === undefined ? {} : { model }),
+      ...(osVersion === undefined ? {} : { osVersion }),
+    },
+    ...(spec.devices === undefined ? {} : { devices: spec.devices }),
+    options: mergeRuntimeConfig(config.dpad ?? {}, spec.dpad ?? {}),
+  };
 }
