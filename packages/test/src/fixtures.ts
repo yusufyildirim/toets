@@ -12,6 +12,7 @@ import {
   type LogEntry,
 } from '@dpad-tv/core';
 import type { DpadOptions, DpadProjectConfig } from './config.js';
+import { explainForRunner, withExplainedErrors } from './errors.js';
 import { requiredCapabilities } from './requires.js';
 import { serialGroupOf } from './serial.js';
 import { DpadWorker, workerArtifactsDir } from './worker.js';
@@ -61,7 +62,7 @@ function stepHooks(runtime: AppRuntime, testInfo: TestInfo, options: DpadOptions
               description: `${info.override.key} = ${info.override.performedAs}`,
             });
           }
-          const result = await run();
+          const result = await withExplainedErrors(run);
           if (options.steps?.screenshot) {
             const png = screenshotPng(await runtime.app.screenshot());
             await testInfo.attach('step-screenshot', {
@@ -133,16 +134,22 @@ export const test = base.extend<DpadTestFixtures, DpadWorkerFixtures>({
       const state: { started: Promise<DpadWorker> | null } = { started: null };
       await use({
         get: () => {
-          if (!dpad) return Promise.reject(notADpadProject(workerInfo.project.name));
-          state.started ??= DpadWorker.start(dpad, {
-            workerIndex: workerInfo.workerIndex,
-            parallelIndex: workerInfo.parallelIndex,
-            configDir: workerInfo.config.configFile
-              ? dirname(workerInfo.config.configFile)
-              : process.cwd(),
-            artifactsDir: workerArtifactsDir(workerInfo.project.outputDir, workerInfo.workerIndex),
-            log,
-          });
+          if (!dpad)
+            return Promise.reject(explainForRunner(notADpadProject(workerInfo.project.name)));
+          state.started ??= withExplainedErrors(() =>
+            DpadWorker.start(dpad, {
+              workerIndex: workerInfo.workerIndex,
+              parallelIndex: workerInfo.parallelIndex,
+              configDir: workerInfo.config.configFile
+                ? dirname(workerInfo.config.configFile)
+                : process.cwd(),
+              artifactsDir: workerArtifactsDir(
+                workerInfo.project.outputDir,
+                workerInfo.workerIndex,
+              ),
+              log,
+            }),
+          );
           return state.started;
         },
       });

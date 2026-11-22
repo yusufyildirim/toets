@@ -195,7 +195,7 @@ describe('@dpad-tv/test end to end', () => {
   it('attaches a failure dump and explains the failure', { timeout: 150_000 }, () => {
     const failed = playwright('fail', ['--project=web'], { DPAD_SMOKE_MODE: 'fail' });
     expect(failed.status).toBe(1);
-    const [t] = tests(failed.dir);
+    const [t, thrown] = tests(failed.dir);
     expect(t?.result.status).toBe('failed');
     expect(t?.result.errors[0]?.message).toContain('expect(locator).toBeFocused() failed');
     expect(t?.result.errors[0]?.message).toContain('Focused:  card_1 "Movie 1"');
@@ -204,5 +204,14 @@ describe('@dpad-tv/test end to end', () => {
     expect(text).toContain('- last keys: RIGHT');
     expect(text).toContain('- card_1 "Movie 1" [focused]');
     expect(t?.result.attachments.map((a) => a.name)).toContain('dpad-screenshot');
+
+    const message = thrown?.result.errors[0]?.message ?? '';
+    expect(message).toContain(
+      "DpadError: [ELEMENT_NOT_FOUND] getByTestId('no_such_element') matched no element",
+    );
+    expect(message).toContain('\nHint: Check the test ID');
+    expect(message).toContain(
+      '\nDocs: reference/core/docs/locators (offline: node_modules/@dpad-tv/core/docs/locators.md)',
+    );
   });
 });
