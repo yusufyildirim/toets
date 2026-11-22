@@ -7,7 +7,7 @@ description: Set up dpad (@dpad-tv/test) for TV end-to-end tests in a project, a
 
 Order matters here: get one test green on web before adding device platforms, CI or the SDK.
 
-Docs are referenced by slug, for example `getting-started`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md`. Package reference pages ship offline in `node_modules/@dpad-tv/<package>/docs/`.
+Docs are referenced by slug, for example `getting-started`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md` (until the site is hosted: under `docs/` in the dpad repository). Package reference pages (`reference/<package>/docs/<page>`) ship offline in each installed package's `docs/`; errors print the exact path.
 
 ## 1. Inspect the project
 
