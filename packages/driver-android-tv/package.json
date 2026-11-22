@@ -14,17 +14,30 @@
   },
   "files": [
     "dist",
-    "docs"
+    "docs",
+    "assets"
   ],
   "scripts": {
     "build": "tsdown",
     "test": "vitest run --passWithNoTests",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "test:device": "vitest run test/integration",
+    "fixture:build": "cd fixtures/android-tv-app && ./gradlew assembleDebug",
+    "helper:build": "helper/build.sh"
   },
   "engines": {
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^"
+    "@dpad-tv/core": "workspace:^",
+    "@dpad-tv/protocol": "workspace:^",
+    "appium": "4.0.0",
+    "appium-uiautomator2-driver": "9.3.0",
+    "fast-xml-parser": "^5.12.1",
+    "pngjs": "^7.0.0",
+    "webdriverio": "10.2.0"
+  },
+  "devDependencies": {
+    "@types/pngjs": "^6.0.5"
   }
 }
