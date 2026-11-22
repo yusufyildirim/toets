@@ -69,14 +69,15 @@ export interface MockServerOptions {
  * A host-side HTTP server that answers the app's API traffic with MSW handlers, proxies
  * everything else to the real origin and records every exchange.
  *
- * Isolation model: one server per test worker (it is cheap, but the app is launched with its
- * URL), handlers and recordings reset per test with `resetHandlers()` and `clearRequests()`.
+ * Isolation model: one server per test worker (apps are launched with its URL, so it outlives
+ * tests); handlers and recordings reset per test with `resetHandlers()` and `clearRequests()`.
  * Requests are handled concurrently; each request resolves against the handler list as it was
  * when the request arrived.
  */
 export interface MockServer {
   /** Base URL the app sends API traffic to, e.g. `http://localhost:53124`. No trailing slash. */
   readonly url: string;
+  /** Port the server listens on (Android drivers `adb reverse` it). */
   readonly port: number;
   /**
    * Prepends handlers for the current test. Within one call the first handler wins; across
