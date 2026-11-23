@@ -30,7 +30,7 @@ Run the docs site locally with `pnpm docs:dev`.
 
 ## Contributing
 
-Read [AGENTS.md](./AGENTS.md), [VISION.md](./VISION.md) and [PLAN.md](./PLAN.md) first. `pnpm check` runs format, lint, typecheck, TSDoc validation (`pnpm docs:api`, TypeDoc: broken links and unexported types fail) and tests; `pnpm docs:check` checks docs examples and skills. CI (`.github/workflows/ci.yml`) runs `pnpm check` and the example app's web E2E suite in Chromium; device platforms are verified locally.
+Read [AGENTS.md](./AGENTS.md) and [VISION.md](./VISION.md) first. `pnpm check` runs format, lint, typecheck, TSDoc validation (`pnpm docs:api`, TypeDoc: broken links and unexported types fail) and tests; `pnpm docs:check` checks docs examples and skills. CI (`.github/workflows/ci.yml`) runs `pnpm check` and the example app's web E2E suite in Chromium; device platforms are verified locally.
 
 ## License
 

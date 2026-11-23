@@ -2,7 +2,7 @@
 
 > Write one E2E test. Run it on every TV platform. Trust that it tests the same thing everywhere.
 
-Status: v1 in development. This document captures goals, locked decisions, architecture direction and phasing. Update it when a decision changes. Implementation plan: [PLAN.md](./PLAN.md).
+Status: v1 built on web, Android TV / Fire TV and tvOS; not yet published. This file holds goals, locked decisions and the roadmap. How things work lives in the [docs](./docs/index.md); do not restate it here. Update this file when a decision changes.
 
 ## Why
 
@@ -49,246 +49,87 @@ dpad is a **glue layer**, not a reinvention: a small, opinionated, TV-semantic A
 | 17  | **Semantic keys, honest mapping.** Drivers map only what hardware has; the rest is capability-gated. `PLAY`, `PAUSE` and `PLAY_PAUSE` are distinct. App-level key overrides in config (e.g. tvOS `FAST_FORWARD` = hold right), flagged in reports. No synthetic key injection via SDK (would bypass native focus engines).            |
 | 18  | **v1 reporting uses Playwright primitives:** each action is a `test.step`; per-step screenshot (configurable) and text snapshot; per-test device logs, HAR, video, failure dump as attachments. Web keeps full Playwright traces.                                                                                                     |
 | 19  | **Tooling:** develop on Node 26 LTS, support Node >= 24; pnpm workspaces; strict TypeScript 6 (move to the native TS 7 compiler once typescript-eslint supports it), ESM-only; tsdown builds; Vitest unit tests; Changesets; VitePress docs + llms.txt; ESLint + Prettier.                                                            |
+| 20  | **Matchers live in the core**, over driver snapshots and auto-retry, never per platform. Drivers declare capabilities; the core skips (with a reason, in the parity matrix) or refuses what a platform can not do.                                                                                                                    |
 
 ## Architecture
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ Authoring API (TV-semantic, tiny, stable)                    │
-│ test · app · remote · focus · locators · expect              │
-│ network · media · platform                                   │
+│ Authoring API (@dpad-tv/test): test · app · expect · Key     │
 ├──────────────────────────────────────────────────────────────┤
 │ Runner: Playwright Test (projects = platform matrix)         │
-│ fixtures · retries · sharding · reporters · UI mode          │
 ├──────────────────────────────────────────────────────────────┤
-│ Driver interface + capability flags                          │
+│ Core (@dpad-tv/core): locators, matchers, focus, remote,     │
+│ idle, text snapshots, failure dumps, capabilities            │
 ├───────────────┬──────────────────┬───────────────────────────┤
-│ web           │ android-tv       │ tvos                      │
-│ (Playwright)  │ (Appium UIA2,    │ (Appium XCUITest)         │
-│               │  own server later)│                          │
+│ driver-web    │ driver-android-tv│ driver-tvos               │
+│ (Playwright)  │ (Appium UIA2)    │ (Appium XCUITest)         │
 ├───────────────┴──────────────────┴───────────────────────────┤
-│ Optional in-app SDK (open protocol over WebSocket)           │
-│ tree · focus graph · idle signal · media · state · logs      │
+│ Optional in-app SDK (protocol, sdk, sdk-react-native)        │
 ├──────────────────────────────────────────────────────────────┤
-│ Infra: device pool · mock server · platform shims · artifacts│
+│ Infra: device providers · mock (MSW) · mcp · eslint-plugin   │
 └──────────────────────────────────────────────────────────────┘
 ```
 
-### Authoring API (illustrative, not final)
-
-```ts
-import { test, expect, Key } from '@dpad-tv/test';
-
-test('pauses and resumes playback from the remote', async ({ app }) => {
-  await app.launch({ state: 'home' });
-  await expect(app.media).toBePlaying();
-
-  await app.remote.press(Key.PLAY_PAUSE);
-  await expect(app.media).toBePaused();
-
-  await app.focus.navigateTo(app.getByTestId('like_button'));
-  await expect(app.getByTestId('like_button')).toBeFocused();
-});
-
-test('color keys open the guide', { requires: ['key.color'] }, async ({ app }) => {
-  // auto-skipped with a reason on platforms without color keys
-});
-```
-
-Config sketch:
-
-```ts
-import { defineConfig, platforms } from '@dpad-tv/test';
-
-export default defineConfig({
-  app: {
-    web: { url: 'http://localhost:3000' },
-    androidTV: { apk: './artifacts/app.apk', package: 'com.example.tv' },
-    tvOS: { app: './artifacts/App.app', bundleId: 'com.example.tv' },
-  },
-  projects: [
-    platforms.web(),
-    platforms.androidTV({ model: 'tv_1080p', osVersion: '34' }),
-    platforms.tvOS({ osVersion: '18' }),
-  ],
-});
-```
-
-### Runner
-
-- Playwright Test with a dpad `app` fixture per platform project.
-- Gains on every platform: HTML report, UI mode, VS Code extension, `--project`, sharding, retries, `test.step` grouping, attachments (screenshots, video, device logs, network log).
-- Serial flows use Playwright's serial mode semantics consistently on all platforms.
-
-### Driver interface (sketch)
-
-```ts
-interface Driver {
-  readonly platform: Platform;
-  readonly capabilities: ReadonlySet<Capability>;
-
-  launch(opts: LaunchOptions): Promise<void>;
-  terminate(): Promise<void>;
-  reset(): Promise<void>; // clear data / restore snapshot
-
-  query(selector: Selector): Promise<ElementRef[]>;
-  describe(el: ElementRef): Promise<ElementSnapshot>; // bounds, text, testId, visible, focused, ...
-  focused(): Promise<ElementSnapshot | null>;
-  tree(): Promise<UITree>;
-
-  press(key: Key, opts?: { holdMs?: number }): Promise<void>;
-  screenshot(opts?: { element?: ElementRef }): Promise<Buffer>;
-  logs(): AsyncIterable<LogEntry>;
-}
-```
-
-- Matchers are implemented **once** in the core on top of `ElementSnapshot` + auto-retry, not per platform. This is how parity is enforced.
-- Drivers report capabilities; the core refuses or skips (with reason) what a platform cannot do.
-- Escape hatch for platform-specific code is explicit and typed (`app.platformOnly('web', page => ...)`), visible in reports, and lint-discouraged.
-
-### Capabilities (initial set)
-
-`key.back`, `key.home`, `key.menu`, `key.info`, `key.media.toggle`, `key.media.discrete`, `key.media.seek`, `key.media.track`, `key.color`, `key.numeric`, `key.channel`, `key.longpress`, `focus.graph`, `sync.idle`, `media.state`, `app.state`, `network.mock`, `screenshot.element`, `platform.events`.
-
-Tests declare `requires`; the report shows a **parity matrix** (which test ran where, which was skipped and why).
-
-### In-app SDK and protocol
-
-Optional, framework-neutral protocol over WebSocket (host <-> app; `adb reverse` on Android, shared localhost on the tvOS simulator, direct on web). Domains:
-
-- **tree**: uniform element tree with test IDs, text, bounds, visibility, focus. Removes platform accessibility-tree quirks.
-- **focus**: current focus, focus graph (neighbors per direction), focus change events.
-- **sync**: idle signal (pending network, animations, timers, JS queue). Assertions wait on idle instead of polling; negative assertions become fast.
-- **media**: player state, position, duration, rate, errors. No OS-level scraping.
-- **state**: launch into a named state, feature flags, clock control, deep links. Replaces "launch, then click through onboarding" boilerplate.
-- **logs / errors**: console, unhandled errors, attached to the test result.
-- **metrics**: key press to focus change latency, startup time, dropped frames.
-
-Adapters: React Native first (hooks into the app's spatial navigation / focus engine through a neutral focus-graph contract that other engines can implement).
-
-### Focus
-
-Focus is the moat.
-
-- Matchers: `toBeFocused`, `toHaveFocusWithin`, focus path assertions.
-- `focus.navigateTo(locator)`: path-finding over focus geometry or the SDK focus graph, using real remote presses; the chosen path is recorded in the trace/report.
-- Focus-map snapshots: capture a screen's focus topology and diff it across builds and platforms.
-- Focus crawler: explores a screen and reports dead ends, traps and unreachable elements.
-
-### Remote
-
-- Canonical semantic `Key` set: D-pad, SELECT, BACK, HOME, MENU, PLAY, PAUSE, PLAY_PAUSE, FF, RW, color keys, numeric, channel, info.
-- Each driver owns its mapping (Android keycodes, tvOS `XCUIRemote` buttons, web key events). Unsupported keys are capability-gated.
-- `press`, `longPress`, `repeat(key, n)`, `sequence([...])` with realistic timing.
-
-### Network mocking
-
-- MSW handlers executed in a host-side mock server; the app is pointed at it and unmatched requests are proxied upstream (cooperative proxy, no MITM certificates). Portable across all platforms.
-- Tiny cross-platform helper for passing the mock base URL to the app (URL param / init script on web, intent extra on Android, launch arguments on tvOS).
-- Additions: request assertions (`expect(app.network).toHaveRequested(...)`), HAR record/replay, injected latency and failures, per-test isolation.
-- Later: black-box system-proxy mode for apps that cannot cooperate.
-
-### Platform shims
-
-Fake platform APIs and OS events so behavior that depends on the OS can be tested without the OS:
-
-- Fire TV specifics on Android TV emulators (Amazon IAP, ADM, ...).
-- Lifecycle and environment events from tests: `app.platform.emit('network-lost' | 'suspend' | 'resume')`.
-- Web TV OS shims (Tizen, webOS) arrive with the legacy web phase.
-
-### Device orchestration
-
-- Device pool: boot, snapshot, install, lease one device per worker, reset between tests (snapshot restore / clear data), teardown.
-- Android emulators (Android TV images) and tvOS simulators in v1.
-- Fast reset is a first-class performance goal.
-
-### Agent tooling
-
-- **MCP server** on the same drivers: `press`, `snapshot`, `assert`, `launch`, so agents explore apps with exactly the primitives they write tests in.
-- **Text screen snapshots** (YAML, like Playwright ARIA snapshots, focus-aware): cheap, deterministic, LLM-readable, comparable across platforms. Usable both as an assertion and as failure context.
-- **Failure dumps**: focused element, surrounding tree, last N keys, screenshot, recent logs and requests.
-- **Shipped ESLint plugin**: no `sleep`, page-object rules (no assertions except stability ones), no raw platform escape hatches.
-- **Shipped AGENTS.md / skills** describing how to write good dpad tests.
-
-### Visual
-
-- Screenshot assertions with per-platform baselines, masking (video surfaces, clocks), stable diffing.
-- Integrations with hosted visual review services rather than building one.
+The details are in the docs: [concepts](./docs/concepts/locators-and-assertions.md), [platforms](./docs/platforms/web.md) and each package's `docs/` folder.
 
 ## Documentation
 
 Agents write most dpad tests, so docs are designed for agents first and humans second. The bar: an agent with no prior context can set up dpad, write a correct cross-platform test and debug a failure using only what dpad ships.
 
-### Style
-
 - **Concise.** Say it once, in the fewest words that stay unambiguous. No marketing, no filler.
-- **Principles over procedures.** Explain what a concept is, why it exists and its constraints. Trust the reader to apply it. Prescribe steps only where order truly matters (setup).
-- **One concept per page.** Small pages that are cheap to load into context and easy to link.
-- **Show, briefly.** One minimal, real example per concept beats paragraphs of prose.
+- **Principles over procedures.** Explain what a concept is, why it exists and its constraints. Prescribe steps only where order truly matters (setup).
+- **One concept per page**, with one minimal, real example.
 - **State the TV-specific trap.** Where web or mobile intuition is wrong on TV (no click, focus-first, negative assertions), say so explicitly.
+- **Examples are tested**, in docs and skills, so they can not rot. **Same PR:** a public API change ships with its docs and skill changes.
+- **Skills stay short** (under 150 lines) and link to pages instead of inlining them.
+- **Dogfood with agents.** Periodically give a fresh agent only the shipped docs and a task. Every stumble is a docs bug.
 
-### Artifacts
+The mechanics (site, checks, markers) are in [docs/README.md](./docs/README.md).
 
-| Artifact                                | Purpose                                                                                                                                                                                                |
-| --------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| TSDoc on every public API               | First thing agents and IDEs see. Types and doc comments are part of the docs.                                                                                                                          |
-| `docs/` shipped inside the npm packages | Offline, version-matched docs at `node_modules/<pkg>/docs`. Package README points there.                                                                                                               |
-| `llms.txt` / `llms-full.txt`            | Index and full dump for the docs site.                                                                                                                                                                 |
-| Agent skills (`SKILL.md`)               | A few task-level skills: **write tests**, **debug failures**, **set up a project** (incl. CI recipes), **migrate** (from Playwright / Appium / Detox / the predecessor). Installable with one command. |
-| Errors as docs                          | Every error says what happened, the likely cause, the fix and a docs link. Failure dumps carry the context needed to act.                                                                              |
-| MCP docs tool                           | The MCP server exposes docs search so agents exploring an app can look things up in place.                                                                                                             |
-| CI recipes                              | Per-platform setup docs (Linux + KVM for Android, macOS for tvOS, caching), written for agents to adapt.                                                                                               |
+## Roadmap
 
-### Rules
+### Next: first release
 
-- **Examples are tested.** Code in docs and skills is type-checked and executed in CI so it can not rot.
-- **Same PR.** A public API change without a matching docs/skill change fails CI.
-- **Size budgets.** Skills stay short (roughly under 150 lines) and link to pages instead of inlining them.
-- **Dogfood with agents.** Periodically give a fresh agent only the shipped docs and a task (set up, write, debug). Every stumble is a docs bug.
+- Changesets, versioning, publish under `@dpad-tv`.
+- First CI run on GitHub (the workflow exists but has never run).
 
-## v1 scope
+### Known gaps in v1
 
-- Packages (under `@dpad-tv/`): `core`, `test` (runner, main entry), `driver-web`, `driver-android-tv`, `driver-tvos`, `protocol`, `sdk` (in-app core + web adapter), `sdk-react-native`, `mock`, `mcp`, `eslint-plugin`.
-- Example app (React Native, tvOS + Android TV + web) used to dogfood every platform.
-- Playwright Test runner across web, Android TV / Fire TV emulators and tvOS simulators.
-- Core API: test/hooks, locators (test ID, text), focus matchers, `navigateTo`, semantic remote, screenshots, mocking, capabilities + parity report.
-- SDK: tree, focus graph, idle sync, media, state launch.
-- Device pool for emulators/simulators.
-- MCP server + text snapshots + failure dumps.
-- Documentation set: TSDoc, shipped `docs/`, `llms.txt`, skills (write, debug, set up, migrate), CI recipes, tested examples.
+- No `tvos-blackbox` project in the example app: XCUITest flattens the tree, so its page objects need rework.
+- The web SDK claims `focus.graph` without direction data.
+- The failure dump is attached twice, and its capabilities line is noisy.
+- The ESLint plugin, the MCP server and `dpad.steps` have not been dogfooded on a real project.
 
-## Later phases
+### Later
 
 - **Legacy web lane.** Old Chromium versions matching TV engines (e.g. Tizen 3.0 = Chromium 47, old webOS = Chromium 38). Approach: a driver using a minimal, long-stable CDP subset (`Runtime.evaluate`, `Input.dispatchKeyEvent`, `Page.navigate/reload`, `Page.captureScreenshot`) plus an ES5 in-page agent; host-side polling (no `awaitPromise` on old engines); per-version Docker images with Xvfb; Chromium builds with proprietary codecs (open-source builds lack H.264/AAC). Same driver can later attach to Tizen/webOS emulators and devices, which expose CDP through their inspectors (prior art: HeadSpin's Appium Tizen/webOS drivers). Pairs with Tizen/webOS platform API shims.
 - **Cloud service.** Hosted old-engine browsers + TV platform shims, reachable through the same CDP endpoint.
 - **Real devices.** Android TV / Fire TV over adb, Apple TV via devicectl, Tizen/webOS via sdb/ares.
+- **Platform shims.** Fire TV specifics on Android TV emulators (Amazon IAP, ADM, ...).
+- **Focus tooling.** Focus-map snapshots (a screen's focus topology, diffed across builds and platforms) and a focus crawler (dead ends, traps, unreachable elements).
 - **Playwright trace viewer for native.** Serialize the SDK tree as a pseudo-DOM over screenshots into trace archives (format is internal and unstable; may require a fork of the viewer).
 - **Own native drivers** where profiling justifies it (likely a thin on-device server replacing Appium on Android first).
 - **Role/label selectors** on top of the SDK tree.
-- **Black-box network proxy mode.**
+- **Network:** HAR replay, and a black-box proxy mode for apps that can not cooperate.
+- **Visual:** integrations with hosted visual review services rather than building one.
 - **Vega (Fire TV OS).**
 - **TV-aware codegen / recorder.**
 
 ## Lessons from the predecessor
 
-dpad grows out of an internal cross-platform TV E2E layer (Playwright on web, Jest + WebdriverIO + Appium on Android). Keep / fix:
+dpad grows out of an internal cross-platform TV E2E layer (Playwright on web, Jest + WebdriverIO + Appium on Android).
 
-**Keep**
+**Keep:** focus and remote as primitives; a small, opaque, restricted API; cooperative proxy mocking with MSW; page objects with lint-enforced rules; a fast web-first iteration loop.
 
-- Focus and remote as primitives; focus-aware matchers.
-- Small, opaque, restricted API.
-- Cooperative proxy mocking with MSW.
-- Page objects with lint-enforced rules.
-- Web-first fast iteration loop.
+**Fixed in dpad:**
 
-**Fix**
-
-- Two runners caused semantic drift (retries, timeouts, serial mode, reporters, traces). Solved by decision 1.
-- Matchers implemented per platform drifted in meaning and timeouts. Solved by core-implemented matchers over snapshots.
-- App-specific launch logic leaked into the library. Solved by user-owned launch/readiness fixtures and SDK state launch.
-- Raw keycodes lived in user code. Solved by semantic keys + driver mapping.
-- Missing domains forced escape hatches (casting to the underlying locator, shelling out to `adb dumpsys` for media). Solved by SDK domains and typed, explicit escape hatches.
-- Single global native session, hand-rolled emulator port math, serial-only native runs. Solved by the device pool.
+- Two runners caused semantic drift (retries, timeouts, serial mode, reporters, traces): one runner (decision 1).
+- Per-platform matchers drifted in meaning and timeouts: core matchers (decision 20).
+- App-specific launch logic leaked into the library: user-owned fixtures and SDK state launch (decision 9).
+- Raw keycodes lived in user code: semantic keys (decision 17).
+- Missing domains forced escape hatches (casting to the underlying locator, shelling out to `adb dumpsys` for media): SDK domains and typed, explicit escape hatches.
+- Single global native session, hand-rolled emulator port math, serial-only native runs: device providers, one device per worker (decision 7).
 
 ## Open questions
 
