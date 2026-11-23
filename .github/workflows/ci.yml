@@ -27,6 +27,8 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - run: pnpm build
+      # driver-web unit tests launch headless Chromium.
+      - uses: ./.github/actions/setup-chromium
       # Format, lint, typecheck, API docs, unit tests (packages and examples) and the docs checks
       # (examples run against the docs' in-memory demo app, no browser).
       - run: pnpm check
@@ -49,21 +51,7 @@ jobs:
         working-directory: .
       - run: pnpm build
         working-directory: .
-      - name: Read the Playwright version
-        id: playwright
-        run: echo "version=$(pnpm exec playwright --version | awk '{print $2}')" >> "$GITHUB_OUTPUT"
-      - name: Cache Playwright browsers
-        id: browsers
-        uses: actions/cache@v4
-        with:
-          path: ~/.cache/ms-playwright
-          key: playwright-${{ runner.os }}-${{ steps.playwright.outputs.version }}-chromium
-      - name: Install Chromium
-        if: steps.browsers.outputs.cache-hit != 'true'
-        run: pnpm exec playwright install --with-deps chromium
-      - name: Install Chromium system dependencies
-        if: steps.browsers.outputs.cache-hit == 'true'
-        run: pnpm exec playwright install-deps chromium
+      - uses: ./.github/actions/setup-chromium
       - run: pnpm build:web
       # Both web projects run in Chromium: with the in-app SDK and black-box.
       - run: pnpm e2e --project=web --project=web-blackbox
