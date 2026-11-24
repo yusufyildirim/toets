@@ -514,37 +514,6 @@ describe('web driver configuration', () => {
     }
   });
 
-  it('supports virtual focus through selectors', async () => {
-    const driver = createWebDriver({
-      url: `${server.url}virtual.html`,
-      browser,
-      focus: { focused: '.is-focused', focusable: '.item' },
-    });
-    await driver.start();
-    try {
-      await driver.launch({ payload: { v: 1 } });
-      expect((await driver.focused())?.testId).toBe('item-1');
-      expect((await one(driver, testId('row'))).focusWithin).toBe(true);
-      expect((await one(driver, testId('item-2'))).focusable).toBe(true);
-      expect((await one(driver, testId('row'))).focusable).toBe(false);
-      await driver.press(Key.RIGHT);
-      expect((await driver.focused())?.testId).toBe('item-2');
-    } finally {
-      await driver.stop();
-    }
-  });
-
-  it('reports an invalid focus selector as a config error', async () => {
-    const driver = createWebDriver({ url: server.url, browser, focus: { focused: '[[nope' } });
-    await driver.start();
-    try {
-      await driver.launch({ payload: { v: 1 } });
-      await expectToetsError(driver.focused(), 'WEB_INVALID_CONFIG');
-    } finally {
-      await driver.stop();
-    }
-  });
-
   it('explains launch failures', async () => {
     const missing = createWebDriver({ url: `${server.url}missing.html`, browser });
     await missing.start();

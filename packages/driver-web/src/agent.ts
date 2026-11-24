@@ -10,8 +10,6 @@ import type { Rect } from '@toets/core';
 
 export interface AgentConfig {
   readonly testIdAttribute: string;
-  readonly focusedSelector: string | null;
-  readonly focusableSelector: string | null;
 }
 
 /** Selector steps, pre-normalized on the Node side (text values whitespace-collapsed). */
@@ -172,21 +170,12 @@ export function pageAgent(req: AgentRequest): string {
     }
   }
 
-  // --- Focus: DOM focus (through open shadow roots) or the app's virtual-focus selector. ---
+  // --- Focus: DOM focus, through open shadow roots. JS focus engines report it via the SDK. ---
   let activeIdx = -1;
-  if (cfg.focusedSelector !== null) {
-    for (let i = els.length - 1; i >= 0; i--) {
-      if (at(i).matches(cfg.focusedSelector)) {
-        activeIdx = i;
-        break;
-      }
-    }
-  } else {
-    let active = document.activeElement;
-    while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
-    if (active && active !== document.body && active !== document.documentElement) {
-      activeIdx = indexOf.get(active) ?? -1;
-    }
+  let active = document.activeElement;
+  while (active?.shadowRoot?.activeElement) active = active.shadowRoot.activeElement;
+  if (active && active !== document.body && active !== document.documentElement) {
+    activeIdx = indexOf.get(active) ?? -1;
   }
   const focusWithin = new Set<number>();
   for (let i = activeIdx; i >= 0; i = parentOf(i)) focusWithin.add(i);
@@ -325,7 +314,6 @@ export function pageAgent(req: AgentRequest): string {
 
   const focusableAt = (i: number): boolean => {
     const el = at(i);
-    if (cfg.focusableSelector !== null) return el.matches(cfg.focusableSelector);
     if (inert[i] || el.matches(':disabled')) return false;
     const tabIndex = (el as Partial<HTMLElement>).tabIndex;
     // An explicit tabindex (even -1, common in TV focus engines) makes an element focusable.
