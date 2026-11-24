@@ -6,7 +6,7 @@ RuleTester.describe = describe;
 RuleTester.it = it;
 RuleTester.itOnly = it.only;
 
-/** RuleTester parsing TypeScript, since dpad tests are usually written in TS. */
+/** RuleTester parsing TypeScript, since toets tests are usually written in TS. */
 export const ruleTester = new RuleTester({
   languageOptions: { parser: tseslint.parser, ecmaVersion: 'latest', sourceType: 'module' },
 });

@@ -9,6 +9,6 @@ test-results
 **/.vitepress/dist
 .env*
 
-# dpad
+# toets
 .out
-dpad-report
+toets-report

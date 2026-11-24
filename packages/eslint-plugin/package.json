@@ -1,19 +1,32 @@
 {
-  "name": "@dpad-tv/eslint-plugin",
+  "name": "@toets/eslint-plugin",
   "version": "0.0.0",
-  "description": "ESLint rules for writing good dpad tests.",
+  "description": "ESLint rules for writing good toets tests.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "eslint",
+    "eslintplugin",
+    "eslint-plugin"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/eslint-plugin"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/eslint-plugin#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/eslint-plugin#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -41,6 +54,6 @@
     "typescript-eslint": "^8.73.0"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^"
+    "@toets/core": "workspace:^"
   }
 }

@@ -1,19 +1,34 @@
 {
-  "name": "@dpad-tv/driver-android-tv",
+  "name": "@toets/driver-android-tv",
   "version": "0.0.0",
-  "description": "dpad driver for Android TV / Fire TV emulators, built on Appium UiAutomator2.",
+  "description": "toets driver for Android TV / Fire TV emulators, built on Appium UiAutomator2.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "android-tv",
+    "fire-tv",
+    "appium",
+    "uiautomator2",
+    "emulator"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/driver-android-tv"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/driver-android-tv#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/driver-android-tv#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -37,8 +52,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^",
+    "@toets/core": "workspace:^",
+    "@toets/protocol": "workspace:^",
     "appium": "4.0.0",
     "appium-uiautomator2-driver": "9.3.0",
     "fast-xml-parser": "^5.12.1",

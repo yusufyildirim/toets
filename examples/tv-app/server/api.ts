@@ -5,7 +5,7 @@ import { CATALOG, ITEMS } from './catalog.ts';
 const CORS_HEADERS = {
   'access-control-allow-origin': '*',
   'access-control-allow-methods': 'GET, OPTIONS',
-  'access-control-allow-headers': 'content-type, x-dpad-original-origin',
+  'access-control-allow-headers': 'content-type, x-toets-original-origin',
   'access-control-max-age': '600',
 } as const;
 

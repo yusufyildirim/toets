@@ -1,12 +1,12 @@
 /**
- * Conformance suite for dpad SDK implementations (Node only). Import from
- * `@dpad-tv/protocol/conformance`; see `docs/conformance.md`.
+ * Conformance suite for toets SDK implementations (Node only). Import from
+ * `@toets/protocol/conformance`; see `docs/conformance.md`.
  *
  * @example
  * const report = await runConformance({
  *   name: 'my-sdk',
  *   fixture: true,
- *   launch: ({ encoded }) => page.goto(`${appUrl}?__dpad=${encoded}`),
+ *   launch: ({ encoded }) => page.goto(`${appUrl}?__toets=${encoded}`),
  *   terminate: () => page.goto('about:blank'),
  * });
  * if (!report.passed) throw new Error(formatConformanceReport(report));
@@ -134,7 +134,7 @@ export async function runConformance(
 
 /** Human-readable, deterministic report. */
 export function formatConformanceReport(report: ConformanceReport): string {
-  const lines = [`dpad protocol ${PROTOCOL_VERSION} conformance: ${report.target}`];
+  const lines = [`toets protocol ${PROTOCOL_VERSION} conformance: ${report.target}`];
   if (report.hello) {
     lines.push(
       `SDK ${report.hello.sdk} (${report.hello.framework}), protocol ${report.hello.protocol}, domains: ${report.hello.domains.join(', ') || 'none'}`,

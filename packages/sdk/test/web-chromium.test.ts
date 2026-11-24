@@ -1,15 +1,15 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import type { Browser, Page } from 'playwright-core';
-import { encodeLaunchPayloadParam, type ProtocolNode } from '@dpad-tv/protocol';
-import { createSdkHost, type SdkHost, type SdkSession } from '@dpad-tv/protocol/host';
-import { formatConformanceReport, runConformance } from '@dpad-tv/protocol/conformance';
+import { encodeLaunchPayloadParam, type ProtocolNode } from '@toets/protocol';
+import { createSdkHost, type SdkHost, type SdkSession } from '@toets/protocol/host';
+import { formatConformanceReport, runConformance } from '@toets/protocol/conformance';
 import { bundleFixture, chromiumAvailable, launchChromium, serveApp } from './chromium.js';
 
 let browser: Browser;
 let app: { url: string; close: () => Promise<void> };
 
 const available = chromiumAvailable();
-if (!available) console.warn('[dpad] Chromium not installed: skipping web adapter browser tests');
+if (!available) console.warn('[toets] Chromium not installed: skipping web adapter browser tests');
 
 beforeAll(async () => {
   if (!available) return;
@@ -26,11 +26,11 @@ describe.skipIf(!available)('web adapter in Chromium', () => {
   it('passes the protocol conformance suite', { timeout: 120_000 }, async () => {
     let page: Page | undefined;
     const report = await runConformance({
-      name: '@dpad-tv/sdk/web in Chromium',
+      name: '@toets/sdk/web in Chromium',
       fixture: true,
       launch: async ({ encoded }) => {
         page = await browser.newPage();
-        await page.goto(`${app.url}/?__dpad=${encoded}`);
+        await page.goto(`${app.url}/?__toets=${encoded}`);
       },
       terminate: async () => {
         await page?.close();
@@ -54,7 +54,7 @@ describe.skipIf(!available)('web adapter in Chromium', () => {
       const token = host.issueToken();
       page = await browser.newPage({ viewport: { width: 1280, height: 720 } });
       await page.goto(
-        `${app.url}/?__dpad=${encodeLaunchPayloadParam({ v: 1, sdkUrl: host.url, token })}`,
+        `${app.url}/?__toets=${encodeLaunchPayloadParam({ v: 1, sdkUrl: host.url, token })}`,
       );
       session = await host.waitForSession(token, { timeoutMs: 10_000 });
     }, 30_000);

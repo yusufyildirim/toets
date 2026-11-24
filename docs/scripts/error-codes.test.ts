@@ -20,7 +20,7 @@ describe('error code index', () => {
 
   it('ignores codes of test doubles and non-error strings', () => {
     expect(codes.has('PLAY_PAUSE')).toBe(false);
-    expect(codes.has('DPAD_DEVICES')).toBe(false);
+    expect(codes.has('TOETS_DEVICES')).toBe(false);
   });
 
   it('gives every code a meaning', () => {

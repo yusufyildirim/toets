@@ -1,14 +1,14 @@
 /**
  * Builds the native apps from a clean `expo prebuild` and copies them to stable paths:
  *
- *   node scripts/build-native.ts android   ->  dist/android/dpad-tv-debug.apk
- *   node scripts/build-native.ts tvos      ->  dist/tvos/dpadTV.app (tvOS Simulator)
+ *   node scripts/build-native.ts android   ->  dist/android/toets-tv-debug.apk
+ *   node scripts/build-native.ts tvos      ->  dist/tvos/toetsTV.app (tvOS Simulator)
  *
  * Both embed the JS bundle, so they run without Metro: the APK is a debug build (see
  * app.config.ts), the tvOS app a Release build (Debug simulator builds always load JS from Metro).
- * Both are e2e builds with the dpad SDK (`DPAD_E2E=1`); `DPAD_E2E=0` builds without it, as a
+ * Both are e2e builds with the toets SDK (`TOETS_E2E=1`); `TOETS_E2E=0` builds without it, as a
  * production build would (see metro.config.ts).
- * Env: ANDROID_ABIS (default arm64-v8a,x86_64), DPAD_E2E (default 1).
+ * Env: ANDROID_ABIS (default arm64-v8a,x86_64), TOETS_E2E (default 1).
  */
 import { spawnSync } from 'node:child_process';
 import { cpSync, mkdirSync, rmSync } from 'node:fs';
@@ -17,7 +17,7 @@ import { fileURLToPath } from 'node:url';
 const root = fileURLToPath(new URL('..', import.meta.url));
 const target = process.argv[2];
 
-const dpadE2E = process.env.DPAD_E2E ?? '1';
+const toetsE2E = process.env.TOETS_E2E ?? '1';
 
 function run(
   command: string,
@@ -27,7 +27,7 @@ function run(
   console.log(`\n$ ${command} ${args.join(' ')}`);
   const result = spawnSync(command, args, {
     cwd: options.cwd ?? root,
-    env: { ...process.env, DPAD_E2E: dpadE2E, ...options.env },
+    env: { ...process.env, TOETS_E2E: toetsE2E, ...options.env },
     stdio: 'inherit',
   });
   if (result.status !== 0) {
@@ -53,14 +53,14 @@ if (target === 'android') {
   run('./gradlew', ['assembleDebug', `-PreactNativeArchitectures=${abis}`, '--console=plain'], {
     cwd: `${root}android`,
   });
-  publish('android/app/build/outputs/apk/debug/app-debug.apk', 'dist/android/dpad-tv-debug.apk');
+  publish('android/app/build/outputs/apk/debug/app-debug.apk', 'dist/android/toets-tv-debug.apk');
 } else if (target === 'tvos') {
   run('npx', ['expo', 'prebuild', '--platform', 'ios', '--clean'], { env: { CI: '1' } });
   run('xcodebuild', [
     '-workspace',
-    'ios/dpadTV.xcworkspace',
+    'ios/toetsTV.xcworkspace',
     '-scheme',
-    'dpadTV',
+    'toetsTV',
     '-configuration',
     'Release',
     '-sdk',
@@ -71,7 +71,10 @@ if (target === 'android') {
     'build/tvos',
     '-quiet',
   ]);
-  publish('build/tvos/Build/Products/Release-appletvsimulator/dpadTV.app', 'dist/tvos/dpadTV.app');
+  publish(
+    'build/tvos/Build/Products/Release-appletvsimulator/toetsTV.app',
+    'dist/tvos/toetsTV.app',
+  );
 } else {
   console.error('Usage: node scripts/build-native.ts <android|tvos>');
   process.exit(1);

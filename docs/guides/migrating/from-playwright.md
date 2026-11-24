@@ -1,14 +1,14 @@
 ---
-description: Port Playwright web tests to dpad - same runner and assertion style, but focus and the remote replace the pointer, and page becomes app.
+description: Port Playwright web tests to toets - same runner and assertion style, but focus and the remote replace the pointer, and page becomes app.
 ---
 
 # Migrating from Playwright
 
-dpad runs on Playwright Test, so the runner, config, reporters, UI mode, `test.step`, fixtures and `expect` style carry over. What changes is the model of the app: `page` becomes `app`, and the pointer is replaced by focus and the remote.
+toets runs on Playwright Test, so the runner, config, reporters, UI mode, `test.step`, fixtures and `expect` style carry over. What changes is the model of the app: `page` becomes `app`, and the pointer is replaced by focus and the remote.
 
-| Playwright                                        | dpad                                                                   |
+| Playwright                                        | toets                                                                  |
 | ------------------------------------------------- | ---------------------------------------------------------------------- |
-| `import { test, expect } from '@playwright/test'` | `import { test, expect, Key } from '@dpad-tv/test'`                    |
+| `import { test, expect } from '@playwright/test'` | `import { test, expect, Key } from '@toets/test'`                      |
 | `{ page }` fixture                                | `{ app }` fixture                                                      |
 | `page.goto(url)`                                  | `app.launch()`; the URL lives in the config (`app.web.url`)            |
 | `page.getByTestId(id)`, `page.getByText(t)`       | `app.getByTestId(id)`, `app.getByText(t)`                              |
@@ -30,4 +30,4 @@ dpad runs on Playwright Test, so the runner, config, reporters, UI mode, `test.s
 ## Traps
 
 - **Keyboard key names are not remote keys.** `Enter` is not `SELECT` on every platform; `Escape` is not `BACK`. Use `Key` and let the driver map it.
-- **Network mocking needs the app's cooperation.** `page.route` intercepts in the browser; dpad's mock server works on every platform but is off until `dpad: { mock: true }`, and the app must send traffic to it. See [Network mocking](../../concepts/network-mocking.md).
+- **Network mocking needs the app's cooperation.** `page.route` intercepts in the browser; toets's mock server works on every platform but is off until `toets: { mock: true }`, and the app must send traffic to it. See [Network mocking](../../concepts/network-mocking.md).

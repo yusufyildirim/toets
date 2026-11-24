@@ -1,12 +1,12 @@
 import { createRequire } from 'node:module';
 import { dirname, join, relative } from 'node:path';
-import { ProtocolError } from '@dpad-tv/protocol';
+import { ProtocolError } from '@toets/protocol';
 
 /**
- * Every dpad error explains itself: what happened, the likely cause and fix (`hint`)
+ * Every toets error explains itself: what happened, the likely cause and fix (`hint`)
  * and where to read more (`docs`). Agents act on these fields; keep them specific.
  */
-export class DpadError extends Error {
+export class ToetsError extends Error {
   readonly code: string;
   readonly hint: string | undefined;
   readonly docs: string | undefined;
@@ -17,7 +17,7 @@ export class DpadError extends Error {
     opts: { hint?: string; docs?: string; cause?: unknown } = {},
   ) {
     super(message, opts.cause === undefined ? undefined : { cause: opts.cause });
-    this.name = 'DpadError';
+    this.name = 'ToetsError';
     this.code = code;
     this.hint = opts.hint;
     this.docs = opts.docs;
@@ -29,7 +29,7 @@ export class DpadError extends Error {
     }
   }
 
-  /** `DpadError [CODE]: message`, then `Hint:` and `Docs:` lines when set. */
+  /** `ToetsError [CODE]: message`, then `Hint:` and `Docs:` lines when set. */
   override toString(): string {
     let out = `${this.name} [${this.code}]: ${this.message}`;
     if (this.hint) out += `\nHint: ${this.hint}`;
@@ -46,14 +46,14 @@ function describeDocs(path: string): string {
   const dir = packageDir(pkg[1]!);
   const offline = dir
     ? relative(process.cwd(), join(dir, page))
-    : `node_modules/@dpad-tv/${pkg[1]}/${page}`;
+    : `node_modules/@toets/${pkg[1]}/${page}`;
   return `${path} (offline: ${offline})`;
 }
 
 const packageDirs = new Map<string, string | null>();
 
 /**
- * Where `@dpad-tv/<pkg>` is installed. Package managers that do not hoist (pnpm) keep
+ * Where `@toets/<pkg>` is installed. Package managers that do not hoist (pnpm) keep
  * transitive packages like core out of the top `node_modules`, so resolve from the project
  * first, then from this package.
  */
@@ -62,7 +62,7 @@ function packageDir(pkg: string): string | null {
   let dir: string | null = null;
   for (const from of [join(process.cwd(), 'package.json'), import.meta.url]) {
     try {
-      dir = dirname(createRequire(from).resolve(`@dpad-tv/${pkg}/package.json`));
+      dir = dirname(createRequire(from).resolve(`@toets/${pkg}/package.json`));
       break;
     } catch {
       // not resolvable from here
@@ -73,12 +73,12 @@ function packageDir(pkg: string): string | null {
 }
 
 /**
- * Surfaces an SDK host `ProtocolError` as a `DpadError` with the same code, hint and docs, so
+ * Surfaces an SDK host `ProtocolError` as a `ToetsError` with the same code, hint and docs, so
  * users see one error type. Anything else is returned unchanged.
  */
 export function fromProtocolError(error: unknown): unknown {
   if (!(error instanceof ProtocolError)) return error;
-  return new DpadError(error.code, error.message, {
+  return new ToetsError(error.code, error.message, {
     ...(error.hint === undefined ? {} : { hint: error.hint }),
     ...(error.docs === undefined ? {} : { docs: error.docs }),
     cause: error,
@@ -86,7 +86,7 @@ export function fromProtocolError(error: unknown): unknown {
 }
 
 /**
- * `DpadError.docs` holds a docs site path (e.g. `concepts/focus`), resolved against the site
+ * `ToetsError.docs` holds a docs site path (e.g. `concepts/focus`), resolved against the site
  * once its domain is decided. This names a guide page: `docs/<slug>.md` in the repository.
  */
 export function docsLink(slug: string): string {
@@ -95,7 +95,7 @@ export function docsLink(slug: string): string {
 
 /**
  * Docs site path of a page a package ships, `reference/<pkg>/docs/<page>`. In an install it is
- * `node_modules/@dpad-tv/<pkg>/docs/<page>.md`.
+ * `node_modules/@toets/<pkg>/docs/<page>.md`.
  */
 export function packageDocsLink(pkg: string, page: string): string {
   return `reference/${pkg}/docs/${page}`;

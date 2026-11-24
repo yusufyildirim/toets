@@ -1,20 +1,20 @@
 /**
- * The dpad seam of the example app. Everything dpad-specific lives in this folder; the rest of
- * the app imports from here, never from dpad packages. The SDK itself starts in `start.ts`.
+ * The toets seam of the example app. Everything toets-specific lives in this folder; the rest of
+ * the app imports from here, never from toets packages. The SDK itself starts in `start.ts`.
  *
- * All of it is safe without dpad: in production builds the SDK is the inert no-op module, and
- * in black-box runs (dpad without the SDK session) only the launch payload is read.
+ * All of it is safe without toets: in production builds the SDK is the inert no-op module, and
+ * in black-box runs (toets without the SDK session) only the launch payload is read.
  */
-import { getLaunchPayload, navigationIdleListeners, onState } from '@dpad-tv/sdk-react-native';
+import { getLaunchPayload, navigationIdleListeners, onState } from '@toets/sdk-react-native';
 import { useEffect, useRef } from 'react';
 
 export { usePlayerMedia } from './media';
 
 /** Header carrying the real API origin when requests are routed to the mock server. */
-export const ORIGINAL_ORIGIN_HEADER = 'x-dpad-original-origin';
+export const ORIGINAL_ORIGIN_HEADER = 'x-toets-original-origin';
 
 /**
- * Base URL of the dpad mock server, when dpad launched the app with network mocking. Works with
+ * Base URL of the toets mock server, when toets launched the app with network mocking. Works with
  * and without the SDK session. On Android the payload arrives with the first render, so call
  * it lazily, never at module load.
  */
@@ -22,8 +22,8 @@ export function getMockUrl(): string | undefined {
   return getLaunchPayload()?.mockUrl;
 }
 
-/** True when dpad launched the app (with or without the SDK session). */
-export function isLaunchedByDpad(): boolean {
+/** True when toets launched the app (with or without the SDK session). */
+export function isLaunchedByToets(): boolean {
   return getLaunchPayload() !== null;
 }
 

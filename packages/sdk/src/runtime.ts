@@ -16,7 +16,7 @@ import {
   type LaunchPayload,
   type LogEntryParams,
   type LogLevel,
-} from '@dpad-tv/protocol';
+} from '@toets/protocol';
 import pkg from '../package.json' with { type: 'json' };
 import { getGlobal, now, peerTimers, sdkWarn, setNativeTimeout } from './env.js';
 import { IdleTracker, type IdleOptions } from './idle.js';
@@ -42,7 +42,7 @@ export interface WebSocketLike {
 
 export type WebSocketConstructor = new (url: string) => WebSocketLike;
 
-export interface DpadOptions {
+export interface ToetsOptions {
   /**
    * The launch payload: base64url or JSON string, or a parsed object. Adapters discover it
    * per platform. Missing or invalid = the SDK stays inert (no hooks, no connection).
@@ -74,7 +74,7 @@ export interface DpadOptions {
  * - `rejected`: the host refused the handshake (token or protocol version).
  * - `failed`: the host was unreachable, or the payload was refused locally.
  */
-export type DpadStatus =
+export type ToetsStatus =
   'inert' | 'ready' | 'connecting' | 'connected' | 'closed' | 'rejected' | 'failed';
 
 /** Answers one host request: gets its params, returns (or resolves) its result. */
@@ -95,21 +95,21 @@ const LOOPBACK = ['localhost', '127.0.0.1', '[::1]', '10.0.2.2'];
 
 /**
  * The framework-neutral in-app runtime. Adapters create one per app with
- * {@link createDpad}, register domain handlers (`tree`, `focus`) and call `start()`.
+ * {@link createToets}, register domain handlers (`tree`, `focus`) and call `start()`.
  */
-export class Dpad {
+export class Toets {
   readonly payload: LaunchPayload | null;
   readonly idle: IdleTracker;
   readonly media = new MediaRegistry();
 
-  private statusValue: DpadStatus;
-  private readonly options: DpadOptions;
+  private statusValue: ToetsStatus;
+  private readonly options: ToetsOptions;
   private readonly handlers: Partial<Record<HostToAppMethod, HostRequestHandler<HostToAppMethod>>> =
     {};
   private readonly state: StateRegistry;
   private readonly queue: Array<{ method: string; params: unknown }> = [];
   private readonly cleanups: Array<() => void> = [];
-  private readonly statusListeners: Array<(status: DpadStatus) => void> = [];
+  private readonly statusListeners: Array<(status: ToetsStatus) => void> = [];
   private announced: ReadonlySet<Domain> = new Set();
   private socket: WebSocketLike | null = null;
   private peer: RpcPeer | null = null;
@@ -118,7 +118,7 @@ export class Dpad {
   private lastFocus: string | null = null;
   private focusCheckScheduled = false;
 
-  constructor(options: DpadOptions) {
+  constructor(options: ToetsOptions) {
     this.options = options;
     const payload = decodeLaunchPayload(options.payload);
     this.payload = payload && payload.sdkUrl && payload.token ? payload : null;
@@ -133,12 +133,12 @@ export class Dpad {
     if (this.payload) this.instrument();
   }
 
-  /** A valid payload was found: the SDK is (or will be) talking to a dpad host. */
+  /** A valid payload was found: the SDK is (or will be) talking to a toets host. */
   get active(): boolean {
     return this.payload !== null;
   }
 
-  get status(): DpadStatus {
+  get status(): ToetsStatus {
     return this.statusValue;
   }
 
@@ -243,7 +243,7 @@ export class Dpad {
     this.cleanups.push(cleanup);
   }
 
-  onStatusChange(listener: (status: DpadStatus) => void): () => void {
+  onStatusChange(listener: (status: ToetsStatus) => void): () => void {
     this.statusListeners.push(listener);
     return () => {
       const i = this.statusListeners.indexOf(listener);
@@ -343,8 +343,8 @@ export class Dpad {
             const message = error instanceof Error ? error.message : String(error);
             sdkWarn(
               code === RpcErrorCode.IncompatibleProtocol
-                ? `the dpad host speaks an incompatible protocol (SDK ${PROTOCOL_VERSION}): ${message}`
-                : `the dpad host rejected the handshake: ${message}`,
+                ? `the toets host speaks an incompatible protocol (SDK ${PROTOCOL_VERSION}): ${message}`
+                : `the toets host rejected the handshake: ${message}`,
             );
             this.finish(code === undefined ? 'failed' : 'rejected');
           },
@@ -363,7 +363,7 @@ export class Dpad {
     this.peer = null;
     const retries = this.options.connectRetries ?? RETRY_DELAYS_MS.length;
     if (this.attempt >= retries) {
-      sdkWarn(`could not reach the dpad host: ${reason}`);
+      sdkWarn(`could not reach the toets host: ${reason}`);
       this.finish('failed');
       return;
     }
@@ -448,12 +448,12 @@ export class Dpad {
   private finish(status: 'closed' | 'rejected' | 'failed'): void {
     const socket = this.socket;
     this.socket = null;
-    this.peer?.close(new Error('dpad SDK stopped'));
+    this.peer?.close(new Error('toets SDK stopped'));
     this.peer = null;
     this.queue.length = 0;
     if (socket && socket.readyState <= 1) {
       try {
-        socket.close(1000, 'dpad SDK stopped');
+        socket.close(1000, 'toets SDK stopped');
       } catch {
         // already closing
       }
@@ -470,7 +470,7 @@ export class Dpad {
     this.setStatus(status);
   }
 
-  private setStatus(status: DpadStatus): void {
+  private setStatus(status: ToetsStatus): void {
     if (this.statusValue === status) return;
     this.statusValue = status;
     for (const listener of this.statusListeners.slice()) {

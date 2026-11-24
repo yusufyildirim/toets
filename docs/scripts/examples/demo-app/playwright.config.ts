@@ -1,14 +1,14 @@
 /**
  * Runs the docs' `run` test examples against the demo app (see app.ts). `check-examples.ts`
- * writes the examples to `DPAD_EXAMPLES_DIR` and points this config at them.
+ * writes the examples to `TOETS_EXAMPLES_DIR` and points this config at them.
  */
 import { join } from 'node:path';
-import { FakeSdkHost } from '@dpad-tv/core/testing';
-import { defineConfig, http, HttpResponse, platforms } from '@dpad-tv/test';
+import { FakeSdkHost } from '@toets/core/testing';
+import { defineConfig, http, HttpResponse, platforms } from '@toets/test';
 import { API_ORIGIN, registry, type RailData } from './app.ts';
 
-const examplesDir = process.env.DPAD_EXAMPLES_DIR;
-if (!examplesDir) throw new Error('DPAD_EXAMPLES_DIR is not set; run check-examples.ts');
+const examplesDir = process.env.TOETS_EXAMPLES_DIR;
+if (!examplesDir) throw new Error('TOETS_EXAMPLES_DIR is not set; run check-examples.ts');
 
 const rails: RailData[] = [
   { id: '0', titles: ['Big Buck Bunny', 'Sintel', 'Tears of Steel', 'Elephants Dream'] },
@@ -27,7 +27,7 @@ export default defineConfig({
   reporter: [['json', { outputFile: join(examplesDir, '.results', 'report.json') }]],
   parityReport: false,
   app: { web: { url: API_ORIGIN } },
-  dpad: {
+  toets: {
     timeouts: { navigationSettleMs: 20, sdkConnectMs: 1_000 },
     remote: { intervalMs: 0 },
     // The app's baseline data; examples override it per test with `app.network.use()`.

@@ -73,7 +73,7 @@ export function navigationReducer(
 }
 
 /**
- * Navigation actions that open a dpad launch state (`app.launch({ state })`): `details:<id>` or
+ * Navigation actions that open a toets launch state (`app.launch({ state })`): `details:<id>` or
  * `player:<id>` (on top of its details screen, so back behaves as if the user got there).
  */
 export function launchStateActions(state: string): NavigationAction[] {

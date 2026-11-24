@@ -1,13 +1,13 @@
 ---
-name: dpad-write-tests
-description: Write or change end-to-end tests, page objects and fixtures for TV apps with dpad (@dpad-tv/test) on web, Android TV / Fire TV or tvOS. Use when creating, editing or reviewing test files that import @dpad-tv/test, or adding the test IDs those tests need. For installing dpad use dpad-setup; for investigating failures use dpad-debug-failures.
+name: toets-write-tests
+description: Write or change end-to-end tests, page objects and fixtures for TV apps with toets (@toets/test) on web, Android TV / Fire TV or tvOS. Use when creating, editing or reviewing test files that import @toets/test, or adding the test IDs those tests need. For installing toets use toets-setup; for investigating failures use toets-debug-failures.
 ---
 
-# Writing dpad tests
+# Writing toets tests
 
-dpad tests run on Playwright Test. Each platform is a project; each test gets one fixture, `app`, the app under test on the current platform. A good test drives the app like a user with a remote, checks what the user would see, and means the same on every platform.
+toets tests run on Playwright Test. Each platform is a project; each test gets one fixture, `app`, the app under test on the current platform. A good test drives the app like a user with a remote, checks what the user would see, and means the same on every platform.
 
-Docs are referenced by slug, for example `concepts/focus`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md` and indexed in `/llms.txt` (until the site is hosted: under `docs/` in the dpad repository). Package reference pages (`reference/<package>/docs/<page>`) ship offline in each installed package's `docs/`; errors print the exact path.
+Docs are referenced by slug, for example `concepts/focus`: the docs site page `/<slug>`, also served as markdown at `/<slug>.md` and indexed in `/llms.txt` (until the site is hosted: under `docs/` in the toets repository). Package reference pages (`reference/<package>/docs/<page>`) ship offline in each installed package's `docs/`; errors print the exact path.
 
 ## Mental model
 
@@ -29,7 +29,7 @@ Docs are referenced by slug, for example `concepts/focus`: the docs site page `/
 ## Example
 
 ```ts run
-import { test, expect, Key, http, HttpResponse } from '@dpad-tv/test';
+import { test, expect, Key, http, HttpResponse } from '@toets/test';
 
 test('shows the empty state when the watchlist is empty', async ({ app }) => {
   app.network.use(http.get('*/api/watchlist', () => HttpResponse.json([])));
@@ -46,25 +46,25 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 
 ## API at a glance
 
-| Need                       | Use                                                                |
-| -------------------------- | ------------------------------------------------------------------ |
-| Start the app              | `app.launch()`, `app.launch({ state, flags, clearData })`          |
-| Find elements              | `app.getByTestId(id)`, `app.getByText(text)`, `.nth(i)`, chaining  |
-| Get somewhere              | `app.focus.navigateTo(locator)`                                    |
-| Press keys                 | `app.remote.press(Key.X)`, `longPress`, `repeat`, `sequence`       |
-| Check focus                | `expect(l).toBeFocused()`, `expect(container).toHaveFocusWithin()` |
-| Check content              | `toBeVisible`, `toHaveText`, `toContainText`, `toHaveCount`        |
-| Check playback             | `expect(app.media).toBePlaying()`, `toBePaused()`                  |
-| Mock data (`dpad.mock` on) | `app.network.use(http.get(...))` before `launch()`                 |
-| Needs a capability         | `test(name, requires('key.color'), fn)`                            |
-| Run in order, shared `app` | `test.describe.serial(...)`                                        |
+| Need                        | Use                                                                |
+| --------------------------- | ------------------------------------------------------------------ |
+| Start the app               | `app.launch()`, `app.launch({ state, flags, clearData })`          |
+| Find elements               | `app.getByTestId(id)`, `app.getByText(text)`, `.nth(i)`, chaining  |
+| Get somewhere               | `app.focus.navigateTo(locator)`                                    |
+| Press keys                  | `app.remote.press(Key.X)`, `longPress`, `repeat`, `sequence`       |
+| Check focus                 | `expect(l).toBeFocused()`, `expect(container).toHaveFocusWithin()` |
+| Check content               | `toBeVisible`, `toHaveText`, `toContainText`, `toHaveCount`        |
+| Check playback              | `expect(app.media).toBePlaying()`, `toBePaused()`                  |
+| Mock data (`toets.mock` on) | `app.network.use(http.get(...))` before `launch()`                 |
+| Needs a capability          | `test(name, requires('key.color'), fn)`                            |
+| Run in order, shared `app`  | `test.describe.serial(...)`                                        |
 
 ## Rules
 
 - `await` every action and assertion.
 - `navigateTo` to get somewhere; explicit presses when navigation itself is under test.
 - Negative assertions (`.not`) only after a positive assertion proved the screen is in the intended state. (`concepts/idle`)
-- Mock data the test depends on (needs `dpad: { mock: true }` and app cooperation); a relative path like `/api/x` matches any origin. (`concepts/network-mocking`)
+- Mock data the test depends on (needs `toets: { mock: true }` and app cooperation); a relative path like `/api/x` matches any origin. (`concepts/network-mocking`)
 - Page objects take `app`, expose locators and intent-level actions, and do not assert except to wait until loaded. (`concepts/page-objects`)
 - App-specific setup (splash, sign-in) lives in a fixture in the project. (`guides/writing-tests`)
 - Serial flows only for journeys that can not be set up directly; prefer named states. (`guides/serial-flows`)
@@ -77,4 +77,4 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 - Android TV has every TV key; emulators are slower than web. (`platforms/android-tv`)
 - Web focus is `document.activeElement`, unless the web driver's `focus` selectors or the SDK report the app's own focus. (`platforms/web`)
 
-If a test fails and the cause is not obvious, switch to the dpad-debug-failures skill.
+If a test fails and the cause is not obvious, switch to the toets-debug-failures skill.

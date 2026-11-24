@@ -1,4 +1,4 @@
-import { DpadError, packageDocsLink, KEY_CAPABILITY, Key, type Capability } from '@dpad-tv/core';
+import { ToetsError, packageDocsLink, KEY_CAPABILITY, Key, type Capability } from '@toets/core';
 
 /**
  * How one semantic {@link Key} is delivered to the page as a real (trusted) keyboard event.
@@ -84,12 +84,12 @@ export function resolveKeyMap(overrides: WebKeyMap | undefined): ResolvedKeyMap 
   const out: Partial<Record<Key, WebKeySpec>> = { ...DEFAULT_KEY_MAP };
   if (overrides === undefined) return out;
   if (typeof overrides !== 'object' || overrides === null) {
-    throw invalidKeys('`keys` must be an object mapping dpad keys to key specs.');
+    throw invalidKeys('`keys` must be an object mapping toets keys to key specs.');
   }
   for (const [name, spec] of Object.entries(overrides) as [string, unknown][]) {
     if (!KNOWN_KEYS.has(name)) {
       throw invalidKeys(
-        `\`keys.${name}\` is not a dpad key.`,
+        `\`keys.${name}\` is not a toets key.`,
         `Use one of: ${[...KNOWN_KEYS].join(', ')}.`,
       );
     }
@@ -125,8 +125,8 @@ function validateSpec(key: Key, spec: unknown): WebKeySpec {
   };
 }
 
-function invalidKeys(message: string, hint?: string): DpadError {
-  return new DpadError('WEB_INVALID_CONFIG', message, {
+function invalidKeys(message: string, hint?: string): ToetsError {
+  return new ToetsError('WEB_INVALID_CONFIG', message, {
     hint: hint ?? 'Fix the `keys` option of the web app config.',
     docs: packageDocsLink('driver-web', 'keys'),
   });

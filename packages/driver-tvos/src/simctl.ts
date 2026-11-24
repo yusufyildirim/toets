@@ -53,7 +53,7 @@ export class Simctl {
         TvosErrorCode.SIMCTL_FAILED,
         `\`xcrun ${this.args(subcommand).join(' ')}\` failed (exit ${res.exitCode}):\n${tail(res.stderr || res.stdout)}`,
         {
-          hint: 'Check that Xcode and its command line tools are selected (`xcode-select -p`) and that the simulator exists in the device set dpad uses.',
+          hint: 'Check that Xcode and its command line tools are selected (`xcode-select -p`) and that the simulator exists in the device set toets uses.',
           docs: DOCS.simulators,
         },
       );
@@ -177,7 +177,7 @@ function parseJson<T>(text: string): T {
     return JSON.parse(text) as T;
   } catch (cause) {
     throw tvosError(TvosErrorCode.SIMCTL_FAILED, 'simctl printed output that is not JSON.', {
-      hint: 'Update Xcode; dpad needs `simctl list --json`.',
+      hint: 'Update Xcode; toets needs `simctl list --json`.',
       cause,
     });
   }

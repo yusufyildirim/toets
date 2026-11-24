@@ -1,6 +1,6 @@
 # Android TV key mapping
 
-Every dpad key is a real Android `KeyEvent` injected into the system input pipeline, so the app's native focus engine handles it exactly like a remote button.
+Every toets key is a real Android `KeyEvent` injected into the system input pipeline, so the app's native focus engine handles it exactly like a remote button.
 
 | Key                           | Android keycode                                      | Capability           |
 | ----------------------------- | ---------------------------------------------------- | -------------------- |
@@ -28,4 +28,4 @@ UiAutomator2 cannot hold keys, so holds run through a 2 KB helper the driver pus
 
 ## Trap
 
-On Android `SELECT` is `DPAD_CENTER`, not `ENTER`. Apps that only handle `KEYCODE_ENTER` work with keyboards but not with remotes; dpad tests the remote.
+On Android `SELECT` is `DPAD_CENTER`, not `ENTER`. Apps that only handle `KEYCODE_ENTER` work with keyboards but not with remotes; toets tests the remote.

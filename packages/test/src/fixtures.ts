@@ -3,52 +3,52 @@ import { dirname, extname } from 'node:path';
 import { test as base, type TestInfo } from '@playwright/test';
 import {
   packageDocsLink,
-  DpadError,
+  ToetsError,
   formatFailureDump,
   screenshotPng,
   type ActionHooks,
   type App,
   type AppRuntime,
   type LogEntry,
-} from '@dpad-tv/core';
-import type { DpadOptions, DpadProjectConfig } from './config.js';
+} from '@toets/core';
+import type { ToetsOptions, ToetsProjectConfig } from './config.js';
 import { explainForRunner, withExplainedErrors } from './errors.js';
 import { requiredCapabilities, requiresSkipReason } from './requires.js';
 import { serialGroupOf } from './serial.js';
-import { DpadWorker, workerArtifactsDir } from './worker.js';
+import { ToetsWorker, workerArtifactsDir } from './worker.js';
 
 /** Lazily started worker state; nothing boots until a test needs it. */
-export interface DpadWorkerHandle {
-  get(): Promise<DpadWorker>;
+export interface ToetsWorkerHandle {
+  get(): Promise<ToetsWorker>;
 }
 
-export interface DpadTestFixtures {
+export interface ToetsTestFixtures {
   /** The app under test on this project's platform. Serial blocks share one instance. */
   app: App;
   /** @internal Skips tests whose `requires()` capabilities the platform lacks. */
-  _dpadRequires: void;
+  _toetsRequires: void;
 }
 
-export interface DpadWorkerFixtures {
+export interface ToetsWorkerFixtures {
   /** @internal Project config set by `platforms.*()`; do not set it by hand. */
-  dpad: DpadProjectConfig | undefined;
+  toets: ToetsProjectConfig | undefined;
   /** @internal */
-  _dpadWorker: DpadWorkerHandle;
+  _toetsWorker: ToetsWorkerHandle;
 }
 
 const debug = (workerIndex: number) => (message: string) => {
-  if (process.env.DPAD_DEBUG) process.stderr.write(`[dpad w${workerIndex}] ${message}\n`);
+  if (process.env.TOETS_DEBUG) process.stderr.write(`[toets w${workerIndex}] ${message}\n`);
 };
 
-function notADpadProject(project: string): DpadError {
-  return new DpadError('NOT_A_DPAD_PROJECT', `Project "${project}" is not a dpad project.`, {
-    hint: 'Create projects with platforms.web() / platforms.androidTV() / platforms.tvOS() in defineConfig from @dpad-tv/test.',
+function notAToetsProject(project: string): ToetsError {
+  return new ToetsError('NOT_A_TOETS_PROJECT', `Project "${project}" is not a toets project.`, {
+    hint: 'Create projects with platforms.web() / platforms.androidTV() / platforms.tvOS() in defineConfig from @toets/test.',
     docs: packageDocsLink('test', 'config'),
   });
 }
 
 /** Turns every action into a boxed `test.step`, with optional per-step artifacts. */
-function stepHooks(runtime: AppRuntime, testInfo: TestInfo, options: DpadOptions): ActionHooks {
+function stepHooks(runtime: AppRuntime, testInfo: TestInfo, options: ToetsOptions): ActionHooks {
   const overrides = new Set<string>();
   return {
     step: (info, run) =>
@@ -58,7 +58,7 @@ function stepHooks(runtime: AppRuntime, testInfo: TestInfo, options: DpadOptions
           if (info.override && !overrides.has(info.override.key)) {
             overrides.add(info.override.key);
             testInfo.annotations.push({
-              type: 'dpad:key-override',
+              type: 'toets:key-override',
               description: `${info.override.key} = ${info.override.performedAs}`,
             });
           }
@@ -94,29 +94,29 @@ const formatLogs = (logs: readonly LogEntry[]): string =>
  */
 async function attachFailure(runtime: AppRuntime, testInfo: TestInfo): Promise<void> {
   const dump = await runtime.failureDump();
-  const dumpPath = testInfo.outputPath('dpad-failure.md');
+  const dumpPath = testInfo.outputPath('toets-failure.md');
   await writeFile(dumpPath, formatFailureDump(dump));
-  await testInfo.attach('dpad-failure', { path: dumpPath, contentType: 'text/markdown' });
+  await testInfo.attach('toets-failure', { path: dumpPath, contentType: 'text/markdown' });
   if (dump.screenshot?.length) {
-    const pngPath = testInfo.outputPath('dpad-screenshot.png');
+    const pngPath = testInfo.outputPath('toets-screenshot.png');
     await writeFile(pngPath, dump.screenshot);
-    await testInfo.attach('dpad-screenshot', { path: pngPath, contentType: 'image/png' });
+    await testInfo.attach('toets-screenshot', { path: pngPath, contentType: 'image/png' });
   }
 }
 
-/** The test's mock server traffic as `dpad-network.har` (HAR 1.2), when there was any. */
+/** The test's mock server traffic as `toets-network.har` (HAR 1.2), when there was any. */
 async function attachNetwork(runtime: AppRuntime, testInfo: TestInfo): Promise<void> {
   const mock = runtime.mock;
   if (!mock?.requests().length) return;
   const body = mock.toHar ? mock.toHar() : { requests: mock.requests() };
-  await testInfo.attach(mock.toHar ? 'dpad-network.har' : 'dpad-requests', {
+  await testInfo.attach(mock.toHar ? 'toets-network.har' : 'toets-requests', {
     body: JSON.stringify(body, null, 2),
     contentType: 'application/json',
   });
 }
 
 /**
- * The dpad test function: Playwright's `test` with the `app` fixture.
+ * The toets test function: Playwright's `test` with the `app` fixture.
  *
  * ```ts
  * test('opens details', async ({ app }) => {
@@ -127,19 +127,19 @@ async function attachNetwork(runtime: AppRuntime, testInfo: TestInfo): Promise<v
  * });
  * ```
  */
-export const test = base.extend<DpadTestFixtures, DpadWorkerFixtures>({
-  dpad: [undefined, { option: true, scope: 'worker' }],
+export const test = base.extend<ToetsTestFixtures, ToetsWorkerFixtures>({
+  toets: [undefined, { option: true, scope: 'worker' }],
 
-  _dpadWorker: [
-    async ({ dpad }, use, workerInfo) => {
+  _toetsWorker: [
+    async ({ toets }, use, workerInfo) => {
       const log = debug(workerInfo.workerIndex);
-      const state: { started: Promise<DpadWorker> | null } = { started: null };
+      const state: { started: Promise<ToetsWorker> | null } = { started: null };
       await use({
         get: () => {
-          if (!dpad)
-            return Promise.reject(explainForRunner(notADpadProject(workerInfo.project.name)));
+          if (!toets)
+            return Promise.reject(explainForRunner(notAToetsProject(workerInfo.project.name)));
           state.started ??= withExplainedErrors(() =>
-            DpadWorker.start(dpad, {
+            ToetsWorker.start(toets, {
               workerIndex: workerInfo.workerIndex,
               parallelIndex: workerInfo.parallelIndex,
               configDir: workerInfo.config.configFile
@@ -161,11 +161,11 @@ export const test = base.extend<DpadTestFixtures, DpadWorkerFixtures>({
     { scope: 'worker', box: true },
   ],
 
-  _dpadRequires: [
-    async ({ _dpadWorker }, use, testInfo) => {
+  _toetsRequires: [
+    async ({ _toetsWorker }, use, testInfo) => {
       const required = requiredCapabilities(testInfo.annotations);
       if (required.length) {
-        const worker = await _dpadWorker.get();
+        const worker = await _toetsWorker.get();
         const have = worker.runtime.declaredCapabilities;
         const missing = required.filter((c) => !have.has(c));
         const { sdk, mock } = worker.config.options;
@@ -180,8 +180,8 @@ export const test = base.extend<DpadTestFixtures, DpadWorkerFixtures>({
   ],
 
   app: [
-    async ({ _dpadWorker }, use, testInfo) => {
-      const worker = await _dpadWorker.get();
+    async ({ _toetsWorker }, use, testInfo) => {
+      const worker = await _toetsWorker.get();
       const runtime = worker.runtime;
       const options = worker.config.options;
 
@@ -213,12 +213,12 @@ export const test = base.extend<DpadTestFixtures, DpadWorkerFixtures>({
       if (failed) await attachFailure(runtime, testInfo);
       const logs = await runtime.takeLogs();
       if (logs.length)
-        await testInfo.attach('dpad-logs', { body: formatLogs(logs), contentType: 'text/plain' });
+        await testInfo.attach('toets-logs', { body: formatLogs(logs), contentType: 'text/plain' });
       await attachNetwork(runtime, testInfo);
       if (video) {
         const path = await driver.stopRecording?.();
         if (path && (options.video === 'on' || failed)) {
-          await testInfo.attach('dpad-video', {
+          await testInfo.attach('toets-video', {
             path,
             contentType: extname(path) === '.webm' ? 'video/webm' : 'video/mp4',
           });

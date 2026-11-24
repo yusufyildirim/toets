@@ -1,4 +1,4 @@
-import type { SdkHost } from '@dpad-tv/protocol';
+import type { SdkHost } from '@toets/protocol';
 import type { Driver } from '../driver.js';
 import type { Key, KeyOverride } from '../keys.js';
 import type { MockServerLike } from '../mock.js';
@@ -28,7 +28,7 @@ export interface ActionInfo {
 }
 
 /**
- * Integration point for runners. `@dpad-tv/test` turns every action into a Playwright
+ * Integration point for runners. `@toets/test` turns every action into a Playwright
  * `test.step` and attaches per-step artifacts; the default just runs the action.
  */
 export interface ActionHooks {

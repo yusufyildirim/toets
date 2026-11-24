@@ -1,4 +1,4 @@
-import { expect, Key, requires, test } from '@dpad-tv/test';
+import { expect, Key, requires, test } from '@toets/test';
 
 test('opens details from the rail', async ({ app }) => {
   await app.launch();

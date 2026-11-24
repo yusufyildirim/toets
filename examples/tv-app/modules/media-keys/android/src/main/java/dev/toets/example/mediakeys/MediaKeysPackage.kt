@@ -1,4 +1,4 @@
-package dev.dpad.example.mediakeys
+package dev.toets.example.mediakeys
 
 import android.content.Context
 import android.view.KeyEvent

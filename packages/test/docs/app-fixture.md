@@ -1,9 +1,9 @@
 # The `app` fixture
 
-Every test gets `app`, the app under test on the project's platform. It is the only fixture a dpad test needs.
+Every test gets `app`, the app under test on the project's platform. It is the only fixture a toets test needs.
 
 ```ts run
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('opens details', async ({ app }) => {
   await app.launch();
@@ -20,7 +20,7 @@ test('opens details', async ({ app }) => {
 - **Serial blocks share one app.** Tests in a `test.describe.serial` block run in order on the same app: no isolation between them, so step 2 continues where step 1 left off. The next test outside the block is isolated again.
 
 ```ts run
-import { test } from '@dpad-tv/test';
+import { test } from '@toets/test';
 
 test.describe.serial('onboarding', () => {
   test('pick a profile', async ({ app }) => {

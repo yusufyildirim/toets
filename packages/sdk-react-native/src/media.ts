@@ -1,8 +1,8 @@
-import { createMediaReporter, type MediaReporter, type MediaSnapshot } from '@dpad-tv/sdk';
+import { createMediaReporter, type MediaReporter, type MediaSnapshot } from '@toets/sdk';
 import { useEffect, useMemo, useRef } from 'react';
 
 /**
- * Event props for `react-native-video` (v6) that report the player to dpad. Spread them on
+ * Event props for `react-native-video` (v6) that report the player to toets. Spread them on
  * `<Video>`; call them from your own handlers when you need those events too.
  */
 export interface VideoMediaProps {
@@ -19,7 +19,7 @@ export interface VideoMediaProps {
 
 /**
  * {@link VideoMediaProps} that feed a reporter from `createMediaReporter` (or a getter for
- * one). For class components; function components use {@link useDpadMedia}.
+ * one). For class components; function components use {@link useToetsMedia}.
  */
 export function videoMediaProps(
   source: MediaReporter | (() => MediaReporter | null),
@@ -75,10 +75,10 @@ export function videoMediaProps(
  * Inert (but harmless) when the SDK is not running.
  *
  * @example
- * const media = useDpadMedia('main');
+ * const media = useToetsMedia('main');
  * return <Video source={source} {...media} />;
  */
-export function useDpadMedia(id: string): VideoMediaProps {
+export function useToetsMedia(id: string): VideoMediaProps {
   const reporter = useRef<MediaReporter | null>(null);
   useEffect(() => {
     const r = createMediaReporter(id);

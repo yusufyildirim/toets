@@ -1,4 +1,4 @@
-import type { DeviceLease } from '@dpad-tv/core';
+import type { DeviceLease } from '@toets/core';
 import { describe, expect, it } from 'vitest';
 import {
   createManagedDeviceProvider,
@@ -44,7 +44,7 @@ describe('managed device provider', () => {
       { workerIndex: 2, parallelIndex: 2 },
     );
 
-    const name = 'dpad-apple-tv-4k-3rd-generation-at-1080p-27.2-w2';
+    const name = 'toets-apple-tv-4k-3rd-generation-at-1080p-27.2-w2';
     expect(runner.lines()).toContain(`xcrun simctl create ${name} ${ATV_1080P} ${TVOS_RUNTIME}`);
     expect(runner.lines()).toContain('xcrun simctl bootstatus NEW-UDID -b');
     expect(lease).toMatchObject({
@@ -61,7 +61,7 @@ describe('managed device provider', () => {
   });
 
   it('reuses an existing simulator and leaves one it did not boot running', async () => {
-    const name = 'dpad-apple-tv-4k-3rd-generation-at-1080p-27.2-w0';
+    const name = 'toets-apple-tv-4k-3rd-generation-at-1080p-27.2-w0';
     const runner = managedRunner({ [TVOS_RUNTIME]: [{ udid: 'OLD', name, state: 'Booted' }] });
     const provider = createManagedDeviceProvider({}, { runner });
     const lease = await provider.acquire(
@@ -93,7 +93,7 @@ describe('managed device provider', () => {
   it('honors model, osVersion and a custom device set', async () => {
     const runner = managedRunner();
     const provider = createManagedDeviceProvider(
-      { deviceSet: '/sets/dpad', namePrefix: 'dpad-ci' },
+      { deviceSet: '/sets/toets', namePrefix: 'toets-ci' },
       { runner },
     );
     const lease = await provider.acquire(
@@ -101,17 +101,17 @@ describe('managed device provider', () => {
       { workerIndex: 1, parallelIndex: 1 },
     );
     expect(runner.lines()).toContain(
-      `xcrun simctl --set /sets/dpad create dpad-ci-apple-tv-4k-3rd-generation-18.4-w1 ${ATV_4K} com.apple.CoreSimulator.SimRuntime.tvOS-18-4`,
+      `xcrun simctl --set /sets/toets create toets-ci-apple-tv-4k-3rd-generation-18.4-w1 ${ATV_4K} com.apple.CoreSimulator.SimRuntime.tvOS-18-4`,
     );
-    expect(lease.meta.deviceSet).toBe('/sets/dpad');
+    expect(lease.meta.deviceSet).toBe('/sets/toets');
   });
 
-  it('only names simulators dpad-*', () => {
+  it('only names simulators toets-*', () => {
     expect(() => createManagedDeviceProvider({ namePrefix: 'ci' })).toThrow(
-      expect.objectContaining({ code: 'TVOS_CONFIG', hint: expect.stringContaining('dpad-ci') }),
+      expect.objectContaining({ code: 'TVOS_CONFIG', hint: expect.stringContaining('toets-ci') }),
     );
-    expect(() => createManagedDeviceProvider({ namePrefix: 'dpadx' })).toThrow();
-    expect(() => createManagedDeviceProvider({ namePrefix: 'dpad' })).not.toThrow();
+    expect(() => createManagedDeviceProvider({ namePrefix: 'toetsx' })).toThrow();
+    expect(() => createManagedDeviceProvider({ namePrefix: 'toets' })).not.toThrow();
   });
 
   it('explains a missing runtime or model', async () => {

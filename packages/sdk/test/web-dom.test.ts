@@ -1,16 +1,12 @@
 // @vitest-environment jsdom
 import { afterEach, describe, expect, it } from 'vitest';
-import {
-  decodeLaunchPayload,
-  encodeLaunchPayloadParam,
-  type ProtocolNode,
-} from '@dpad-tv/protocol';
+import { decodeLaunchPayload, encodeLaunchPayloadParam, type ProtocolNode } from '@toets/protocol';
 import {
   DomMapper,
   describeElement,
   discoverWebPayload,
   mediaElementSnapshot,
-  startDpad,
+  startToets,
 } from '../src/web/index.js';
 
 function strip(node: ProtocolNode): unknown {
@@ -20,7 +16,7 @@ function strip(node: ProtocolNode): unknown {
 
 afterEach(() => {
   document.body.innerHTML = '';
-  delete (window as unknown as Record<string, unknown>).__DPAD__;
+  delete (window as unknown as Record<string, unknown>).__TOETS__;
   history.replaceState(null, '', '/');
 });
 
@@ -119,21 +115,21 @@ describe('DomMapper', () => {
 });
 
 describe('web payload discovery', () => {
-  it('reads the query parameter, hash routes and window.__DPAD__', () => {
+  it('reads the query parameter, hash routes and window.__TOETS__', () => {
     const payload = { v: 1 as const, sdkUrl: 'ws://localhost:1', token: 't' };
     expect(discoverWebPayload()).toBeUndefined();
-    history.replaceState(null, '', `/?x=1&__dpad=${encodeLaunchPayloadParam(payload)}`);
+    history.replaceState(null, '', `/?x=1&__toets=${encodeLaunchPayloadParam(payload)}`);
     expect(decodeLaunchPayload(discoverWebPayload())).toEqual(payload);
-    history.replaceState(null, '', `/#/home?__dpad=${encodeLaunchPayloadParam(payload)}`);
+    history.replaceState(null, '', `/#/home?__toets=${encodeLaunchPayloadParam(payload)}`);
     expect(decodeLaunchPayload(discoverWebPayload())).toEqual(payload);
-    (window as unknown as Record<string, unknown>).__DPAD__ = payload;
+    (window as unknown as Record<string, unknown>).__TOETS__ = payload;
     expect(discoverWebPayload()).toBe(payload);
   });
 
   it('stays inert without a payload', () => {
     const before = window.fetch;
-    const dpad = startDpad();
-    expect(dpad.status).toBe('inert');
+    const toets = startToets();
+    expect(toets.status).toBe('inert');
     expect(window.fetch).toBe(before);
   });
 });

@@ -1,32 +1,47 @@
 {
-  "name": "@dpad-tv/core",
+  "name": "@toets/core",
   "version": "0.0.0",
-  "description": "Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys, capabilities.",
+  "description": "Platform-neutral core of toets: driver contract, locators, matchers, focus, keys, capabilities.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "android-tv",
+    "fire-tv",
+    "tvos",
+    "focus",
+    "remote"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/core"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/core#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/core#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./package.json": "./package.json",
     "./runner": {
-      "@dpad-tv/source": "./src/runner/index.ts",
+      "@toets/source": "./src/runner/index.ts",
       "typedoc": "./src/runner/index.ts",
       "types": "./dist/runner/index.d.ts",
       "default": "./dist/runner/index.js"
     },
     "./testing": {
-      "@dpad-tv/source": "./src/testing/index.ts",
+      "@toets/source": "./src/testing/index.ts",
       "typedoc": "./src/testing/index.ts",
       "types": "./dist/testing/index.d.ts",
       "default": "./dist/testing/index.js"
@@ -45,7 +60,7 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/protocol": "workspace:^",
+    "@toets/protocol": "workspace:^",
     "pngjs": "^7.0.0"
   },
   "devDependencies": {

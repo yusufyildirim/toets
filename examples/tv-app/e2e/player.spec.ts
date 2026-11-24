@@ -1,4 +1,4 @@
-import { expect, Key, requires, test, type App } from '@dpad-tv/test';
+import { expect, Key, requires, test, type App } from '@toets/test';
 
 import { DetailsPage } from './pages/DetailsPage.js';
 import { HomePage } from './pages/HomePage.js';

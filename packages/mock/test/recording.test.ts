@@ -71,7 +71,7 @@ describe('requests()', () => {
     expect(new Set(records.map((r) => r.id)).size).toBe(60);
     expect(records.filter((r) => r.mocked)).toHaveLength(30);
     for (const { res } of results) {
-      const id = res.headers.get('x-dpad-request-id');
+      const id = res.headers.get('x-toets-request-id');
       expect(records.find((r) => r.id === id)?.status).toBe(200);
     }
   });
@@ -148,7 +148,7 @@ describe('toHar()', () => {
     const har = server.toHar();
     expect(JSON.parse(JSON.stringify(har))).toEqual(har);
     expect(har.log.version).toBe('1.2');
-    expect(har.log.creator.name).toBe('@dpad-tv/mock');
+    expect(har.log.creator.name).toBe('@toets/mock');
     expect(har.log.entries).toHaveLength(3);
 
     const [login, img, unrouted] = har.log.entries;
@@ -170,7 +170,7 @@ describe('toHar()', () => {
       cookies: [{ name: 'sid', value: '1' }],
       content: { mimeType: 'application/json', text: '{"token":"t"}', size: 13 },
     });
-    expect(login?._dpad).toMatchObject({ mocked: true, inFlight: false, error: null });
+    expect(login?._toets).toMatchObject({ mocked: true, inFlight: false, error: null });
     expect(login?.timings.wait).toBeGreaterThanOrEqual(0);
     expect(login?.timings.receive).toBeGreaterThanOrEqual(0);
     expect(Date.parse(login?.startedDateTime ?? '')).not.toBeNaN();
@@ -178,7 +178,7 @@ describe('toHar()', () => {
     expect(img?.response.content).toMatchObject({ encoding: 'base64', text: 'AP8B', size: 3 });
 
     expect(unrouted?.response.status).toBe(502);
-    expect(unrouted?._dpad.error?.code).toBe('MOCK_NO_ORIGIN');
+    expect(unrouted?._toets.error?.code).toBe('MOCK_NO_ORIGIN');
     expect(unrouted?.response._error).toContain('MOCK_NO_ORIGIN');
   });
 

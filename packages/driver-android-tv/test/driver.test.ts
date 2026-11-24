@@ -1,5 +1,5 @@
-import { Key, type DpadError, type DriverCreateContext, type ElementRef } from '@dpad-tv/core';
-import { encodeLaunchPayloadParam } from '@dpad-tv/protocol';
+import { Key, type ToetsError, type DriverCreateContext, type ElementRef } from '@toets/core';
+import { encodeLaunchPayloadParam } from '@toets/protocol';
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -53,13 +53,13 @@ function setup(
   app: Record<string, unknown> = {},
   extra: { configDir?: string; meta?: Record<string, unknown> } = {},
 ) {
-  const sdkRoot = mkdtempSync(join(tmpdir(), 'dpad-sdk-'));
+  const sdkRoot = mkdtempSync(join(tmpdir(), 'toets-sdk-'));
   mkdirSync(join(sdkRoot, 'platform-tools'));
-  const artifactsDir = mkdtempSync(join(tmpdir(), 'dpad-art-'));
+  const artifactsDir = mkdtempSync(join(tmpdir(), 'toets-art-'));
   const runner = bootedDevice(new FakeRunner())
     .on('pm path', 'package:/data/app/base.apk\n')
-    .on('pm list packages -U', 'package:tv.dpad.fixture uid:10096\n')
-    .on('LEANBACK_LAUNCHER', 'priority=0\ntv.dpad.fixture/.MainActivity\n')
+    .on('pm list packages -U', 'package:tv.toets.fixture uid:10096\n')
+    .on('LEANBACK_LAUNCHER', 'priority=0\ntv.toets.fixture/.MainActivity\n')
     .on('am start', 'Status: ok\nComplete\n')
     .on('pm clear', 'Success\n')
     .on('app_process', 'repeats=12\n')
@@ -69,7 +69,7 @@ function setup(
   const caps: Record<string, unknown>[] = [];
   const logs: string[] = [];
   const ctx: DriverCreateContext = {
-    app: { package: 'tv.dpad.fixture', ...app },
+    app: { package: 'tv.toets.fixture', ...app },
     device: {
       id: 'd',
       platform: 'android-tv',
@@ -158,7 +158,7 @@ describe('AndroidTvDriver', () => {
     expect(t.runner.lines('spawn')[0]).toContain('logcat -v epoch -v uid');
   });
 
-  it('launches with the payload as the __dpad string extra after reversing its ports', async () => {
+  it('launches with the payload as the __toets string extra after reversing its ports', async () => {
     await driver.launch({
       payload: {
         v: 1,
@@ -171,11 +171,11 @@ describe('AndroidTvDriver', () => {
     const lines = t.runner.lines('run');
     const from = lines.findIndex((l) => l.includes('am force-stop'));
     expect(lines.slice(from)).toEqual([
-      'adb -s emulator-5554 shell am force-stop tv.dpad.fixture',
-      'adb -s emulator-5554 shell pm clear tv.dpad.fixture',
+      'adb -s emulator-5554 shell am force-stop tv.toets.fixture',
+      'adb -s emulator-5554 shell pm clear tv.toets.fixture',
       'adb -s emulator-5554 reverse tcp:9323 tcp:9323',
       'adb -s emulator-5554 reverse tcp:8080 tcp:8080',
-      `adb -s emulator-5554 shell am start -W -n tv.dpad.fixture/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER --es __dpad ${encodeLaunchPayloadParam({ v: 1, sdkUrl: 'ws://localhost:9323', token: 't', mockUrl: 'http://127.0.0.1:8080' })}`,
+      `adb -s emulator-5554 shell am start -W -n tv.toets.fixture/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER --es __toets ${encodeLaunchPayloadParam({ v: 1, sdkUrl: 'ws://localhost:9323', token: 't', mockUrl: 'http://127.0.0.1:8080' })}`,
     ]);
 
     // Ports are reversed once per driver and removed on stop.
@@ -202,7 +202,7 @@ describe('AndroidTvDriver', () => {
       'svc wifi enable',
       'svc data enable',
       'input keyevent 3',
-      'am start -W -n tv.dpad.fixture/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER',
+      'am start -W -n tv.toets.fixture/.MainActivity -a android.intent.action.MAIN -c android.intent.category.LEANBACK_LAUNCHER',
     ]);
   });
 
@@ -211,7 +211,7 @@ describe('AndroidTvDriver', () => {
     await custom.driver.start();
     await custom.driver.launch({ payload: { v: 1 } });
     expect(adbShell(custom.runner).find((l) => l.startsWith('am start'))).toBe(
-      `am start -W -n tv.dpad.fixture/.Other -a android.intent.action.MAIN --es __dpad ${encodeLaunchPayloadParam({ v: 1 })}`,
+      `am start -W -n tv.toets.fixture/.Other -a android.intent.action.MAIN --es __toets ${encodeLaunchPayloadParam({ v: 1 })}`,
     );
   });
 
@@ -219,8 +219,8 @@ describe('AndroidTvDriver', () => {
     await driver.terminate();
     await driver.reset();
     expect(adbShell(t.runner).slice(-2)).toEqual([
-      'am force-stop tv.dpad.fixture',
-      'pm clear tv.dpad.fixture',
+      'am force-stop tv.toets.fixture',
+      'pm clear tv.toets.fixture',
     ]);
   });
 
@@ -249,8 +249,8 @@ describe('AndroidTvDriver', () => {
     const lines = t.runner.lines('run');
     expect(lines.filter((l) => l.includes('push')).length).toBe(1);
     expect(lines.filter((l) => l.includes('app_process'))).toEqual([
-      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/dpad-key-hold.jar app_process / tv.dpad.helper.KeyHold 22 1500',
-      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/dpad-key-hold.jar app_process / tv.dpad.helper.KeyHold 22 800',
+      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/toets-key-hold.jar app_process / tv.toets.helper.KeyHold 22 1500',
+      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/toets-key-hold.jar app_process / tv.toets.helper.KeyHold 22 800',
     ]);
   });
 
@@ -259,7 +259,7 @@ describe('AndroidTvDriver', () => {
     await fire.driver.start();
     expect(fire.driver.capabilities.has('key.color')).toBe(false);
     const err = await fire.driver.press(Key.RED).catch((e: unknown) => e);
-    expect((err as DpadError).code).toBe('ANDROID_KEY_UNSUPPORTED');
+    expect((err as ToetsError).code).toBe('ANDROID_KEY_UNSUPPORTED');
     await fire.driver.press(Key.PLAY_PAUSE);
     expect(fire.session.executed).toEqual([['mobile: pressKey', [{ keycode: 85 }]]]);
   });
@@ -276,18 +276,18 @@ describe('AndroidTvDriver', () => {
     const err = await driver
       .screenshot({ element: 'r.0.7|x|y' as ElementRef })
       .catch((e: unknown) => e);
-    expect((err as DpadError).code).toBe('ANDROID_ELEMENT_DETACHED');
+    expect((err as ToetsError).code).toBe('ANDROID_ELEMENT_DETACHED');
     const [hidden] = await driver.query([{ kind: 'testId', value: 'card_9' }]);
     await expect(driver.screenshot({ element: hidden!.ref })).rejects.toThrow(/no visible area/);
   });
 
   it('drains app logs from logcat', async () => {
     const logcat = t.runner.processes[0]!;
-    logcat.emit('  1795371169.124 10096  1382  1382 I DpadFixture: hello');
+    logcat.emit('  1795371169.124 10096  1382  1382 I ToetsFixture: hello');
     logcat.emit('  1795371169.125 1000  363  363 E system: unrelated');
     const logs = await driver.drainLogs();
     expect(logs).toEqual([
-      { level: 'info', message: 'DpadFixture: hello', timestamp: 1795371169124, source: 'app' },
+      { level: 'info', message: 'ToetsFixture: hello', timestamp: 1795371169124, source: 'app' },
     ]);
     expect(await driver.drainLogs()).toEqual([]);
   });
@@ -343,7 +343,7 @@ describe('AndroidTvDriver start failures', () => {
     const failing = createAndroidTvDriver(
       { sdkRoot: t.sdkRoot },
       {
-        app: { package: 'tv.dpad.fixture' },
+        app: { package: 'tv.toets.fixture' },
         workerIndex: 0,
         artifactsDir: tmpdir(),
         log: () => {},

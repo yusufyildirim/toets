@@ -1,4 +1,4 @@
-import { LAUNCH_PARAM, encodeLaunchPayloadParam, type LaunchPayload } from '@dpad-tv/protocol';
+import { LAUNCH_PARAM, encodeLaunchPayloadParam, type LaunchPayload } from '@toets/protocol';
 import { describe, expect, it } from 'vitest';
 import { launchUrl } from './launch.js';
 

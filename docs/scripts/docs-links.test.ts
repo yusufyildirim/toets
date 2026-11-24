@@ -1,5 +1,5 @@
 /**
- * Every docs path an error can carry (`DpadError.docs`, `ProtocolError.docs`, ESLint rule URLs)
+ * Every docs path an error can carry (`ToetsError.docs`, `ProtocolError.docs`, ESLint rule URLs)
  * must name a page of the docs site. Sources are scanned for the literal forms they use:
  * `docsLink('<guide page>')`, `packageDocsLink('<pkg>', '<page>')` and `'reference/<pkg>/docs/<page>'`.
  */

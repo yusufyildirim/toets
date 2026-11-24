@@ -1,4 +1,4 @@
-import { expect, requires, test } from '@dpad-tv/test';
+import { expect, requires, test } from '@toets/test';
 
 import { picksApi } from './data/catalog.js';
 import { DetailsPage } from './pages/DetailsPage.js';

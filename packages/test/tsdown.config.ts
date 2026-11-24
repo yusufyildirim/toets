@@ -2,7 +2,7 @@ import { defineConfig, type Rolldown } from 'tsdown';
 import { allowedImports } from '../../tsdown.shared.ts';
 
 /** Driver packages are optional peers: their types are inlined into our `.d.ts`, never imported. */
-const DRIVER = /^@dpad-tv\/driver-/;
+const DRIVER = /^@toets\/driver-/;
 
 /**
  * The inlined web driver types import Playwright handles (`Page`, `BrowserContextOptions`, ...)
@@ -10,7 +10,7 @@ const DRIVER = /^@dpad-tv\/driver-/;
  * re-exports all of `playwright-core`, so point those declaration imports there.
  */
 const playwrightTypesFromPeer: Rolldown.Plugin = {
-  name: 'dpad:playwright-types-from-peer',
+  name: 'toets:playwright-types-from-peer',
   resolveId: {
     order: 'pre',
     handler(id, importer) {

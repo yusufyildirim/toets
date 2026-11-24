@@ -1,4 +1,4 @@
-import { DpadError } from '@dpad-tv/core';
+import { ToetsError } from '@toets/core';
 import { describe, expect, it } from 'vitest';
 import { Adb } from '../src/adb.js';
 import { shellQuote } from '../src/command.js';
@@ -12,7 +12,7 @@ const make = (runner = new FakeRunner()) => ({
 describe('shellQuote', () => {
   it('leaves safe words alone and single-quotes the rest', () => {
     expect(shellQuote('am')).toBe('am');
-    expect(shellQuote('tv.dpad/.Main')).toBe('tv.dpad/.Main');
+    expect(shellQuote('tv.toets/.Main')).toBe('tv.toets/.Main');
     expect(shellQuote('')).toBe("''");
     expect(shellQuote('a b')).toBe("'a b'");
     expect(shellQuote(`{"v":1,"s":"it's $HOME"}`)).toBe(`'{"v":1,"s":"it'\\''s $HOME"}'`);
@@ -29,13 +29,13 @@ describe('Adb', () => {
     });
   });
 
-  it('throws a DpadError naming the command on failure', async () => {
+  it('throws a ToetsError naming the command on failure', async () => {
     const { runner, adb } = make();
     runner.on('pm clear', { exitCode: 1, stderr: 'boom' });
     const err = await adb.clearData('com.x').catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(DpadError);
-    expect((err as DpadError).code).toBe('ANDROID_COMMAND_FAILED');
-    expect((err as DpadError).message).toContain('boom');
+    expect(err).toBeInstanceOf(ToetsError);
+    expect((err as ToetsError).code).toBe('ANDROID_COMMAND_FAILED');
+    expect((err as ToetsError).message).toContain('boom');
   });
 
   it('passes string extras to am start and detects failures in its output', async () => {
@@ -43,10 +43,10 @@ describe('Adb', () => {
     runner.on('am start', 'Starting: Intent { cmp=com.x/.Main }\nStatus: ok\nComplete\n');
     await adb.startActivity(
       { component: 'com.x/.Main', action: 'android.intent.action.MAIN' },
-      { __dpad: '{"v":1,"mockUrl":"http://localhost:1234"}' },
+      { __toets: '{"v":1,"mockUrl":"http://localhost:1234"}' },
     );
     expect(runner.calls[0]?.args.at(-1)).toBe(
-      `am start -W -n com.x/.Main -a android.intent.action.MAIN --es __dpad '{"v":1,"mockUrl":"http://localhost:1234"}'`,
+      `am start -W -n com.x/.Main -a android.intent.action.MAIN --es __toets '{"v":1,"mockUrl":"http://localhost:1234"}'`,
     );
 
     runner.on(
@@ -54,8 +54,8 @@ describe('Adb', () => {
       'Starting: Intent { cmp=com.x/.Nope }\nError type 3\nError: Activity class {com.x/com.x.Nope} does not exist.\n',
     );
     const err = await adb.startActivity({ component: 'com.x/.Nope' }).catch((e: unknown) => e);
-    expect((err as DpadError).code).toBe('ANDROID_LAUNCH_FAILED');
-    expect((err as DpadError).message).toContain('does not exist');
+    expect((err as ToetsError).code).toBe('ANDROID_LAUNCH_FAILED');
+    expect((err as ToetsError).message).toContain('does not exist');
   });
 
   it('resolves the leanback launcher activity first', async () => {
@@ -109,7 +109,7 @@ describe('Adb', () => {
 
     runner.on('get-state', { exitCode: 1, stderr: 'device offline' });
     const err = await adb.waitForBoot(20, 1).catch((e: unknown) => e);
-    expect((err as DpadError).code).toBe('ANDROID_DEVICE_NOT_READY');
+    expect((err as ToetsError).code).toBe('ANDROID_DEVICE_NOT_READY');
   });
 
   it('fails emulator console commands that answer KO', async () => {

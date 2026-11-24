@@ -1,24 +1,24 @@
 {
-  "name": "@dpad-tv/example-tv-app",
+  "name": "@toets/example-tv-app",
   "version": "0.0.0",
   "private": true,
-  "description": "Example React Native TV app (Android TV, tvOS, web) used to dogfood dpad.",
+  "description": "Example React Native TV app (Android TV, tvOS, web) used to dogfood toets.",
   "license": "MIT",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
     "api": "node server/main.ts api",
-    "build:sdk": "pnpm --filter @dpad-tv/sdk-react-native... build",
-    "build:web": "pnpm build:sdk && DPAD_E2E=${DPAD_E2E:-1} expo export --platform web --output-dir dist/web --clear",
+    "build:sdk": "pnpm --filter @toets/sdk-react-native... build",
+    "build:web": "pnpm build:sdk && TOETS_E2E=${TOETS_E2E:-1} expo export --platform web --output-dir dist/web --clear",
     "serve:web": "node server/main.ts web",
     "build:android": "node scripts/build-native.ts android",
     "build:tvos": "node scripts/build-native.ts tvos",
     "typecheck": "tsc --noEmit && tsc --noEmit -p e2e",
     "test": "vitest run",
-    "e2e": "NODE_OPTIONS=--conditions=@dpad-tv/source playwright test -c e2e/playwright.config.ts"
+    "e2e": "NODE_OPTIONS=--conditions=@toets/source playwright test -c e2e/playwright.config.ts"
   },
   "dependencies": {
-    "@dpad-tv/sdk-react-native": "workspace:^",
+    "@toets/sdk-react-native": "workspace:^",
     "@expo/metro-runtime": "~58.0.17",
     "expo": "~58.0.26",
     "expo-video": "~58.0.14",
@@ -28,10 +28,10 @@
     "react-native-web": "~0.21.4"
   },
   "devDependencies": {
-    "@dpad-tv/driver-android-tv": "workspace:^",
-    "@dpad-tv/driver-tvos": "workspace:^",
-    "@dpad-tv/driver-web": "workspace:^",
-    "@dpad-tv/test": "workspace:^",
+    "@toets/driver-android-tv": "workspace:^",
+    "@toets/driver-tvos": "workspace:^",
+    "@toets/driver-web": "workspace:^",
+    "@toets/test": "workspace:^",
     "@playwright/test": "^1.65.1",
     "@react-native-tvos/config-tv": "^0.1.7",
     "@types/node": "^24.0.0",

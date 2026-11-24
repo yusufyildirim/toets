@@ -1,6 +1,6 @@
 # MCP tools
 
-Every device tool runs the dpad core code its test API runs and answers with the matching test code, so what works in exploration pastes into a test. Elements are addressed with a **target**: `{ testId?, text?, exact?, nth? }`, the same selectors tests use (`app.getByTestId(id).getByText(text).nth(n)`). Prefer test IDs.
+Every device tool runs the toets core code its test API runs and answers with the matching test code, so what works in exploration pastes into a test. Elements are addressed with a **target**: `{ testId?, text?, exact?, nth? }`, the same selectors tests use (`app.getByTestId(id).getByText(text).nth(n)`). Prefer test IDs.
 
 | Tool           | Does                                                                                    | In a test                                        |
 | -------------- | --------------------------------------------------------------------------------------- | ------------------------------------------------ |
@@ -9,14 +9,14 @@ Every device tool runs the dpad core code its test API runs and answers with the
 | `press`        | Presses remote keys in order (key overrides applied); reports where focus landed.       | `app.remote.press / repeat / sequence`           |
 | `navigate_to`  | Moves focus to a target with real D-pad presses; reports the path.                      | `await app.focus.navigateTo(locator)`            |
 | `query`        | Lists current matches of a target with state and bounds.                                | `app.getByTestId(...)`                           |
-| `assert`       | Any dpad matcher, retried until timeout; passes and fails exactly like `expect`.        | `await expect(locator).toBeFocused()`            |
+| `assert`       | Any toets matcher, retried until timeout; passes and fails exactly like `expect`.       | `await expect(locator).toBeFocused()`            |
 | `screenshot`   | PNG of the screen or of one element.                                                    | `await app.screenshot()`, `locator.screenshot()` |
 | `capabilities` | Platform, capabilities, supported keys, key overrides, SDK and mocking status, targets. | `requires(...)`, `app.platform.has()`            |
-| `docs_search`  | Searches the docs shipped in installed `@dpad-tv/*` packages.                           |                                                  |
+| `docs_search`  | Searches the docs shipped in installed `@toets/*` packages.                             |                                                  |
 
 ## Matchers
 
-`assert` takes every dpad matcher except the screenshot baseline: locator states (`toBeVisible`, `toBeInViewport`, `toBeFocused`, `toHaveFocusWithin`, `toBeEnabled`, `toBeDisabled`, `toBeSelected`, `toBeBusy`), `toHaveText`, `toContainText`, `toHaveCount`, `toMatchTextSnapshot` (screen or `target`), media (`toBePlaying`, `toBePaused`, `toHaveMediaState`, `toHavePosition`) and `toHaveRequested`. Any of them with `not`.
+`assert` takes every toets matcher except the screenshot baseline: locator states (`toBeVisible`, `toBeInViewport`, `toBeFocused`, `toHaveFocusWithin`, `toBeEnabled`, `toBeDisabled`, `toBeSelected`, `toBeBusy`), `toHaveText`, `toContainText`, `toHaveCount`, `toMatchTextSnapshot` (screen or `target`), media (`toBePlaying`, `toBePaused`, `toHaveMediaState`, `toHavePosition`) and `toHaveRequested`. Any of them with `not`.
 
 ## Text snapshot
 
@@ -30,12 +30,12 @@ The [core text snapshot](../../core/docs/text-snapshots.md) format, so `snapshot
 
 ## Errors
 
-Failures come back as tool errors with a code, a hint and a docs link, like every dpad error. Common ones:
+Failures come back as tool errors with a code, a hint and a docs link, like every toets error. Common ones:
 
 | Code                    | Meaning and fix                                                                               |
 | ----------------------- | --------------------------------------------------------------------------------------------- |
 | `MCP_NOT_LAUNCHED`      | Call `launch` first.                                                                          |
-| `MCP_NO_CONFIG`         | No test config with dpad projects and no `dpad.mcp.config.*`; see [setup](./setup.md).        |
+| `MCP_NO_CONFIG`         | No test config with toets projects and no `toets.mcp.config.*`; see [setup](./setup.md).      |
 | `KEY_UNSUPPORTED`       | The target lacks the key's capability; check `capabilities`. Nothing was pressed.             |
 | `CAPABILITY_MISSING`    | `state`, media or network checks need the SDK or mocking on.                                  |
 | `ELEMENT_NOT_FOUND`     | Nothing matches. Virtualized lists only render items near focus: move toward it.              |

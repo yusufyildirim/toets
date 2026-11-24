@@ -1,14 +1,14 @@
 /**
  * The TV app the docs examples describe, as a FakeDriver: a side menu, a hero with play and like
  * buttons, rails of cards, details, a guide, a watchlist and a first-run flow. It talks to the
- * dpad mock server like a real app (launch payload `mockUrl` plus the original origin header),
+ * toets mock server like a real app (launch payload `mockUrl` plus the original origin header),
  * so network examples run against real MSW handlers.
  *
  * Test IDs are the ones used across the docs; change both together.
  */
-import type { Capability, DriverLaunchOptions, Key, PressOptions } from '@dpad-tv/core';
-import { FakeDriver, type FakeNodeSpec, type FakeSdkHost } from '@dpad-tv/core/testing';
-import { ORIGINAL_ORIGIN_HEADER, type ProtocolNode } from '@dpad-tv/protocol';
+import type { Capability, DriverLaunchOptions, Key, PressOptions } from '@toets/core';
+import { FakeDriver, type FakeNodeSpec, type FakeSdkHost } from '@toets/core/testing';
+import { ORIGINAL_ORIGIN_HEADER, type ProtocolNode } from '@toets/protocol';
 
 /** Origin of the API the demo app calls; the mock server stands in for it. */
 export const API_ORIGIN = 'https://api.example.com';

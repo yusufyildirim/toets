@@ -1,10 +1,10 @@
 /**
- * Inert stand-in for `@dpad-tv/sdk` and `@dpad-tv/sdk/web` with the same app-facing API.
+ * Inert stand-in for `@toets/sdk` and `@toets/sdk/web` with the same app-facing API.
  * Alias the SDK to this module in production builds to ship zero SDK code while keeping
  * calls like `markBusy()` and `onState()` in app code. See `docs/production.md`.
  */
 import type { MediaReporter, MediaSnapshot, MediaSource } from './media.js';
-import type { Dpad } from './runtime.js';
+import type { Toets } from './runtime.js';
 import type { StateHandler } from './state.js';
 
 export type * from './index.js';
@@ -30,15 +30,15 @@ const inert = {
   onStatusChange: () => noop,
   start: noop,
   stop: noop,
-} as unknown as Dpad;
+} as unknown as Toets;
 
-export function startDpad(_options?: unknown): Dpad {
+export function startToets(_options?: unknown): Toets {
   return inert;
 }
-export function createDpad(_options?: unknown): Dpad {
+export function createToets(_options?: unknown): Toets {
   return inert;
 }
-export function getDpad(): Dpad | null {
+export function getToets(): Toets | null {
   return null;
 }
 export function getLaunchPayload(): null {

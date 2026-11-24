@@ -4,7 +4,7 @@ import type {
   HostToAppMethod,
   MediaInfo,
   SdkSession,
-} from '@dpad-tv/protocol';
+} from '@toets/protocol';
 import type { Capability } from '../capabilities.js';
 import { fromProtocolError } from '../errors.js';
 import type { Driver } from '../driver.js';

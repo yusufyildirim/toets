@@ -1,4 +1,4 @@
-import type { LogEntry } from '@dpad-tv/core';
+import type { LogEntry } from '@toets/core';
 import type { ConsoleMessage } from 'playwright-core';
 
 /** Bounded log buffer: keeps the newest entries and reports how many were dropped. */

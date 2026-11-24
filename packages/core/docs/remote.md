@@ -15,7 +15,7 @@ await app.remote.longPress(Key.SELECT, 800);
 - **Key overrides describe the app, not the platform.** When an app maps a semantic key to another gesture, configure it once instead of branching in tests:
 
   ```ts nocheck
-  dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } }
+  toets: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } }
   ```
 
   The step reads `press FAST_FORWARD (override: hold RIGHT 800ms)` and the parity report flags the test, so overrides never hide silently.

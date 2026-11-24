@@ -7,7 +7,7 @@ import { defaultRunner, tail, type CommandRunner } from './command.js';
 import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
 export interface PrebuiltWdaOptions {
-  /** Where built WebDriverAgent bundles are cached. Default `~/Library/Caches/dpad/tvos-wda`. */
+  /** Where built WebDriverAgent bundles are cached. Default `~/Library/Caches/toets/tvos-wda`. */
   readonly cacheDir?: string;
   /** Default 900000 (15 minutes). */
   readonly buildTimeoutMs?: number;
@@ -24,7 +24,7 @@ const PRODUCT = join(
   'WebDriverAgentRunner_tvOS-Runner.app',
 );
 /** Bumped when the cached bundle layout changes, so stale caches are rebuilt. */
-const MARKER = '.dpad-complete-2';
+const MARKER = '.toets-complete-2';
 const RUNNER_EXECUTABLE = 'WebDriverAgentRunner_tvOS-Runner';
 const XCTEST_EXECUTABLE = join(
   'PlugIns',
@@ -34,7 +34,7 @@ const XCTEST_EXECUTABLE = join(
 const POLL_MS = 1000;
 
 export function defaultWdaCacheDir(): string {
-  return join(homedir(), 'Library', 'Caches', 'dpad', 'tvos-wda');
+  return join(homedir(), 'Library', 'Caches', 'toets', 'tvos-wda');
 }
 
 /** WebDriverAgent sources bundled with the pinned XCUITest driver, and their version. */

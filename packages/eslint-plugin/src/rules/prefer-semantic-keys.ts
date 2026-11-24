@@ -1,4 +1,4 @@
-import { Key } from '@dpad-tv/core';
+import { Key } from '@toets/core';
 import type { Rule } from 'eslint';
 import type { Node } from 'estree';
 import { ruleDocsUrl, staticName, unwrap } from '../utils.js';
@@ -50,12 +50,12 @@ export const preferSemanticKeys: Rule.RuleModule = {
     schema: [],
     messages: {
       rawKeycode:
-        'Raw keycode `{{raw}}` only means something on one platform. Use a semantic key (`Key.UP`, `Key.SELECT`, ...) from `@dpad-tv/test`; drivers map it per platform.',
+        'Raw keycode `{{raw}}` only means something on one platform. Use a semantic key (`Key.UP`, `Key.SELECT`, ...) from `@toets/test`; drivers map it per platform.',
       rawString:
-        'String key `{{raw}}` bypasses the `Key` type and its per-platform mapping. Use `Key.{{key}}` from `@dpad-tv/test`.',
+        'String key `{{raw}}` bypasses the `Key` type and its per-platform mapping. Use `Key.{{key}}` from `@toets/test`.',
       unknownKey:
-        '`{{raw}}` is not a dpad key. Use a semantic key (`Key.UP`, `Key.SELECT`, `Key.BACK`, ...) from `@dpad-tv/test`; drivers map it per platform.',
-      useKey: 'Replace with `Key.{{key}}` (import `Key` from `@dpad-tv/test`).',
+        '`{{raw}}` is not a toets key. Use a semantic key (`Key.UP`, `Key.SELECT`, `Key.BACK`, ...) from `@toets/test`; drivers map it per platform.',
+      useKey: 'Replace with `Key.{{key}}` (import `Key` from `@toets/test`).',
     },
   },
   create(context) {

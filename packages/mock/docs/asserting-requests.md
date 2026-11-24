@@ -3,7 +3,7 @@
 Every request that reaches the mock server is recorded, mocked or proxied. Assert on behavior the user can not see: the right call was made, with the right body, once.
 
 ```ts run
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('liking a video posts to the API once', async ({ app }) => {
   await app.launch();
@@ -37,13 +37,13 @@ Prefer the retrying matcher over reading `requests()` right after an action: the
 | `status`               | `null` while in flight or when the connection was dropped                   |
 | `error`                | `{ code, message }` when the request failed (see [concepts](./concepts.md)) |
 | `response`             | Status, headers and decoded body the app received                           |
-| `id`                   | Same value as the `x-dpad-request-id` response header                       |
+| `id`                   | Same value as the `x-toets-request-id` response header                      |
 
 Bodies above `maxRecordedBodyBytes` (1 MiB) are recorded truncated (`bodyTruncated`) and always forwarded in full.
 
 ## HAR
 
-`MockServer.toHar(filter?)` exports the recorded traffic as HAR 1.2 (open it in browser devtools or any HAR viewer). dpad attaches each test's HAR to its report; failed exchanges have `status: 0` or the error status plus `_dpad.error`.
+`MockServer.toHar(filter?)` exports the recorded traffic as HAR 1.2 (open it in browser devtools or any HAR viewer). toets attaches each test's HAR to its report; failed exchanges have `status: 0` or the error status plus `_toets.error`.
 
 ## TV trap
 

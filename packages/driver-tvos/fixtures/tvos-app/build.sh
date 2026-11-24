@@ -11,7 +11,7 @@ here="$(cd "$(dirname "$0")" && pwd)"
 out="$(mkdir -p "${1:-$here/build}" && cd "${1:-$here/build}" && pwd)"
 arch="${ARCH:-$(uname -m)}"
 min_tvos="${MIN_TVOS:-17.0}"
-app="$out/DpadFixture.app"
+app="$out/ToetsFixture.app"
 
 sdk="$(xcrun --sdk appletvsimulator --show-sdk-path)"
 rm -rf "$app"
@@ -23,7 +23,7 @@ xcrun --sdk appletvsimulator swiftc \
   -target "$arch-apple-tvos$min_tvos-simulator" \
   -sdk "$sdk" \
   "$here"/Sources/*.swift \
-  -o "$app/DpadFixture"
+  -o "$app/ToetsFixture"
 
 sed "s/__MIN_TVOS__/$min_tvos/" "$here/Info.plist" >"$app/Info.plist"
 plutil -lint -s "$app/Info.plist"

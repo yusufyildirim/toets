@@ -233,7 +233,7 @@ export class Session implements SdkSession {
         'sdk.closed',
         `The app disconnected from the SDK session (code ${code}${reason ? `: ${reason}` : ''}).`,
         {
-          hint: 'The app quit, crashed or reloaded. A reloaded app cannot reuse its one-time token; relaunch it through dpad.',
+          hint: 'The app quit, crashed or reloaded. A reloaded app cannot reuse its one-time token; relaunch it through toets.',
           docs: DOCS,
         },
       ),

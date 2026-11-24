@@ -5,7 +5,7 @@ import {
   type ProtocolNode,
   type Rect,
   type Viewport,
-} from '@dpad-tv/protocol';
+} from '@toets/protocol';
 
 /** Where focus goes from an element per direction (element = target, `null` = blocked). */
 export interface FocusNeighbors {

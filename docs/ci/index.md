@@ -1,10 +1,10 @@
 ---
-description: Principles for running dpad in CI - one job per platform host, build once, size workers to devices, cache the slow parts, always keep the report.
+description: Principles for running toets in CI - one job per platform host, build once, size workers to devices, cache the slow parts, always keep the report.
 ---
 
 # CI recipes
 
-dpad ships no CI actions: these pages are recipes to adapt to your provider. The examples use GitHub Actions because it is common; the principles carry over.
+toets ships no CI actions: these pages are recipes to adapt to your provider. The examples use GitHub Actions because it is common; the principles carry over.
 
 ## Principles
 
@@ -16,7 +16,7 @@ dpad ships no CI actions: these pages are recipes to adapt to your provider. The
 - **Retries are a signal, not a fix.** Allow at most one retry in CI, and treat tests the report marks flaky as bugs.
 
 ```ts
-import { defineConfig, platforms } from '@dpad-tv/test';
+import { defineConfig, platforms } from '@toets/test';
 
 const ci = Boolean(process.env.CI);
 

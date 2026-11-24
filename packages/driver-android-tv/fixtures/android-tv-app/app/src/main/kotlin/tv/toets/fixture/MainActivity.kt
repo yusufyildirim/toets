@@ -1,4 +1,4 @@
-package tv.dpad.fixture
+package tv.toets.fixture
 
 import android.app.Activity
 import android.os.Bundle
@@ -14,12 +14,12 @@ import java.net.URL
 import org.json.JSONObject
 
 /**
- * Minimal native Android TV app used by the dpad driver integration tests. It proves the driver
+ * Minimal native Android TV app used by the toets driver integration tests. It proves the driver
  * is framework neutral: plain Views, resource IDs as test IDs, the platform focus engine.
  *
  * Screens: home (side menu + rail of cards), details (play / favorite) and a fake player that
  * reacts to media keys. A status bar echoes every key the activity receives, how long it was
- * held, the `__dpad` launch payload and the result of a request to the payload's `mockUrl`.
+ * held, the `__toets` launch payload and the result of a request to the payload's `mockUrl`.
  */
 class MainActivity : Activity() {
     private enum class Screen { HOME, DETAILS, PLAYER }
@@ -80,7 +80,7 @@ class MainActivity : Activity() {
     }
 
     private fun readLaunchPayload() {
-        val raw = intent.getStringExtra("__dpad")
+        val raw = intent.getStringExtra("__toets")
         val label = findViewById<TextView>(R.id.launch_payload)
         val mock = findViewById<TextView>(R.id.mock_result)
         mock.text = "mock: none"
@@ -99,7 +99,7 @@ class MainActivity : Activity() {
         if (mockUrl.isNotEmpty()) fetchMock(mockUrl, mock)
     }
 
-    /** dpad sends base64url(JSON); plain JSON is accepted too. */
+    /** toets sends base64url(JSON); plain JSON is accepted too. */
     private fun decodePayload(raw: String): String =
         if (raw.trimStart().startsWith("{")) raw
         else String(Base64.decode(raw, Base64.URL_SAFE or Base64.NO_PADDING or Base64.NO_WRAP), Charsets.UTF_8)
@@ -222,6 +222,6 @@ class MainActivity : Activity() {
     private fun dp(value: Int): Int = (value * resources.displayMetrics.density).toInt()
 
     private companion object {
-        const val TAG = "DpadFixture"
+        const val TAG = "ToetsFixture"
     }
 }

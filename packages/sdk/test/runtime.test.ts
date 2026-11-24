@@ -1,13 +1,13 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
-import { createSdkHost } from '@dpad-tv/protocol/host';
-import { encodeLaunchPayloadParam, RpcErrorCode, type ProtocolNode } from '@dpad-tv/protocol';
+import { createSdkHost } from '@toets/protocol/host';
+import { encodeLaunchPayloadParam, RpcErrorCode, type ProtocolNode } from '@toets/protocol';
 import {
   checkUrl,
-  createDpad,
+  createToets,
   createMediaReporter,
-  getDpad,
+  getToets,
   getLaunchPayload,
   markBusy,
   onState,
@@ -48,17 +48,17 @@ describe('inert runtime', () => {
       const fetchBefore = globalThis.fetch;
       const timeoutBefore = globalThis.setTimeout;
       const logBefore = console.log;
-      const dpad = createDpad({ framework: 'test', payload });
-      expect(dpad.active).toBe(false);
-      expect(dpad.status).toBe('inert');
-      dpad.start();
-      expect(dpad.status).toBe('inert');
+      const toets = createToets({ framework: 'test', payload });
+      expect(toets.active).toBe(false);
+      expect(toets.status).toBe('inert');
+      toets.start();
+      expect(toets.status).toBe('inert');
       expect(globalThis.fetch).toBe(fetchBefore);
       expect(globalThis.setTimeout).toBe(timeoutBefore);
       expect(console.log).toBe(logBefore);
-      expect(dpad.markBusy('x')).toBeTypeOf('function');
+      expect(toets.markBusy('x')).toBeTypeOf('function');
       let called = false;
-      dpad.onState(() => {
+      toets.onState(() => {
         called = true;
       });
       expect(called).toBe(false);
@@ -72,12 +72,12 @@ describe('inert runtime', () => {
       state: 's',
       flags: { a: true },
     };
-    const dpad = createDpad({ framework: 'test', payload: encodeLaunchPayloadParam(payload) });
-    expect(dpad.active).toBe(false);
-    expect(getDpad()).not.toBe(dpad);
+    const toets = createToets({ framework: 'test', payload: encodeLaunchPayloadParam(payload) });
+    expect(toets.active).toBe(false);
+    expect(getToets()).not.toBe(toets);
     expect(getLaunchPayload()).toEqual(payload);
     // A later lookup that finds nothing keeps what was found.
-    createDpad({ framework: 'test', payload: undefined });
+    createToets({ framework: 'test', payload: undefined });
     expect(getLaunchPayload()).toEqual(payload);
   });
 
@@ -92,12 +92,12 @@ describe('inert runtime', () => {
   });
 
   it('fails without connecting when the payload host is remote', () => {
-    const dpad = createDpad({
+    const toets = createToets({
       framework: 'test',
       payload: { v: 1, sdkUrl: 'ws://evil.example:1', token: 't' },
     });
-    dpad.start();
-    expect(dpad.status).toBe('failed');
+    toets.start();
+    expect(toets.status).toBe('failed');
   });
 });
 
@@ -106,20 +106,20 @@ describe('connected runtime', () => {
     const host = await createSdkHost();
     try {
       const token = host.issueToken();
-      const dpad = createDpad({
+      const toets = createToets({
         framework: 'test',
         payload: encodeLaunchPayloadParam({ v: 1, sdkUrl: host.url, token }),
       });
-      dpad.handle('tree.get', () => ({ root: leaf, viewport: { width: 100, height: 100 } }));
-      dpad.start();
+      toets.handle('tree.get', () => ({ root: leaf, viewport: { width: 100, height: 100 } }));
+      toets.start();
       const session = await host.waitForSession(token, { timeoutMs: 5000 });
       expect(session.hello.framework).toBe('test');
-      expect(session.hello.sdk).toMatch(/^@dpad-tv\/sdk@/);
+      expect(session.hello.sdk).toMatch(/^@toets\/sdk@/);
       expect([...session.domains]).toEqual(['tree', 'sync', 'media', 'state', 'logs']);
       await expect(session.request('tree.get', {})).resolves.toMatchObject({ root: { id: 'n1' } });
-      expect(dpad.status).toBe('connected');
-      expect(getDpad()).toBe(dpad);
-      dpad.stop();
+      expect(toets.status).toBe('connected');
+      expect(getToets()).toBe(toets);
+      toets.stop();
     } finally {
       await host.close();
     }
@@ -155,7 +155,7 @@ describe('connected runtime', () => {
   });
 
   it('reports idle, and names custom, timer and network work while busy', async () => {
-    const { session, dpad } = await connect();
+    const { session, toets } = await connect();
     await expect(session.request('sync.waitForIdle', { timeoutMs: 1000 })).resolves.toEqual({
       idle: true,
       busy: [],
@@ -193,7 +193,7 @@ describe('connected runtime', () => {
       idle: true,
     });
 
-    dpad.idle.untracked(() => setTimeout(() => {}, 300));
+    toets.idle.untracked(() => setTimeout(() => {}, 300));
     await expect(session.request('sync.waitForIdle', { timeoutMs: 1000 })).resolves.toMatchObject({
       idle: true,
     });
@@ -248,10 +248,10 @@ describe('connected runtime', () => {
   it('forwards console output, including lines logged before the handshake', async () => {
     const host = await createSdkHost();
     const token = host.issueToken();
-    const dpad = createDpad({ framework: 'test', payload: { v: 1, sdkUrl: host.url, token } });
+    const toets = createToets({ framework: 'test', payload: { v: 1, sdkUrl: host.url, token } });
     try {
       console.info('before %s', 'start', { a: 1 });
-      dpad.start();
+      toets.start();
       const session = await host.waitForSession(token, { timeoutMs: 5000 });
       const entries: string[] = [];
       session.on('logs.entry', (e) => entries.push(`${e.level}:${e.message}`));
@@ -259,7 +259,7 @@ describe('connected runtime', () => {
       await sleep(100);
       expect(entries).toEqual(['info:before start {"a":1}', 'warn:after boom']);
     } finally {
-      dpad.stop();
+      toets.stop();
       await host.close();
     }
   });
@@ -297,7 +297,7 @@ describe('connected runtime', () => {
 
   it('emits deduplicated focus.changed from the focus source', async () => {
     let focused: string | null = 'n1';
-    const { session, dpad } = await connect({
+    const { session, toets } = await connect({
       setup: (d) => {
         d.handle('tree.get', () => ({ root: leaf, viewport: { width: 1, height: 1 } }));
         d.handle('focus.get', () => ({ node: null }));
@@ -308,21 +308,21 @@ describe('connected runtime', () => {
     const events: unknown[] = [];
     session.on('focus.changed', (e) => events.push(e));
     focused = 'n2';
-    dpad.focusChanged();
-    dpad.focusChanged();
+    toets.focusChanged();
+    toets.focusChanged();
     await sleep(50);
-    dpad.focusChanged();
+    toets.focusChanged();
     await sleep(50);
     expect(events).toEqual([{ from: 'n1', to: 'n2' }]);
   });
 
   it('stops and restores hooks when the host closes the session', async () => {
     const fetchBefore = globalThis.fetch;
-    const { session, dpad } = await connect();
+    const { session, toets } = await connect();
     expect(globalThis.fetch).not.toBe(fetchBefore);
     await session.close();
     await sleep(50);
-    expect(dpad.status).toBe('closed');
+    expect(toets.status).toBe('closed');
     expect(globalThis.fetch).toBe(fetchBefore);
   });
 
@@ -330,13 +330,13 @@ describe('connected runtime', () => {
     const events: string[] = [];
     const host = await createSdkHost({ onEvent: (e) => events.push(e.type) });
     try {
-      const dpad = createDpad({
+      const toets = createToets({
         framework: 'test',
         payload: { v: 1, sdkUrl: host.url, token: 'wrong' },
       });
-      dpad.start();
+      toets.start();
       await sleep(800);
-      expect(dpad.status).toBe('rejected');
+      expect(toets.status).toBe('rejected');
       expect(events).toEqual(['connection', 'rejected']);
     } finally {
       await host.close();
@@ -347,31 +347,30 @@ describe('connected runtime', () => {
     const host = await createSdkHost();
     const url = host.url;
     await host.close();
-    const dpad = createDpad({
+    const toets = createToets({
       framework: 'test',
       payload: { v: 1, sdkUrl: url, token: 't' },
       connectRetries: 2,
     });
-    dpad.start();
-    expect(dpad.status).toBe('connecting');
+    toets.start();
+    expect(toets.status).toBe('connecting');
     await sleep(1500);
-    expect(dpad.status).toBe('failed');
+    expect(toets.status).toBe('failed');
   });
 });
 
 describe('core runtime conformance (no adapter)', () => {
   it('passes the suite for the domains it announces', { timeout: 60_000 }, async () => {
-    const { runConformance, formatConformanceReport } =
-      await import('@dpad-tv/protocol/conformance');
-    let dpad: ReturnType<typeof createDpad> | undefined;
+    const { runConformance, formatConformanceReport } = await import('@toets/protocol/conformance');
+    let toets: ReturnType<typeof createToets> | undefined;
     const report = await runConformance(
       {
         name: 'core runtime in Node',
         launch: ({ encoded }) => {
-          dpad = createDpad({ framework: 'node', payload: encoded });
-          dpad.start();
+          toets = createToets({ framework: 'node', payload: encoded });
+          toets.start();
         },
-        terminate: () => dpad?.stop(),
+        terminate: () => toets?.stop(),
       },
       { connectTimeoutMs: 5000 },
     );
@@ -383,10 +382,10 @@ describe('core runtime conformance (no adapter)', () => {
 describe('noop module', () => {
   it('mirrors the app-facing API without doing anything', async () => {
     const noop = await import('../src/noop.js');
-    const dpad = noop.startDpad();
-    expect(dpad.status).toBe('inert');
-    expect(dpad.active).toBe(false);
-    expect(noop.getDpad()).toBeNull();
+    const toets = noop.startToets();
+    expect(toets.status).toBe('inert');
+    expect(toets.active).toBe(false);
+    expect(noop.getToets()).toBeNull();
     expect(noop.getLaunchPayload()).toBeNull();
     noop.markBusy('x')();
     noop.onState(() => {})();

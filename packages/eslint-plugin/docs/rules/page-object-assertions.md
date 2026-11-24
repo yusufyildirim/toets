@@ -30,7 +30,7 @@ await expect(home.title).toHaveText('Home');
 - `allowedMatchers` (`string[]`): matchers allowed in page objects. Default: the stability matchers above.
 
 ```js nocheck
-'@dpad-tv/page-object-assertions': ['error', { files: ['e2e/screens/**'] }]
+'@toets/page-object-assertions': ['error', { files: ['e2e/screens/**'] }]
 ```
 
 The default globs also match app code such as `HomePage.tsx`; scope the plugin to your E2E folder (see [setup](../setup.md)).

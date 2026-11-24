@@ -1,4 +1,4 @@
-import { RpcError, RpcErrorCode, type LaunchFlags } from '@dpad-tv/protocol';
+import { RpcError, RpcErrorCode, type LaunchFlags } from '@toets/protocol';
 import type { IdleTracker } from './idle.js';
 
 /**

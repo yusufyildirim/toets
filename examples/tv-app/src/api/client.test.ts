@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest';
 
 import { ApiError, createApiClient, resolveApiRoute } from './client';
 
-const HEADER = 'x-dpad-original-origin';
+const HEADER = 'x-toets-original-origin';
 
 describe('resolveApiRoute', () => {
   it('uses the real API without a mock URL', () => {

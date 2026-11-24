@@ -1,6 +1,6 @@
 /**
  * Canonical, semantic remote keys. Drivers map each key to what the platform's remote
- * really has; keys a platform lacks are unsupported there (see `KEY_CAPABILITY` in `@dpad-tv/core`).
+ * really has; keys a platform lacks are unsupported there (see `KEY_CAPABILITY` in `@toets/core`).
  *
  * `PLAY`, `PAUSE` and `PLAY_PAUSE` are deliberately distinct: use `PLAY_PAUSE` to toggle.
  */
@@ -42,7 +42,7 @@ export const Key = {
 
 export type Key = (typeof Key)[keyof typeof Key];
 
-export const DPAD_KEYS: readonly Key[] = [Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT];
+export const TOETS_KEYS: readonly Key[] = [Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT];
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 

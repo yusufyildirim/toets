@@ -1,12 +1,12 @@
 /**
- * dpad driver for tvOS simulators, built on WebdriverIO + Appium XCUITest. `@dpad-tv/test`
+ * toets driver for tvOS simulators, built on WebdriverIO + Appium XCUITest. `@toets/test`
  * loads the default export lazily for `platforms.tvOS()` projects.
  *
- * Docs: `node_modules/@dpad-tv/driver-tvos/docs`.
+ * Docs: `node_modules/@toets/driver-tvos/docs`.
  *
  * @packageDocumentation
  */
-import type { DriverModule } from '@dpad-tv/core';
+import type { DriverModule } from '@toets/core';
 import { createManagedDeviceProvider } from './devices.js';
 import { TvosDriver } from './driver.js';
 import type { TvosDriverOptions } from './options.js';

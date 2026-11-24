@@ -7,7 +7,7 @@ description: Semantic remote keys that each platform maps honestly, with capabil
 Tests press **semantic keys** (`Key.SELECT`, `Key.PLAY_PAUSE`), never platform keycodes. Each driver maps a key to real input on its platform: an Android keycode, an Apple TV remote button, a browser keyboard event. Input is always real platform input, never an event injected into the app, so the app's own focus engine and key handling are what get tested.
 
 ```ts run
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('toggles playback from the remote', async ({ app }) => {
   await app.launch();
@@ -48,16 +48,16 @@ Pressing a key the platform lacks throws `KEY_UNSUPPORTED`, naming the capabilit
 
 ## Overrides
 
-Some apps define their own gesture for a key the remote lacks, for example "hold right to fast-forward" on Apple TV. Declare it once in the project's `dpad.keyOverrides` instead of branching in tests; overridden presses are flagged in the step title and the parity matrix.
+Some apps define their own gesture for a key the remote lacks, for example "hold right to fast-forward" on Apple TV. Declare it once in the project's `toets.keyOverrides` instead of branching in tests; overridden presses are flagged in the step title and the parity matrix.
 
 ```ts
-import { defineConfig, platforms, Key } from '@dpad-tv/test';
+import { defineConfig, platforms, Key } from '@toets/test';
 
 export default defineConfig({
   app: { tvOS: { app: './build/Example.app', bundleId: 'com.example.tv' } },
   projects: [
     platforms.tvOS({
-      dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } },
+      toets: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } },
     }),
   ],
 });
@@ -68,4 +68,4 @@ export default defineConfig({
 - **`PLAY`, `PAUSE` and `PLAY_PAUSE` are different keys.** Most remotes only have the toggle. Use `PLAY_PAUSE` unless the test is about discrete play or pause.
 - **`BACK` is the Menu button on Apple TV.** The driver maps it; tests stay semantic.
 - **Fixed key sequences are brittle.** `repeat(Key.RIGHT, 7)` encodes today's layout. Use [`navigateTo`](./focus.md) unless the sequence itself is under test.
-- **Do not add sleeps between presses.** `repeat` and `sequence` already space presses (`intervalMs`, default 100 ms, configurable as `dpad.remote.intervalMs`). Between separate presses, assert the state you expect instead of waiting.
+- **Do not add sleeps between presses.** `repeat` and `sequence` already space presses (`intervalMs`, default 100 ms, configurable as `toets.remote.intervalMs`). Between separate presses, assert the state you expect instead of waiting.

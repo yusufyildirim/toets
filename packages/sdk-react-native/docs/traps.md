@@ -19,5 +19,5 @@ description: Where web or mobile intuition fails with the SDK in React Native TV
   tvOS needs `NSAppTransportSecurity > NSAllowsLocalNetworking` (the React Native template sets it).
 
 - **tvOS argument parsing.** `NSUserDefaults` parses argument values that look like property lists. JSON payloads (`{...}`) would arrive mangled; drivers send base64url.
-- **One root.** Tree and focus come from mounted `DpadRoot`s. A screen rendered in a separate native root without the wrapper is invisible to the SDK.
+- **One root.** Tree and focus come from mounted `ToetsRoot`s. A screen rendered in a separate native root without the wrapper is invisible to the SDK.
 - **Old architecture.** Supported best-effort: measurement is asynchronous (`measureInWindow`, 500 ms cap) and focus events depend on the platform implementation.

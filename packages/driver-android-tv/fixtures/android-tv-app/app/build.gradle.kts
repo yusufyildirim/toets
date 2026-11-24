@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace = "tv.dpad.fixture"
+    namespace = "tv.toets.fixture"
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "tv.dpad.fixture"
+        applicationId = "tv.toets.fixture"
         minSdk = 26
         targetSdk = 36
         versionCode = 1

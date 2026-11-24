@@ -9,7 +9,7 @@ export interface RequestFilter {
 
 /**
  * Mock server settings of the `mock` runtime option, handed to the server factory. Handlers are
- * opaque to the core: `@dpad-tv/mock` takes MSW request handlers.
+ * opaque to the core: `@toets/mock` takes MSW request handlers.
  */
 export interface MockServerConfig {
   /** Port to listen on. Default: a free port. */
@@ -29,7 +29,7 @@ export interface MockServerConfig {
 }
 
 /**
- * What the core needs from the host-side mock server. `@dpad-tv/mock`'s `MockServer`
+ * What the core needs from the host-side mock server. `@toets/mock`'s `MockServer`
  * satisfies it; the core never imports that package so the dependency stays optional.
  */
 export interface MockServerLike {

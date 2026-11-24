@@ -7,12 +7,12 @@ const here = dirname(fileURLToPath(import.meta.url));
 const packageDir = resolve(here, '../..');
 const packagesDir = resolve(packageDir, '..');
 
-/** Public names whose types a user writes in a dpad config. */
+/** Public names whose types a user writes in a toets config. */
 const CONFIG_ROOTS = [
   'defineConfig',
   'platforms',
-  'DpadConfig',
-  'DpadOptions',
+  'ToetsConfig',
+  'ToetsOptions',
   'AppTargets',
   'PlatformProjectOptions',
   'ParityReporterOptions',
@@ -27,13 +27,13 @@ function createProgram(entry: string): ts.Program {
 }
 
 /** Declared in a workspace package's sources (not Playwright, Node or the TS lib). */
-function isDpadDeclaration(decl: ts.Declaration): boolean {
+function isToetsDeclaration(decl: ts.Declaration): boolean {
   const file = decl.getSourceFile().fileName.split('/').join(sep);
   return file.startsWith(packagesDir + sep) && file.includes(`${sep}src${sep}`);
 }
 
 /**
- * Named dpad types a user may write when typing or factoring a config: every interface, class,
+ * Named toets types a user may write when typing or factoring a config: every interface, class,
  * enum and type alias reachable from the roots through properties, type arguments and aliases.
  * Behavioral types met in a callback signature (e.g. a custom `createHost` returning `SdkHost`)
  * count, but their own members do not: implementing one is that package's business.
@@ -50,10 +50,10 @@ function reachableNamedTypes(checker: ts.TypeChecker, roots: readonly ts.Symbol[
   const resolveAlias = (s: ts.Symbol) =>
     s.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(s) : s;
 
-  /** Records a dpad symbol; returns whether it is new. */
+  /** Records a toets symbol; returns whether it is new. */
   const record = (symbol: ts.Symbol | undefined): boolean => {
     if (!symbol || !(symbol.flags & NAMED) || named.has(symbol)) return false;
-    if (!symbol.declarations?.some(isDpadDeclaration)) return false;
+    if (!symbol.declarations?.some(isToetsDeclaration)) return false;
     named.add(symbol);
     return true;
   };
@@ -75,7 +75,7 @@ function reachableNamedTypes(checker: ts.TypeChecker, roots: readonly ts.Symbol[
   };
 
   const visitDeclaration = (decl: ts.Declaration, deep: boolean) => {
-    if (!isDpadDeclaration(decl)) return;
+    if (!isToetsDeclaration(decl)) return;
     if (ts.isTypeAliasDeclaration(decl)) visitTypeNode(decl.type, deep);
     else if (ts.isInterfaceDeclaration(decl)) {
       decl.heritageClauses?.forEach((h) => visitTypeNode(h, deep));
@@ -86,7 +86,7 @@ function reachableNamedTypes(checker: ts.TypeChecker, roots: readonly ts.Symbol[
 
   const visitSymbol = (symbol: ts.Symbol, deep: boolean) => {
     const decls = symbol.declarations ?? [];
-    if (decls.length > 0 && !decls.some(isDpadDeclaration)) return;
+    if (decls.length > 0 && !decls.some(isToetsDeclaration)) return;
     decls.forEach((d) => visitDeclaration(d, deep));
     if (deep) visit(checker.getTypeOfSymbol(symbol), true);
   };
@@ -106,9 +106,9 @@ function reachableNamedTypes(checker: ts.TypeChecker, roots: readonly ts.Symbol[
     if (object.objectFlags & ts.ObjectFlags.Reference) {
       checker.getTypeArguments(object as ts.TypeReference).forEach((t) => visit(t, true));
     }
-    // Members of non-dpad types (Playwright's `Project`, ...) are not ours to export.
+    // Members of non-toets types (Playwright's `Project`, ...) are not ours to export.
     const owner = type.aliasSymbol ?? type.symbol;
-    const foreign = owner?.declarations?.length && !owner.declarations.some(isDpadDeclaration);
+    const foreign = owner?.declarations?.length && !owner.declarations.some(isToetsDeclaration);
     for (const prop of checker.getPropertiesOfType(type)) if (!foreign) visitSymbol(prop, true);
     for (const signature of [
       ...checker.getSignaturesOfType(type, ts.SignatureKind.Call),
@@ -142,7 +142,7 @@ function reachableNamedTypes(checker: ts.TypeChecker, roots: readonly ts.Symbol[
 }
 
 describe('public config types', () => {
-  it('exports every dpad type reachable from the config surface', () => {
+  it('exports every toets type reachable from the config surface', () => {
     const entry = join(packageDir, 'src/index.ts');
     const program = createProgram(entry);
     const checker = program.getTypeChecker();

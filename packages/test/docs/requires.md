@@ -3,7 +3,7 @@
 `requires(...capabilities)` declares what a test needs. On a platform without it, the test is skipped with the reason instead of failing, and the parity report shows where and why.
 
 ```ts run
-import { test, expect, requires, Key } from '@dpad-tv/test';
+import { test, expect, requires, Key } from '@toets/test';
 
 test('green key opens the guide', requires('key.color'), async ({ app }) => {
   await app.launch();
@@ -25,7 +25,7 @@ test('tagged', { ...requires('key.numeric'), tag: '@smoke' }, async ({ app }) =>
 ## Principles
 
 - **It is a Playwright annotation** (`{ type: 'requires' }`), so it works on tests and `describe` blocks and keeps test locations, UI mode and reporters intact.
-- **Skip reason format:** `requires key.color: not available on tvos`; when only a dpad option is missing: `requires media.state: not available on web (dpad.sdk off)`.
+- **Skip reason format:** `requires key.color: not available on tvos`; when only a toets option is missing: `requires media.state: not available on web (toets.sdk off)`.
 - **The check is against declared capabilities:** the driver's, plus SDK capabilities when `sdk` is on (the app connects only at launch), plus `network.mock` when `mock` is on.
 - **Declare what the test uses, not the platform it targets.** `requires('key.color')` stays correct when a new platform gains color keys; skipping on `tvos` does not.
 

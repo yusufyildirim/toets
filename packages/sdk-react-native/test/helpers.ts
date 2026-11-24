@@ -1,5 +1,5 @@
-import { encodeLaunchPayloadParam, type LaunchPayload } from '@dpad-tv/protocol';
-import { createSdkHost, type SdkHost, type SdkSession } from '@dpad-tv/protocol/host';
+import { encodeLaunchPayloadParam, type LaunchPayload } from '@toets/protocol';
+import { createSdkHost, type SdkHost, type SdkSession } from '@toets/protocol/host';
 import { vi } from 'vitest';
 import type * as AdapterModule from '../src/index.js';
 import type * as Mock from './mocks/react-native.js';

@@ -2,7 +2,7 @@
  * The demo platform's driver module: `platforms.web({ driver: <this file> })` runs tests against
  * {@link DemoTvApp} in memory, no browser or device needed.
  */
-import type { DriverModule } from '@dpad-tv/core';
+import type { DriverModule } from '@toets/core';
 import { DemoTvApp, registry } from './app.ts';
 
 const demoDriverModule: DriverModule = {

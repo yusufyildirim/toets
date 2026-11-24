@@ -1,4 +1,4 @@
-import { expect, test, type App } from '@dpad-tv/test';
+import { expect, test, type App } from '@toets/test';
 
 const launched = async (app: App): Promise<boolean> => {
   let value = false;

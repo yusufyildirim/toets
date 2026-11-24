@@ -1,4 +1,4 @@
-import type { BusyResource } from '@dpad-tv/protocol';
+import type { BusyResource } from '@toets/protocol';
 import type { IdleTracker } from '../idle.js';
 import { describeElement } from './dom.js';
 

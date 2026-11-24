@@ -7,7 +7,7 @@ import { createMockServer, http, HttpResponse, type MockServer } from '../src/in
 import { startUpstream, type Upstream } from './helpers.js';
 
 // --- copied from docs/app-integration.md ---
-const MOCK_HEADER = 'x-dpad-original-origin';
+const MOCK_HEADER = 'x-toets-original-origin';
 
 function routeRequest(url: string, mockUrl: string | undefined) {
   if (!mockUrl) return { url, headers: {} };

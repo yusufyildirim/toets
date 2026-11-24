@@ -1,4 +1,4 @@
-import { expect, test } from '@dpad-tv/test';
+import { expect, test } from '@toets/test';
 
 import { HomePage } from './pages/HomePage.js';
 import { SettingsPage } from './pages/SettingsPage.js';

@@ -1,4 +1,4 @@
-import type { BusyResource } from '@dpad-tv/protocol';
+import type { BusyResource } from '@toets/protocol';
 import { now, setNativeTimeout } from './env.js';
 
 /** Matches busy resources to ignore: substring of the description, RegExp, or predicate. */

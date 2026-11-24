@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from 'react';
 
-import { navigationIdle } from '../dpad';
+import { navigationIdle } from '../toets';
 import { useNavigation } from '../navigation/NavigationContext';
 
 interface FocusScopeValue {
@@ -74,7 +74,7 @@ export function FocusScope({ id, active, initialFocusKey, children }: FocusScope
     if (request?.scope === id) setRequestedKey(request.key ?? restoreTarget());
   }, [request, id, restoreTarget]);
 
-  // For dpad idle sync: a pending focus request is a screen transition in progress.
+  // For toets idle sync: a pending focus request is a screen transition in progress.
   const transitioning = active && requestedKey !== null;
   useEffect(() => {
     if (!transitioning) return;

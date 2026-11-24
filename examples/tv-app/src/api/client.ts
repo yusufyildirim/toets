@@ -2,7 +2,7 @@ import type { Catalog, ItemDetails } from './types';
 
 /** Where API requests go. Built once from the app config and the launch payload. */
 export interface ApiRoute {
-  /** Base URL requests are sent to (the real API, or the dpad mock server). */
+  /** Base URL requests are sent to (the real API, or the toets mock server). */
   readonly baseUrl: string;
   /** Extra headers sent with every request. */
   readonly headers: Readonly<Record<string, string>>;

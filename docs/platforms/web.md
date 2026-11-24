@@ -4,10 +4,10 @@ description: The web platform drives TV web apps in Chromium through Playwright 
 
 # Web
 
-Runs the app in Chromium through Playwright. It is the fastest platform to start and the only one with full Playwright traces, so it is where tests are usually written first. Package: [`@dpad-tv/driver-web`](../reference/driver-web.md).
+Runs the app in Chromium through Playwright. It is the fastest platform to start and the only one with full Playwright traces, so it is where tests are usually written first. Package: [`@toets/driver-web`](../reference/driver-web.md).
 
 ```ts
-import { defineConfig, platforms } from '@dpad-tv/test';
+import { defineConfig, platforms } from '@toets/test';
 
 export default defineConfig({
   app: { web: { url: 'http://localhost:8080' } },
@@ -17,13 +17,13 @@ export default defineConfig({
 
 The app must already be served at `url`; start it with Playwright's [`webServer`](https://playwright.dev/docs/test-webserver) option or in your CI job.
 
-| Aspect    | Web                                                                      |
-| --------- | ------------------------------------------------------------------------ |
-| Test ID   | `data-testid`                                                            |
-| Focus     | `document.activeElement`, or the SDK's focus when connected              |
-| Keys      | `KeyboardEvent`s; the key mapping is configurable for TV web keycodes    |
-| Launch    | navigates to `url` with the launch payload as a `__dpad` query parameter |
-| Artifacts | Playwright trace (`--trace on`), video, console logs                     |
+| Aspect    | Web                                                                       |
+| --------- | ------------------------------------------------------------------------- |
+| Test ID   | `data-testid`                                                             |
+| Focus     | `document.activeElement`, or the SDK's focus when connected               |
+| Keys      | `KeyboardEvent`s; the key mapping is configurable for TV web keycodes     |
+| Launch    | navigates to `url` with the launch payload as a `__toets` query parameter |
+| Artifacts | Playwright trace (`--trace on`), video, console logs                      |
 
 Options (test ID attribute, key map, virtual focus, viewport, launch transport): [web driver options](../reference/driver-web/docs/options.md).
 

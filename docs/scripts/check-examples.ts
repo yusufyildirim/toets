@@ -1,12 +1,12 @@
 /**
  * Type-checks (and, for `run` blocks, executes) code blocks in the docs site, package docs
- * and skills, so examples can not rot. `run` blocks that import `@dpad-tv/test` are Playwright
+ * and skills, so examples can not rot. `run` blocks that import `@toets/test` are Playwright
  * tests: they run in one Playwright Test invocation against the demo app (an in-memory TV app on
  * the core's FakeDriver, see `examples/demo-app/`); other `run` blocks run with Node. Usage:
  *
  *   node scripts/check-examples.ts [--list-pending]
  *
- * Packages resolve to the workspace sources (`@dpad-tv/source` condition).
+ * Packages resolve to the workspace sources (`@toets/source` condition).
  */
 import { spawnSync } from 'node:child_process';
 import {
@@ -29,9 +29,9 @@ const repoDir = dirname(docsDir);
 const cacheDir = join(docsDir, '.vitepress/cache/examples');
 const demoConfig = join(docsDir, 'scripts/examples/demo-app/playwright.config.ts');
 
-/** A `run` block that is a Playwright test file: it imports `@dpad-tv/test`. */
+/** A `run` block that is a Playwright test file: it imports `@toets/test`. */
 function isTestExample(block: CodeBlock): boolean {
-  return block.mode === 'run' && /from ['"]@dpad-tv\/test['"]/.test(block.code);
+  return block.mode === 'run' && /from ['"]@toets\/test['"]/.test(block.code);
 }
 
 /** Markdown checked by this script, relative to the repo root. */
@@ -116,7 +116,7 @@ function compilerOptions(): ts.CompilerOptions {
     jsx: ts.JsxEmit.Preserve,
     moduleDetection: ts.ModuleDetectionKind.Force,
     allowImportingTsExtensions: true,
-    customConditions: ['@dpad-tv/source'],
+    customConditions: ['@toets/source'],
     types: ['node'],
     typeRoots: [join(docsDir, 'node_modules/@types')],
   };
@@ -207,7 +207,7 @@ function runTests(tests: ReadonlyMap<string, CodeBlock>): Failure[] {
     cwd: docsDir,
     encoding: 'utf8',
     timeout: 300_000,
-    env: { ...process.env, DPAD_EXAMPLES_DIR: cacheDir, CI: '' },
+    env: { ...process.env, TOETS_EXAMPLES_DIR: cacheDir, CI: '' },
   });
   const blockOf = (file: string) => tests.get(resolve(cacheDir, file)) ?? tests.get(file);
   /** At the error's line in the markdown when Playwright located it in the example. */

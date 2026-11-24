@@ -7,7 +7,7 @@ description: Find elements by test ID or text with lazy locators, and assert wit
 A **locator** describes how to find elements; it holds no element. It resolves again on every use, so it never goes stale when the screen re-renders. An **assertion** (`expect(locator).toX()`) retries until it passes or times out. Together they replace finding, waiting and checking by hand.
 
 ```ts run
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('saves a title to the watchlist', async ({ app }) => {
   await app.launch();

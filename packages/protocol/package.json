@@ -1,31 +1,44 @@
 {
-  "name": "@dpad-tv/protocol",
+  "name": "@toets/protocol",
   "version": "0.0.0",
-  "description": "dpad in-app SDK protocol: types, spec, host server and conformance suite.",
+  "description": "toets in-app SDK protocol: types, spec, host server and conformance suite.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "protocol",
+    "sdk",
+    "conformance"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/protocol"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/protocol#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/protocol#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./host": {
-      "@dpad-tv/source": "./src/server/index.ts",
+      "@toets/source": "./src/server/index.ts",
       "typedoc": "./src/server/index.ts",
       "types": "./dist/server/index.d.ts",
       "default": "./dist/server/index.js"
     },
     "./conformance": {
-      "@dpad-tv/source": "./src/conformance/index.ts",
+      "@toets/source": "./src/conformance/index.ts",
       "typedoc": "./src/conformance/index.ts",
       "types": "./dist/conformance/index.d.ts",
       "default": "./dist/conformance/index.js"
@@ -51,6 +64,6 @@
     "@types/ws": "^8.18.2"
   },
   "bin": {
-    "dpad-conformance": "./dist/conformance/cli.js"
+    "toets-conformance": "./dist/conformance/cli.js"
   }
 }

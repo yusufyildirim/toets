@@ -8,8 +8,8 @@ import {
   type ElementSnapshot,
   type Selector,
   type SelectorChain,
-} from '@dpad-tv/core';
-import { FakeDriver, type FakeScreen } from '@dpad-tv/core/testing';
+} from '@toets/core';
+import { FakeDriver, type FakeScreen } from '@toets/core/testing';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createWebDriver, type WebDriver } from '../src/index.js';
 import { serveFixtures, type FixtureServer } from './server.js';

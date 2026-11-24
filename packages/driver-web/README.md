@@ -1,6 +1,6 @@
-# @dpad-tv/driver-web
+# @toets/driver-web
 
-dpad driver for web TV apps in Chromium, built on Playwright. Loaded by `@dpad-tv/test` for `platforms.web()` projects.
+toets driver for web TV apps in Chromium, built on Playwright. Loaded by `@toets/test` for `platforms.web()` projects.
 
 Docs (shipped in `docs/`):
 
@@ -12,4 +12,4 @@ Docs (shipped in `docs/`):
 - [Capabilities](./docs/capabilities.md)
 - [TV traps](./docs/tv-traps.md)
 
-Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Project overview: [toets](https://github.com/yusufyildirim/toets#readme).

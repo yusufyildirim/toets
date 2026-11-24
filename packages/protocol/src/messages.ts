@@ -1,7 +1,7 @@
 /**
- * dpad protocol v1 message catalog. The normative description lives in `docs/spec.md`.
+ * toets protocol v1 message catalog. The normative description lives in `docs/spec.md`.
  *
- * Direction: the app (SDK) opens a WebSocket to the host and sends `dpad.hello`.
+ * Direction: the app (SDK) opens a WebSocket to the host and sends `toets.hello`.
  * After a successful handshake the host sends requests to the app; the app sends notifications.
  *
  * Coordinates are logical pixels (CSS px, dp, pt) in the app's root coordinate space,
@@ -12,7 +12,7 @@
 export const PROTOCOL_VERSION = '1.0.0';
 
 /** Method name of the handshake request (app to host). */
-export const HELLO_METHOD = 'dpad.hello';
+export const HELLO_METHOD = 'toets.hello';
 
 /** Protocol domains an SDK may implement. Announced in the handshake. */
 export type Domain = 'tree' | 'focus' | 'sync' | 'media' | 'state' | 'logs' | 'metrics';
@@ -66,7 +66,7 @@ export interface HelloParams {
   /** Protocol version the SDK implements, e.g. `1.0.0`. */
   readonly protocol: string;
   readonly token: string;
-  /** e.g. `@dpad-tv/sdk-react-native@0.1.0` */
+  /** e.g. `@toets/sdk-react-native@0.1.0` */
   readonly sdk: string;
   /** e.g. `react-native`, `web`, `native-ios` */
   readonly framework: string;
@@ -166,7 +166,7 @@ export interface HostToAppRequests {
 
 /** Requests sent from app to host. */
 export interface AppToHostRequests {
-  'dpad.hello': { params: HelloParams; result: HelloResult };
+  'toets.hello': { params: HelloParams; result: HelloResult };
 }
 
 /** Notifications sent from app to host. */
@@ -217,7 +217,7 @@ export const CloseCode = {
   Normal: 1000,
   /** Host shutting down. */
   GoingAway: 1001,
-  /** First message was not a valid `dpad.hello`, or it did not arrive in time. */
+  /** First message was not a valid `toets.hello`, or it did not arrive in time. */
   HandshakeFailed: 4000,
   /** Token missing, unknown, expired or already used. */
   Unauthorized: 4001,

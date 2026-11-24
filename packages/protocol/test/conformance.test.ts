@@ -130,7 +130,7 @@ function fakeFixtureApp(bugs: Bugs = {}): ConformanceTarget {
     socket.on('open', () => {
       peer
         .request(
-          'dpad.hello',
+          'toets.hello',
           {
             protocol: PROTOCOL_VERSION,
             token: payload.token,
@@ -215,7 +215,7 @@ describe('conformance suite', () => {
   });
 });
 
-describe('dpad-conformance CLI', () => {
+describe('toets-conformance CLI', () => {
   it('parses arguments', () => {
     expect(
       parseArgs([

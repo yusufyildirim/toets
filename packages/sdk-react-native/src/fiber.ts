@@ -5,8 +5,8 @@ import {
   type ProtocolNode,
   type Rect,
   type Viewport,
-} from '@dpad-tv/protocol';
-import { clearNativeTimeout, getGlobal, setNativeTimeout } from '@dpad-tv/sdk';
+} from '@toets/protocol';
+import { clearNativeTimeout, getGlobal, setNativeTimeout } from '@toets/sdk';
 import { sameTarget, type FocusTarget } from './focus.js';
 
 /**

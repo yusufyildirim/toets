@@ -1,8 +1,8 @@
 import type { Node } from 'estree';
 
 /**
- * Docs site path of a rule's page, like `packageDocsLink` in `@dpad-tv/core`, until the site
- * domain is decided. Shipped as `node_modules/@dpad-tv/eslint-plugin/docs/rules/<rule>.md`.
+ * Docs site path of a rule's page, like `packageDocsLink` in `@toets/core`, until the site
+ * domain is decided. Shipped as `node_modules/@toets/eslint-plugin/docs/rules/<rule>.md`.
  */
 export function ruleDocsUrl(rule: string): string {
   return `reference/eslint-plugin/docs/rules/${rule}`;

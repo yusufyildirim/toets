@@ -99,7 +99,7 @@ describe('SdkHost', () => {
     expect((await app.closed).code).toBe(CloseCode.IncompatibleProtocol);
   });
 
-  it('rejects a first message that is not dpad.hello', async () => {
+  it('rejects a first message that is not toets.hello', async () => {
     const { host } = await start();
     const app = await connectFakeApp(host.url);
     await expect(app.peer.request('tree.get', {}, 1000)).rejects.toMatchObject({

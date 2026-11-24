@@ -1,4 +1,4 @@
-import type { FocusGraphNode, ProtocolNode } from '@dpad-tv/protocol';
+import type { FocusGraphNode, ProtocolNode } from '@toets/protocol';
 import { Activity, createElement as h, createRef, type ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, eventually, launch, load, onCleanup, sleep, type Adapter } from './helpers.js';
@@ -81,13 +81,13 @@ function Screen(props: { extra?: ReactNode; hideB?: boolean }): ReactNode {
   );
 }
 
-/** Mounts `app` under DpadRoot the way the Android glue does (payload in initial props). */
+/** Mounts `app` under ToetsRoot the way the Android glue does (payload in initial props). */
 async function mountAndroid(sdk: Adapter, app: ReactNode, extra = {}) {
   const l = await launch(extra);
-  sdk.startDpad();
-  const rendered = render(h(sdk.DpadRoot, { initialProps: { __dpad: l.payload } }, app));
+  sdk.startToets();
+  const rendered = render(h(sdk.ToetsRoot, { initialProps: { __toets: l.payload } }, app));
   onCleanup(() => {
-    sdk.getDpad()?.stop();
+    sdk.getToets()?.stop();
     rendered.unmount();
   });
   return { ...l, rendered, session: await l.session() };
@@ -96,43 +96,43 @@ async function mountAndroid(sdk: Adapter, app: ReactNode, extra = {}) {
 describe('activation', () => {
   it('stays inert without a payload and renders children only', async () => {
     const { sdk, RN } = await load('android');
-    sdk.startDpad();
+    sdk.startToets();
     expect(RN.AppRegistry.provider).not.toBeNull(); // Android: the payload may come with initial props
-    const rendered = render(h(sdk.DpadRoot, { initialProps: {} }, h(Screen)));
+    const rendered = render(h(sdk.ToetsRoot, { initialProps: {} }, h(Screen)));
     onCleanup(() => rendered.unmount());
-    expect(sdk.getDpad()).toBeNull();
+    expect(sdk.getToets()).toBeNull();
     expect(rendered.container.children[0]!.props.onFocusCapture).toBeUndefined();
   });
 
   it('exposes a black-box payload (mockUrl, no sdkUrl) from the root initial props', async () => {
     const { sdk } = await load('android');
-    sdk.startDpad();
+    sdk.startToets();
     const payload = { v: 1 as const, mockUrl: 'http://localhost:9400' };
     const rendered = render(
-      h(sdk.DpadRoot, { initialProps: { __dpad: JSON.stringify(payload) } }, h(Screen)),
+      h(sdk.ToetsRoot, { initialProps: { __toets: JSON.stringify(payload) } }, h(Screen)),
     );
     onCleanup(() => rendered.unmount());
-    expect(sdk.getDpad()).toBeNull();
+    expect(sdk.getToets()).toBeNull();
     expect(sdk.getLaunchPayload()).toEqual(payload);
   });
 
   it('installs nothing on iOS without launch arguments', async () => {
     const { sdk, RN } = await load('ios');
-    sdk.startDpad();
+    sdk.startToets();
     expect(RN.AppRegistry.provider).toBeNull();
-    expect(sdk.getDpad()).toBeNull();
+    expect(sdk.getToets()).toBeNull();
   });
 
   it('reads the tvOS launch argument through Settings', async () => {
     const { sdk, RN } = await load('ios');
     const l = await launch();
-    RN.Settings.values.__dpad = l.payload;
-    sdk.startDpad();
-    onCleanup(() => sdk.getDpad()?.stop());
-    expect(RN.AppRegistry.provider?.()).toBe(sdk.DpadRoot);
+    RN.Settings.values.__toets = l.payload;
+    sdk.startToets();
+    onCleanup(() => sdk.getToets()?.stop());
+    expect(RN.AppRegistry.provider?.()).toBe(sdk.ToetsRoot);
     const session = await l.session();
     expect(session.hello.framework).toBe('react-native');
-    expect(session.hello.sdk).toBe('@dpad-tv/sdk-react-native@0.0.0');
+    expect(session.hello.sdk).toBe('@toets/sdk-react-native@0.0.0');
     expect([...session.domains].sort()).toEqual([
       'focus',
       'logs',
@@ -146,30 +146,30 @@ describe('activation', () => {
   it('reads the Android payload from the root initial props', async () => {
     const { sdk } = await load('android');
     const { session, rendered } = await mountAndroid(sdk, h(Screen));
-    await eventually(() => sdk.getDpad()?.status === 'connected');
+    await eventually(() => sdk.getToets()?.status === 'connected');
     expect(session.has('tree.get')).toBe(true);
     // The root wrapper listens for focus events.
     expect(typeof rendered.container.children[0]!.props.onFocusCapture).toBe('function');
   });
 
-  it('reads global.__DPAD__ first', async () => {
+  it('reads global.__TOETS__ first', async () => {
     const { sdk } = await load('android');
     const l = await launch();
-    (globalThis as Record<string, unknown>).__DPAD__ = l.payload;
-    onCleanup(() => delete (globalThis as Record<string, unknown>).__DPAD__);
-    sdk.startDpad();
-    onCleanup(() => sdk.getDpad()?.stop());
+    (globalThis as Record<string, unknown>).__TOETS__ = l.payload;
+    onCleanup(() => delete (globalThis as Record<string, unknown>).__TOETS__);
+    sdk.startToets();
+    onCleanup(() => sdk.getToets()?.stop());
     await l.session();
   });
 
-  it('withDpad wraps the root and passes initial props through', async () => {
+  it('withToets wraps the root and passes initial props through', async () => {
     const { sdk } = await load('android');
     const l = await launch();
     const App = (props: { greeting: string }) => h('RCTText', { testID: 'g' }, props.greeting);
-    const Wrapped = sdk.withDpad(App);
-    const rendered = render(h(Wrapped, { greeting: 'hi', __dpad: l.payload } as never));
+    const Wrapped = sdk.withToets(App);
+    const rendered = render(h(Wrapped, { greeting: 'hi', __toets: l.payload } as never));
     onCleanup(() => {
-      sdk.getDpad()?.stop();
+      sdk.getToets()?.stop();
       rendered.unmount();
     });
     const session = await l.session();
@@ -180,8 +180,8 @@ describe('activation', () => {
   it('refuses tree requests when no root is mounted', async () => {
     const { sdk } = await load('ios');
     const l = await launch();
-    sdk.startDpad({ payload: l.payload, wrapRoot: false });
-    onCleanup(() => sdk.getDpad()?.stop());
+    sdk.startToets({ payload: l.payload, wrapRoot: false });
+    onCleanup(() => sdk.getToets()?.stop());
     const session = await l.session();
     await expect(session.request('tree.get', {})).rejects.toMatchObject({
       code: 'sdk.remote-error',
@@ -192,20 +192,20 @@ describe('activation', () => {
   it('starts the web adapter on react-native-web', async () => {
     const { sdk } = await load('web');
     const l = await launch();
-    sdk.startDpad({ payload: l.payload });
-    onCleanup(() => sdk.getDpad()?.stop());
+    sdk.startToets({ payload: l.payload });
+    onCleanup(() => sdk.getToets()?.stop());
     const session = await l.session();
     expect(session.hello.framework).toBe('react-native-web');
   });
   it('leaves react-native-web roots to the web adapter', async () => {
     const { sdk } = await load('web');
     const l = await launch();
-    (globalThis as Record<string, unknown>).__DPAD__ = l.payload;
-    onCleanup(() => delete (globalThis as Record<string, unknown>).__DPAD__);
-    const Wrapped = sdk.withDpad(() => h('RCTView', { testID: 'x' }));
+    (globalThis as Record<string, unknown>).__TOETS__ = l.payload;
+    onCleanup(() => delete (globalThis as Record<string, unknown>).__TOETS__);
+    const Wrapped = sdk.withToets(() => h('RCTView', { testID: 'x' }));
     const rendered = render(h(Wrapped));
     onCleanup(() => rendered.unmount());
-    expect(sdk.getDpad()).toBeNull();
+    expect(sdk.getToets()).toBeNull();
     expect(rendered.container.children[0]!.props.testID).toBe('x');
   });
 });
@@ -279,7 +279,7 @@ describe('tree', () => {
     const { sdk } = await load();
     const { session, rendered } = await mountAndroid(sdk, h(Screen));
     const before = (await session.request('tree.get', {})).root;
-    rendered.update(h(sdk.DpadRoot, null, h(Screen, { hideB: true })));
+    rendered.update(h(sdk.ToetsRoot, null, h(Screen, { hideB: true })));
     const after = (await session.request('tree.get', {})).root;
     expect(byTestId(after, 'card-b').visible).toBe(false);
     expect(byTestId(after, 'card-a').id).toBe(byTestId(before, 'card-a').id);
@@ -386,7 +386,7 @@ describe('focus', () => {
     const { session, rendered } = await mountAndroid(sdk, h(Graph));
     const a = rendered.byTestId('card-a');
     const b = rendered.byTestId('card-b');
-    rendered.update(h(sdk.DpadRoot, null, h(Graph, { right: b.tag, left: a.tag })));
+    rendered.update(h(sdk.ToetsRoot, null, h(Graph, { right: b.tag, left: a.tag })));
     const { root } = await session.request('tree.get', {});
     const { nodes } = await session.request('focus.graph', {});
     const ida = byTestId(root, 'card-a').id;
@@ -397,10 +397,10 @@ describe('focus', () => {
   it('can ignore native focus', async () => {
     const { sdk } = await load();
     const l = await launch();
-    sdk.startDpad({ nativeFocus: false });
-    const rendered = render(h(sdk.DpadRoot, { initialProps: { __dpad: l.payload } }, h(Screen)));
+    sdk.startToets({ nativeFocus: false });
+    const rendered = render(h(sdk.ToetsRoot, { initialProps: { __toets: l.payload } }, h(Screen)));
     onCleanup(() => {
-      sdk.getDpad()?.stop();
+      sdk.getToets()?.stop();
       rendered.unmount();
     });
     await l.session();
@@ -434,7 +434,7 @@ describe('idle, logs and media', () => {
     const original = RN.Animated.timing;
     await mountAndroid(sdk, h(Screen));
     expect(RN.Animated.timing).not.toBe(original);
-    sdk.getDpad()?.stop();
+    sdk.getToets()?.stop();
     expect(RN.Animated.timing).toBe(original);
   });
 
@@ -472,15 +472,15 @@ describe('idle, logs and media', () => {
     await eventually(() => logs.some((l) => l.kind === 'uncaught'));
     expect(logs.find((l) => l.kind === 'uncaught')?.message).toBe('Fatal TypeError: boom');
     expect(seen).toHaveLength(1);
-    sdk.getDpad()?.stop();
+    sdk.getToets()?.stop();
     expect(errorUtils.handler).toBe(previous);
   });
 
-  it('registers players through useDpadMedia', async () => {
+  it('registers players through useToetsMedia', async () => {
     const { sdk } = await load();
-    let media: ReturnType<Adapter['useDpadMedia']> | undefined;
+    let media: ReturnType<Adapter['useToetsMedia']> | undefined;
     const Player = () => {
-      media = sdk.useDpadMedia('main');
+      media = sdk.useToetsMedia('main');
       return h('RCTView', { testID: 'player', style: box(0, 0, 1920, 1080) });
     };
     const { session, rendered } = await mountAndroid(sdk, h(Player));
@@ -494,7 +494,7 @@ describe('idle, logs and media', () => {
       media: { id: 'main', state: 'playing', position: 12.5, duration: 60, rate: 1 },
     });
     await eventually(() => changes.length >= 3);
-    rendered.update(h(sdk.DpadRoot, null, null));
+    rendered.update(h(sdk.ToetsRoot, null, null));
     expect(await session.request('media.list', {})).toEqual({ media: [] });
   });
 });

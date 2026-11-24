@@ -3,9 +3,9 @@
  * at launch: where the SDK host and mock server live, and which state to start in.
  *
  * Transport per platform (owned by drivers, decoded by SDKs):
- * - web: `?__dpad=<base64url(JSON)>` query parameter (or `window.__DPAD__` via init script)
- * - Android: intent string extra `__dpad`
- * - tvOS: launch arguments `-__dpad <value>`
+ * - web: `?__toets=<base64url(JSON)>` query parameter (or `window.__TOETS__` via init script)
+ * - Android: intent string extra `__toets`
+ * - tvOS: launch arguments `-__toets <value>`
  *
  * Drivers should send the base64url form ({@link encodeLaunchPayloadParam}) everywhere: it
  * survives shells, URLs and `NSUserDefaults` argument parsing unchanged. SDKs accept both
@@ -16,11 +16,11 @@ import type { LaunchFlags } from './messages.js';
 export interface LaunchPayload {
   /** Payload format version. */
   readonly v: 1;
-  /** WebSocket URL of the dpad SDK host, e.g. `ws://localhost:9323`. Absent = black-box run. */
+  /** WebSocket URL of the toets SDK host, e.g. `ws://localhost:9323`. Absent = black-box run. */
   readonly sdkUrl?: string;
   /** One-time token the SDK must present in its handshake. Required when `sdkUrl` is set. */
   readonly token?: string;
-  /** Base URL of the dpad mock server the app should send API traffic to. */
+  /** Base URL of the toets mock server the app should send API traffic to. */
   readonly mockUrl?: string;
   /** Named app state to launch into (app-defined, applied through the SDK `state` domain). */
   readonly state?: string;
@@ -29,13 +29,13 @@ export interface LaunchPayload {
 }
 
 /** Name of the launch parameter on every platform. */
-export const LAUNCH_PARAM = '__dpad';
+export const LAUNCH_PARAM = '__toets';
 
 /** Global the web driver may set through an init script instead of the query parameter. */
-export const LAUNCH_GLOBAL = '__DPAD__';
+export const LAUNCH_GLOBAL = '__TOETS__';
 
 /** Header the app adds to proxied requests so the mock server can forward unmatched ones. */
-export const ORIGINAL_ORIGIN_HEADER = 'x-dpad-original-origin';
+export const ORIGINAL_ORIGIN_HEADER = 'x-toets-original-origin';
 
 /** Plain JSON form of the payload. */
 export function encodeLaunchPayload(payload: LaunchPayload): string {

@@ -1,12 +1,12 @@
 # Media
 
-`useDpadMedia(id)` registers a react-native-video player for the `media` domain while the component is mounted and returns event props to spread on `<Video>`:
+`useToetsMedia(id)` registers a react-native-video player for the `media` domain while the component is mounted and returns event props to spread on `<Video>`:
 
 ```tsx nocheck
-import { useDpadMedia } from '@dpad-tv/sdk-react-native';
+import { useToetsMedia } from '@toets/sdk-react-native';
 
 function Player({ source }) {
-  const media = useDpadMedia('main');
+  const media = useToetsMedia('main');
   return (
     <Video
       source={source}
@@ -20,7 +20,7 @@ function Player({ source }) {
 }
 ```
 
-It maps `onLoadStart`, `onLoad`, `onProgress`, `onBuffer`, `onPlaybackStateChanged`, `onPlaybackRateChange`, `onSeek`, `onEnd` and `onError` (v6 events) to `loading`, `buffering`, `playing`, `paused`, `ended` and `error`. When you need an event yourself, call the dpad handler from yours (as with `onEnd` above). Class components use `videoMediaProps(createMediaReporter('main'))`. Other players: `registerMedia` / `createMediaReporter` from the core API.
+It maps `onLoadStart`, `onLoad`, `onProgress`, `onBuffer`, `onPlaybackStateChanged`, `onPlaybackRateChange`, `onSeek`, `onEnd` and `onError` (v6 events) to `loading`, `buffering`, `playing`, `paused`, `ended` and `error`. When you need an event yourself, call the toets handler from yours (as with `onEnd` above). Class components use `videoMediaProps(createMediaReporter('main'))`. Other players: `registerMedia` / `createMediaReporter` from the core API.
 
 ## TV trap
 

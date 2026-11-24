@@ -1,4 +1,4 @@
-import { IdleTracker, type MediaReporter, type MediaSnapshot } from '@dpad-tv/sdk';
+import { IdleTracker, type MediaReporter, type MediaSnapshot } from '@toets/sdk';
 import { describe, expect, it } from 'vitest';
 import { FocusTracker } from '../src/focus.js';
 import { instrumentInteractionManager } from '../src/idle.js';
@@ -127,23 +127,23 @@ describe('InteractionManager', () => {
 });
 
 describe('payloadFromInitialProps', () => {
-  it('reads __dpad and ignores empties', () => {
-    expect(payloadFromInitialProps({ __dpad: 'abc' })).toBe('abc');
-    expect(payloadFromInitialProps({ __dpad: '' })).toBeUndefined();
+  it('reads __toets and ignores empties', () => {
+    expect(payloadFromInitialProps({ __toets: 'abc' })).toBe('abc');
+    expect(payloadFromInitialProps({ __toets: '' })).toBeUndefined();
     expect(payloadFromInitialProps(null)).toBeUndefined();
   });
 });
 
 describe('noop module', () => {
   it('mirrors the app-facing API without doing anything', () => {
-    expect(noop.startDpad()).toBeUndefined();
-    expect(noop.getDpad()).toBeNull();
+    expect(noop.startToets()).toBeUndefined();
+    expect(noop.getToets()).toBeNull();
     expect(noop.getLaunchPayload()).toBeNull();
     expect(noop.markBusy('x')).toBeTypeOf('function');
     const App = () => null;
-    expect(noop.withDpad(App)).toBe(App);
-    expect(noop.DpadRoot({ children: 'x' })).toBe('x');
-    const props = noop.useDpadMedia('main');
+    expect(noop.withToets(App)).toBe(App);
+    expect(noop.ToetsRoot({ children: 'x' })).toBe('x');
+    const props = noop.useToetsMedia('main');
     expect(Object.keys(props).sort()).toEqual(Object.keys(videoMediaProps(() => null)).sort());
     expect(Object.keys(noop.navigationIdleListeners()).sort()).toEqual([
       'transitionEnd',

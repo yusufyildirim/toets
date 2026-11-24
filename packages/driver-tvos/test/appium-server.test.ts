@@ -13,7 +13,7 @@ describe('startAppiumServer', () => {
   });
 
   it('starts the pinned Appium with the XCUITest driver and stops it', async () => {
-    dir = await mkdtemp(join(tmpdir(), 'dpad-appium-'));
+    dir = await mkdtemp(join(tmpdir(), 'toets-appium-'));
     const logFile = join(dir, 'appium.log');
     const server = await startAppiumServer({ logFile });
     try {
@@ -28,8 +28,8 @@ describe('startAppiumServer', () => {
     expect(log).toMatch(/xcuitest/i);
   }, 60_000);
 
-  it('fails with a DpadError when the port is taken', async () => {
-    dir ??= await mkdtemp(join(tmpdir(), 'dpad-appium-'));
+  it('fails with a ToetsError when the port is taken', async () => {
+    dir ??= await mkdtemp(join(tmpdir(), 'toets-appium-'));
     const port = await freePort();
     const first = await startAppiumServer({ logFile: join(dir, 'a.log'), port });
     try {

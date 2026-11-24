@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { DpadError, Key, type DriverModule } from '../src/index.js';
+import { ToetsError, Key, type DriverModule } from '../src/index.js';
 import {
   describeKeyOverride,
   importUserModule,
@@ -18,13 +18,13 @@ import { created } from './runner-fixtures/fake-driver.js';
 
 const fixtures = fileURLToPath(new URL('./runner-fixtures', import.meta.url));
 
-async function dpadError(promise: Promise<unknown>): Promise<DpadError> {
+async function toetsError(promise: Promise<unknown>): Promise<ToetsError> {
   const error = await promise.then(
     () => null,
     (e: unknown) => e,
   );
-  expect(error).toBeInstanceOf(DpadError);
-  return error as DpadError;
+  expect(error).toBeInstanceOf(ToetsError);
+  return error as ToetsError;
 }
 
 const fakeModule = (platform: DriverModule['platform'], withProvider = false): DriverModule => ({
@@ -44,21 +44,21 @@ const ctx = (over: Partial<TargetContext> = {}): TargetContext => ({
   workerIndex: 0,
   parallelIndex: 0,
   configDir: fixtures,
-  artifactsDir: join(mkdtempSync(join(tmpdir(), 'dpad-runner-')), 'w0'),
+  artifactsDir: join(mkdtempSync(join(tmpdir(), 'toets-runner-')), 'w0'),
   log: () => {},
   ...over,
 });
 
 describe('importUserModule', () => {
   it('names the missing package and how to install it', async () => {
-    const error = await dpadError(importUserModule('@dpad-tv/driver-nope', fixtures, 'web driver'));
+    const error = await toetsError(importUserModule('@toets/driver-nope', fixtures, 'web driver'));
     expect(error.code).toBe('MODULE_NOT_FOUND');
-    expect(error.message).toContain('Cannot find @dpad-tv/driver-nope (web driver).');
-    expect(error.hint).toContain('npm install -D @dpad-tv/driver-nope');
+    expect(error.message).toContain('Cannot find @toets/driver-nope (web driver).');
+    expect(error.hint).toContain('npm install -D @toets/driver-nope');
   });
 
   it('resolves paths from the config directory', async () => {
-    const error = await dpadError(importUserModule('./missing.js', fixtures, 'web driver'));
+    const error = await toetsError(importUserModule('./missing.js', fixtures, 'web driver'));
     expect(error.hint).toContain(`config directory (${fixtures})`);
   });
 });
@@ -71,13 +71,13 @@ describe('loadDriverModule', () => {
   });
 
   it('rejects modules for another platform', async () => {
-    const error = await dpadError(loadDriverModule('./fake-driver.ts', fixtures, 'tvos'));
+    const error = await toetsError(loadDriverModule('./fake-driver.ts', fixtures, 'tvos'));
     expect(error.code).toBe('INVALID_DRIVER');
     expect(error.message).toContain('drives web, but the project is tvos');
   });
 
   it('rejects modules without a DriverModule default export', async () => {
-    const error = await dpadError(loadDriverModule('./not-a-driver.ts', fixtures));
+    const error = await toetsError(loadDriverModule('./not-a-driver.ts', fixtures));
     expect(error.code).toBe('INVALID_DRIVER');
   });
 });
@@ -106,7 +106,7 @@ describe('selectDeviceProvider', () => {
     expect(lease?.address).toBe('UDID-1');
 
     const command = selectDeviceProvider(
-      { mode: 'command', acquire: `echo '{"address":"emulator-'$DPAD_PARALLEL_INDEX'"}'` },
+      { mode: 'command', acquire: `echo '{"address":"emulator-'$TOETS_PARALLEL_INDEX'"}'` },
       fakeModule('android-tv'),
     );
     const leased = await command?.acquire(
@@ -228,7 +228,7 @@ describe('RunningTarget', () => {
   });
 
   it('explains mocking without a mock server factory', async () => {
-    const error = await dpadError(
+    const error = await toetsError(
       RunningTarget.start({ driver: './fake-driver.ts', options: { mock: true } }, ctx()),
     );
     expect(error.code).toBe('MOCK_UNAVAILABLE');

@@ -1,5 +1,5 @@
 import type { Locator, Screenshot, ScreenshotOptions } from '../api.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import type { Selector, SelectorChain } from '../selectors.js';
 import type { ElementSnapshot } from '../snapshot.js';
 import type { RuntimeContext } from './context.js';
@@ -47,10 +47,10 @@ export function describeElement(el: ElementSnapshot | null): string {
 export function strictModeError(
   chain: SelectorChain,
   matches: readonly ElementSnapshot[],
-): DpadError {
+): ToetsError {
   const shown = matches.slice(0, 5).map((m) => `  - ${describeElement(m)}`);
   if (matches.length > 5) shown.push(`  - ... ${matches.length - 5} more`);
-  return new DpadError(
+  return new ToetsError(
     'STRICT_MODE_VIOLATION',
     `${describeChain(chain)} resolved to ${matches.length} elements:\n${shown.join('\n')}`,
     {
@@ -92,9 +92,13 @@ export class LocatorImpl {
 
   nth(index: number): Locator {
     if (!Number.isInteger(index) || index < 0) {
-      throw new DpadError('INVALID_ARGUMENT', `nth() needs a non-negative integer, got ${index}.`, {
-        docs: packageDocsLink('core', 'locators'),
-      });
+      throw new ToetsError(
+        'INVALID_ARGUMENT',
+        `nth() needs a non-negative integer, got ${index}.`,
+        {
+          docs: packageDocsLink('core', 'locators'),
+        },
+      );
     }
     return this.child({ kind: 'nth', index });
   }
@@ -112,7 +116,7 @@ export class LocatorImpl {
       return { ok: matches.length === 1, value: matches[0] };
     }, timeoutMs);
     if (result.ok && result.value) return result.value;
-    throw new DpadError(
+    throw new ToetsError(
       'ELEMENT_NOT_FOUND',
       `${this.description} matched no element within ${timeoutMs}ms.`,
       {
@@ -158,7 +162,7 @@ export class LocatorImpl {
     const tree = await this.ctx.target.tree();
     const node = findNode(tree, el.ref);
     if (!node) {
-      throw new DpadError(
+      throw new ToetsError(
         'ELEMENT_DETACHED',
         `${this.description} resolved to an element missing from the tree.`,
         {
@@ -189,13 +193,13 @@ export function isLocator(value: unknown): value is Locator {
 }
 
 /**
- * Current matches of a dpad Locator in tree order, without waiting and without strictness.
+ * Current matches of a toets Locator in tree order, without waiting and without strictness.
  * For runners and tools (the MCP `query` tool); tests assert with `expect` instead.
  */
 export function resolveLocator(locator: Locator): Promise<readonly ElementSnapshot[]> {
   const impl = locatorImpl(locator);
   if (!impl) {
-    throw new DpadError('INVALID_ARGUMENT', 'resolveLocator() takes a dpad Locator.', {
+    throw new ToetsError('INVALID_ARGUMENT', 'resolveLocator() takes a toets Locator.', {
       docs: packageDocsLink('core', 'locators'),
     });
   }

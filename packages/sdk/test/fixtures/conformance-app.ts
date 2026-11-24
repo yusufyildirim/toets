@@ -1,9 +1,9 @@
 /**
- * The dpad conformance fixture (see @dpad-tv/protocol docs/conformance.md) implemented with
+ * The toets conformance fixture (see @toets/protocol docs/conformance.md) implemented with
  * the web adapter, plus a few extras used by the Chromium round-trip tests.
  */
-import { CONFORMANCE_FIXTURE } from '@dpad-tv/protocol';
-import { markBusy, onState, startDpad } from '../../src/web/index.js';
+import { CONFORMANCE_FIXTURE } from '@toets/protocol';
+import { markBusy, onState, startToets } from '../../src/web/index.js';
 
 const { testIds, states, text } = CONFORMANCE_FIXTURE;
 
@@ -34,4 +34,4 @@ onState(async (state, flags) => {
   else if (state === 'grow') byTestId(testIds.a).classList.add('grow');
 });
 
-startDpad();
+startToets();

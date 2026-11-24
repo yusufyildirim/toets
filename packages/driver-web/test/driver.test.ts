@@ -2,7 +2,7 @@ import { existsSync, statSync } from 'node:fs';
 import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { DpadError, Key, type ElementSnapshot, type Selector, type UINode } from '@dpad-tv/core';
+import { ToetsError, Key, type ElementSnapshot, type Selector, type UINode } from '@toets/core';
 import { chromium, type Browser } from 'playwright-core';
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest';
 import webDriverModule, { createWebDriver, type WebDriver } from '../src/index.js';
@@ -21,7 +21,7 @@ let artifactsDir: string;
 
 beforeAll(async () => {
   server = await serveFixtures();
-  artifactsDir = await mkdtemp(join(tmpdir(), 'dpad-driver-web-test-'));
+  artifactsDir = await mkdtemp(join(tmpdir(), 'toets-driver-web-test-'));
 });
 
 afterAll(async () => {
@@ -58,15 +58,15 @@ function pngSize(png: Uint8Array): { width: number; height: number } {
   return { width: view.getUint32(16), height: view.getUint32(20) };
 }
 
-async function expectDpadError(promise: Promise<unknown>, code: string): Promise<DpadError> {
+async function expectToetsError(promise: Promise<unknown>, code: string): Promise<ToetsError> {
   const error = await promise.then(
     () => null,
     (e: unknown) => e,
   );
-  expect(error).toBeInstanceOf(DpadError);
-  expect((error as DpadError).code).toBe(code);
-  expect((error as DpadError).hint).toBeTruthy();
-  return error as DpadError;
+  expect(error).toBeInstanceOf(ToetsError);
+  expect((error as ToetsError).code).toBe(code);
+  expect((error as ToetsError).hint).toBeTruthy();
+  return error as ToetsError;
 }
 
 describe('web driver on the fixture app', () => {
@@ -109,7 +109,7 @@ describe('web driver on the fixture app', () => {
     expect(driver.platform).toBe('web');
   });
 
-  it('passes the launch payload as ?__dpad=base64url(JSON)', async () => {
+  it('passes the launch payload as ?__toets=base64url(JSON)', async () => {
     const payload = { v: 1, sdkUrl: 'ws://localhost:9323', token: 't-ü', state: 'home' } as const;
     await driver.launch({ payload });
     expect(await text(driver, 'payload-source')).toBe('query');
@@ -145,7 +145,7 @@ describe('web driver on the fixture app', () => {
     expect(await driver.query([{ kind: 'text', value: 'Card 3', exact: true }])).toHaveLength(1);
     expect(await driver.query([{ kind: 'text', value: /^Card \d+$/g }])).toHaveLength(10);
     // Raw DOM text: CSS text-transform does not apply.
-    expect(await text(driver, 'title')).toBe('dpad fixture');
+    expect(await text(driver, 'title')).toBe('toets fixture');
   });
 
   it('resolves chains within previous matches, in document order', async () => {
@@ -228,7 +228,7 @@ describe('web driver on the fixture app', () => {
   });
 
   it('reads labels, form values and open shadow DOM', async () => {
-    expect((await one(driver, testId('logo'))).label).toBe('dpad logo');
+    expect((await one(driver, testId('logo'))).label).toBe('toets logo');
     expect((await one(driver, testId('icon-button'))).label).toBe('Open search');
     expect(await text(driver, 'search-input')).toBe('query text');
     expect(await text(driver, 'badge-label')).toBe('New');
@@ -304,11 +304,11 @@ describe('web driver on the fixture app', () => {
     });
 
     const below = await one(driver, testId('below-fold'));
-    await expectDpadError(driver.screenshot({ element: below.ref }), 'WEB_ELEMENT_OFFSCREEN');
+    await expectToetsError(driver.screenshot({ element: below.ref }), 'WEB_ELEMENT_OFFSCREEN');
     expect(await driver.escapeHatch().evaluate(() => window.scrollY)).toBe(0);
 
     await driver.launch({ payload: { v: 1 } });
-    await expectDpadError(driver.screenshot({ element: card.ref }), 'WEB_STALE_ELEMENT');
+    await expectToetsError(driver.screenshot({ element: card.ref }), 'WEB_STALE_ELEMENT');
   });
 
   it('collects console logs and uncaught errors', async () => {
@@ -349,7 +349,7 @@ describe('web driver on the fixture app', () => {
 
   it('records video across launches', async () => {
     await driver.startRecording();
-    await expectDpadError(driver.startRecording(), 'WEB_RECORDING_ACTIVE');
+    await expectToetsError(driver.startRecording(), 'WEB_RECORDING_ACTIVE');
     await driver.press(Key.RIGHT);
     await driver.launch({ payload: { v: 1 } });
     await driver.press(Key.RIGHT);
@@ -357,7 +357,7 @@ describe('web driver on the fixture app', () => {
     expect(path.startsWith(artifactsDir)).toBe(true);
     expect(path.endsWith('.webm')).toBe(true);
     expect(existsSync(path) && statSync(path).size).toBeGreaterThan(0);
-    await expectDpadError(driver.stopRecording(), 'WEB_NOT_RECORDING');
+    await expectToetsError(driver.stopRecording(), 'WEB_NOT_RECORDING');
   });
 
   it('emits network and lifecycle events', async () => {
@@ -405,7 +405,7 @@ describe('web driver on the fixture app', () => {
   });
 
   it('rejects unmapped keys with a hint', async () => {
-    const error = await expectDpadError(driver.press(Key.HOME), 'WEB_KEY_UNMAPPED');
+    const error = await expectToetsError(driver.press(Key.HOME), 'WEB_KEY_UNMAPPED');
     expect(error.hint).toContain('key.home');
   });
 });
@@ -428,10 +428,10 @@ describe('web driver configuration', () => {
       { app: { url: server.url }, workerIndex: 0, artifactsDir, log: () => {} },
     );
     expect(driver.platform).toBe('web');
-    await expectDpadError(driver.query([]), 'WEB_NOT_STARTED');
+    await expectToetsError(driver.query([]), 'WEB_NOT_STARTED');
   });
 
-  it('passes the payload through an init script as window.__DPAD__', async () => {
+  it('passes the payload through an init script as window.__TOETS__', async () => {
     const driver = createWebDriver({ url: server.url, browser, launchTransport: 'initScript' });
     await driver.start();
     try {
@@ -502,7 +502,7 @@ describe('web driver configuration', () => {
       await driver.launch({ payload: { v: 1 } });
       await driver.press(Key.BACK);
       await driver.press(Key.HOME);
-      await expectDpadError(driver.press(Key.RED), 'WEB_KEY_UNMAPPED');
+      await expectToetsError(driver.press(Key.RED), 'WEB_KEY_UNMAPPED');
       const downs = (await keyEvents(driver)).filter((e) => e.type === 'keydown');
       // Non-standard key values arrive as an empty string; the keyCode is verbatim.
       expect(downs.map((e) => [e.key, e.keyCode])).toEqual([
@@ -539,7 +539,7 @@ describe('web driver configuration', () => {
     await driver.start();
     try {
       await driver.launch({ payload: { v: 1 } });
-      await expectDpadError(driver.focused(), 'WEB_INVALID_CONFIG');
+      await expectToetsError(driver.focused(), 'WEB_INVALID_CONFIG');
     } finally {
       await driver.stop();
     }
@@ -548,16 +548,16 @@ describe('web driver configuration', () => {
   it('explains launch failures', async () => {
     const missing = createWebDriver({ url: `${server.url}missing.html`, browser });
     await missing.start();
-    await expectDpadError(missing.launch({ payload: { v: 1 } }), 'WEB_LAUNCH_FAILED');
+    await expectToetsError(missing.launch({ payload: { v: 1 } }), 'WEB_LAUNCH_FAILED');
     await missing.stop();
 
     const refused = createWebDriver({ url: 'http://127.0.0.1:9/', browser });
     await refused.start();
-    await expectDpadError(refused.launch({ payload: { v: 1 } }), 'WEB_LAUNCH_FAILED');
+    await expectToetsError(refused.launch({ payload: { v: 1 } }), 'WEB_LAUNCH_FAILED');
     await refused.stop();
   });
 
   it('explains a missing URL', () => {
-    expect(() => createWebDriver({})).toThrow(DpadError);
+    expect(() => createWebDriver({})).toThrow(ToetsError);
   });
 });

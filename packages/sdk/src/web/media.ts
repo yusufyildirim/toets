@@ -1,5 +1,5 @@
-import type { MediaInfo, MediaState } from '@dpad-tv/protocol';
-import type { Dpad } from '../runtime.js';
+import type { MediaInfo, MediaState } from '@toets/protocol';
+import type { Toets } from '../runtime.js';
 
 const EVENTS = [
   'loadstart',
@@ -25,13 +25,13 @@ const EVENTS = [
  * created at any time are covered.
  */
 export function trackMediaElements(
-  dpad: Dpad,
+  toets: Toets,
   opts: { testIdAttribute: string; nodeId: (el: Element) => string },
 ): () => void {
   if (typeof document === 'undefined') return () => {};
   const idOf = (el: Element): string =>
     el.getAttribute(opts.testIdAttribute) || el.id || `media-${opts.nodeId(el)}`;
-  const removeProvider = dpad.media.addProvider(() => {
+  const removeProvider = toets.media.addProvider(() => {
     const out: MediaInfo[] = [];
     const els = document.querySelectorAll('video, audio');
     for (let i = 0; i < els.length; i++) {
@@ -43,7 +43,7 @@ export function trackMediaElements(
   const onEvent = (e: Event): void => {
     const el = e.target as Element | null;
     if (!el || (el.tagName !== 'VIDEO' && el.tagName !== 'AUDIO')) return;
-    dpad.media.changed(idOf(el), e.type === 'seeked');
+    toets.media.changed(idOf(el), e.type === 'seeked');
   };
   for (const type of EVENTS) document.addEventListener(type, onEvent, true);
   return () => {

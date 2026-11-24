@@ -1,4 +1,4 @@
-import type { ElementRef, Rect, UINode, UITree } from '@dpad-tv/core';
+import type { ElementRef, Rect, UINode, UITree } from '@toets/core';
 
 /**
  * One element of WebDriverAgent's JSON page source (`mobile: source`, `format: json`).
@@ -29,7 +29,7 @@ export interface WdaSourceNode {
 }
 
 /**
- * Attributes dropped from the page source request: dpad does not use them and some are
+ * Attributes dropped from the page source request: toets does not use them and some are
  * expensive to compute on large trees.
  */
 export const SOURCE_EXCLUDED_ATTRIBUTES = [
@@ -77,7 +77,7 @@ const TEXT_VALUE_TYPES: ReadonlySet<string> = new Set([
 const BUSY_TYPES: ReadonlySet<string> = new Set(['ActivityIndicator']);
 
 /**
- * Maps one page source fetch to a dpad {@link UITree}.
+ * Maps one page source fetch to a toets {@link UITree}.
  *
  * - `testId` = `accessibilityIdentifier`; `label` = accessibility label.
  * - `text`: an accessible or text element with a label speaks for its subtree (its label);

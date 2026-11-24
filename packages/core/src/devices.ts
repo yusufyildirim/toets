@@ -45,8 +45,8 @@ export interface DeviceAcquireOptions {
 
 /**
  * Supplies devices to workers. One provider instance lives in each worker process. Built-in kinds:
- * - `managed`: dpad creates, boots, snapshots and resets emulators/simulators itself.
- * - `external`: the user supplies addresses (e.g. `DPAD_DEVICES=emulator-5554,emulator-5556`).
+ * - `managed`: toets creates, boots, snapshots and resets emulators/simulators itself.
+ * - `external`: the user supplies addresses (e.g. `TOETS_DEVICES=emulator-5554,emulator-5556`).
  * - `command`: shell commands lease and release devices and print JSON (integrates device farms
  *   and lease brokers).
  */

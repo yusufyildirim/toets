@@ -8,7 +8,7 @@ import { useRequest } from '../api/useRequest';
 import { Button } from '../components/Button';
 import { Screen } from '../components/Screen';
 import { StatusView } from '../components/StatusView';
-import { usePlayerMedia } from '../dpad';
+import { usePlayerMedia } from '../toets';
 import { FocusGroup } from '../focus/FocusGroup';
 import type { MediaKey } from '../remote/keys';
 import { useMediaKeys } from '../remote/useMediaKeys';

@@ -1,6 +1,6 @@
-# @dpad-tv/core
+# @toets/core
 
-Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys, capabilities. Test authors use it through [`@dpad-tv/test`](https://github.com/yusufyildirim/dpad/tree/main/packages/test#readme); driver authors implement its `Driver` contract.
+Platform-neutral core of toets: driver contract, locators, matchers, focus, keys, capabilities. Test authors use it through [`@toets/test`](https://github.com/yusufyildirim/toets/tree/main/packages/test#readme); driver authors implement its `Driver` contract.
 
 ## Docs
 
@@ -16,6 +16,6 @@ Platform-neutral core of dpad: driver contract, locators, matchers, focus, keys,
 - [Network mocking](./docs/network.md)
 - [Failure dumps](./docs/failure-dumps.md)
 - [Writing a driver](./docs/drivers.md)
-- [Error codes](./docs/errors.md): every `DpadError` code, generated from the sources
+- [Error codes](./docs/errors.md): every `ToetsError` code, generated from the sources
 
-Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Project overview: [toets](https://github.com/yusufyildirim/toets#readme).

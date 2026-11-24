@@ -1,19 +1,19 @@
 import { serveStdio } from '@modelcontextprotocol/server/stdio';
 import { loadMcpConfig } from './config.js';
-import { createDpadMcp } from './server.js';
+import { createToetsMcp } from './server.js';
 
 /** Options of {@link runStdio}. */
 export interface RunStdioOptions {
   /**
-   * Config file: a dpad MCP config or a dpad test (Playwright) config. Default: `DPAD_MCP_CONFIG`,
-   * else `dpad.mcp.config.*`, else `playwright.config.*` in `cwd`.
+   * Config file: a toets MCP config or a toets test (Playwright) config. Default: `TOETS_MCP_CONFIG`,
+   * else `toets.mcp.config.*`, else `playwright.config.*` in `cwd`.
    */
   readonly configFile?: string;
   readonly cwd?: string;
 }
 
 /**
- * Serves dpad over stdio until the client disconnects or the process is signalled, then stops
+ * Serves toets over stdio until the client disconnects or the process is signalled, then stops
  * the driver and releases the device. stdout carries the protocol, so `console.log` from
  * drivers is redirected to stderr.
  */
@@ -23,14 +23,14 @@ export async function runStdio(options: RunStdioOptions = {}): Promise<void> {
   console.info = console.error;
 
   const cwd = options.cwd ?? process.cwd();
-  const loaded = await loadMcpConfig(options.configFile ?? process.env.DPAD_MCP_CONFIG, cwd, log);
+  const loaded = await loadMcpConfig(options.configFile ?? process.env.TOETS_MCP_CONFIG, cwd, log);
   log(
     loaded
-      ? `dpad mcp: ${loaded.kind === 'test' ? 'test config' : 'config'} ${loaded.file}, targets: ${Object.keys(loaded.config.targets).join(', ')}`
-      : 'dpad mcp: no config found; only docs_search is available',
+      ? `toets mcp: ${loaded.kind === 'test' ? 'test config' : 'config'} ${loaded.file}, targets: ${Object.keys(loaded.config.targets).join(', ')}`
+      : 'toets mcp: no config found; only docs_search is available',
   );
 
-  const dpad = createDpadMcp({
+  const toets = createToetsMcp({
     config: loaded?.config ?? null,
     baseDir: loaded?.baseDir ?? cwd,
     log,
@@ -41,13 +41,13 @@ export async function runStdio(options: RunStdioOptions = {}): Promise<void> {
   const shutdown = (): Promise<void> => {
     closing ??= (async () => {
       await handle.close().catch(() => undefined);
-      await dpad.close();
+      await toets.close();
     })();
     return closing;
   };
 
-  const handle = serveStdio(() => dpad.createServer(), {
-    onerror: (error) => log(`dpad mcp: ${error.message}`),
+  const handle = serveStdio(() => toets.createServer(), {
+    onerror: (error) => log(`toets mcp: ${error.message}`),
   });
   process.stdin.once('end', () => void shutdown());
   for (const signal of ['SIGINT', 'SIGTERM'] as const) {

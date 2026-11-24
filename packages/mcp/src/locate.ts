@@ -1,4 +1,4 @@
-import { DpadError, packageDocsLink, type App, type Locator } from '@dpad-tv/core';
+import { ToetsError, packageDocsLink, type App, type Locator } from '@toets/core';
 
 /**
  * What an MCP tool points at: the same selectors a test uses (decision 6: test ID + text).
@@ -21,7 +21,7 @@ export function locate(app: App, target: Target): Locator {
   const locator =
     text === undefined ? byTestId : scope.getByText(text, exact ? { exact: true } : undefined);
   if (!locator) {
-    throw new DpadError('MCP_BAD_INPUT', 'A target needs `testId` and/or `text`.', {
+    throw new ToetsError('MCP_BAD_INPUT', 'A target needs `testId` and/or `text`.', {
       hint: 'e.g. { "testId": "play_button" } or { "text": "Settings" }.',
       docs: packageDocsLink('mcp', 'tools'),
     });

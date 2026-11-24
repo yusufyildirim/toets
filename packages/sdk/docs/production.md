@@ -1,17 +1,17 @@
 # Production builds
 
-The SDK is inert without a launch payload, but it must not ship in production: an inert SDK still costs bytes, and on Android any app can start an exported activity with an `__dpad` extra. Exclude it at build time.
+The SDK is inert without a launch payload, but it must not ship in production: an inert SDK still costs bytes, and on Android any app can start an exported activity with an `__toets` extra. Exclude it at build time.
 
 ## Alias to the no-op module
 
-`@dpad-tv/sdk/noop` (and `@dpad-tv/sdk-react-native/noop`) export the same app-facing API doing nothing, so app calls like `markBusy()` and `onState()` stay in place.
+`@toets/sdk/noop` (and `@toets/sdk-react-native/noop`) export the same app-facing API doing nothing, so app calls like `markBusy()` and `onState()` stay in place.
 
 ```js nocheck
 // vite.config.js
 export default defineConfig(({ mode }) => ({
   resolve: {
     alias:
-      mode === 'e2e' ? [] : [{ find: /^@dpad-tv\/sdk(\/web)?$/, replacement: '@dpad-tv/sdk/noop' }],
+      mode === 'e2e' ? [] : [{ find: /^@toets\/sdk(\/web)?$/, replacement: '@toets/sdk/noop' }],
   },
 }));
 ```

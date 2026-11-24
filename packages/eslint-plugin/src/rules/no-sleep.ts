@@ -1,7 +1,7 @@
 import type { Rule } from 'eslint';
 import { ruleDocsUrl, staticName, unwrap } from '../utils.js';
 
-/** Options of `@dpad-tv/no-sleep`. */
+/** Options of `@toets/no-sleep`. */
 export interface NoSleepOptions {
   /** Function or method names treated as fixed waits. Default: {@link DEFAULT_SLEEP_FUNCTIONS}. */
   readonly functions?: readonly string[];

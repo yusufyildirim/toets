@@ -1,6 +1,6 @@
 # Idle in React Native
 
-General rules: `@dpad-tv/sdk` docs, `idle.md`. What the adapter adds:
+General rules: `@toets/sdk` docs, `idle.md`. What the adapter adds:
 
 | Source               | Tracking                                                                                                                    |
 | -------------------- | --------------------------------------------------------------------------------------------------------------------------- |

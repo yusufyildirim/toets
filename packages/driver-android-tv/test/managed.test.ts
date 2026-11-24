@@ -11,18 +11,18 @@ import {
 } from '../src/devices/managed.js';
 import { bootedDevice, FakeRunner } from './fake-runner.js';
 
-const AVD = 'dpad_tv_1080p_api33_android-tv';
+const AVD = 'toets_tv_1080p_api33_android-tv';
 
 function setup(
   opts: ManagedDeviceOptions = {},
   extra: { running?: string[]; busyPorts?: number[] } = {},
 ) {
-  const sdkRoot = mkdtempSync(join(tmpdir(), 'dpad-sdk-'));
+  const sdkRoot = mkdtempSync(join(tmpdir(), 'toets-sdk-'));
   for (const api of ['31', '33'])
     mkdirSync(join(sdkRoot, 'system-images', `android-${api}`, 'android-tv', 'arm64-v8a'), {
       recursive: true,
     });
-  const avdHome = mkdtempSync(join(tmpdir(), 'dpad-avd-'));
+  const avdHome = mkdtempSync(join(tmpdir(), 'toets-avd-'));
   const runner = bootedDevice(new FakeRunner());
   const running = [...(extra.running ?? [])];
   runner
@@ -206,14 +206,14 @@ describe('ManagedDeviceProvider', () => {
 describe('avdName', () => {
   it('is a valid AVD name', () => {
     expect(avdName('Television (1080p)', '33', 'google-tv')).toBe(
-      'dpad_Television__1080p__api33_google-tv',
+      'toets_Television__1080p__api33_google-tv',
     );
   });
 });
 
 describe('withFileLock', () => {
   it('serializes concurrent holders', async () => {
-    const dir = join(mkdtempSync(join(tmpdir(), 'dpad-lock-')), 'l');
+    const dir = join(mkdtempSync(join(tmpdir(), 'toets-lock-')), 'l');
     const order: string[] = [];
     const hold = (name: string) =>
       withFileLock(
@@ -233,7 +233,7 @@ describe('withFileLock', () => {
   });
 
   it('takes over a lock whose owner process is gone', async () => {
-    const dir = join(mkdtempSync(join(tmpdir(), 'dpad-lock-')), 'l');
+    const dir = join(mkdtempSync(join(tmpdir(), 'toets-lock-')), 'l');
     mkdirSync(dir);
     writeFileSync(join(dir, 'owner'), '999999');
     await expect(withFileLock(dir, async () => 'ok', { pollMs: 5, timeoutMs: 1000 })).resolves.toBe(

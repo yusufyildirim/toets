@@ -19,7 +19,7 @@ export function SideMenu({ visible }: { visible: boolean }) {
     <FocusScope id={MENU_SCOPE} active={visible}>
       <View testID="side_menu" style={styles.menu}>
         <View style={styles.brand}>
-          <Text style={styles.logo}>dpad</Text>
+          <Text style={styles.logo}>toets</Text>
           <Text style={styles.tagline}>TV example</Text>
         </View>
         <FocusGroup style={styles.items} trap={['up', 'down']}>

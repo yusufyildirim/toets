@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DpadError, Key } from '../src/index.js';
+import { ToetsError, Key } from '../src/index.js';
 import { setup } from './fixtures.js';
 
 describe('locators', () => {
@@ -33,10 +33,10 @@ describe('locators', () => {
       .getByText(/^Trending \d$/)
       .text()
       .catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(DpadError);
-    expect((err as DpadError).code).toBe('STRICT_MODE_VIOLATION');
-    expect((err as DpadError).message).toContain('resolved to 6 elements');
-    expect((err as DpadError).message).toContain('- trending_1 "Trending 1"');
+    expect(err).toBeInstanceOf(ToetsError);
+    expect((err as ToetsError).code).toBe('STRICT_MODE_VIOLATION');
+    expect((err as ToetsError).message).toContain('resolved to 6 elements');
+    expect((err as ToetsError).message).toContain('- trending_1 "Trending 1"');
   });
 
   it('time out with a hint when nothing matches', async () => {

@@ -1,19 +1,32 @@
 {
-  "name": "@dpad-tv/mock",
+  "name": "@toets/mock",
   "version": "0.0.0",
-  "description": "dpad network mocking: MSW handlers served by a host-side mock server with upstream proxying.",
+  "description": "toets network mocking: MSW handlers served by a host-side mock server with upstream proxying.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "mock",
+    "msw",
+    "network"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/mock"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/mock#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/mock#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -33,8 +46,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^",
+    "@toets/core": "workspace:^",
+    "@toets/protocol": "workspace:^",
     "msw": "^3.0.7"
   }
 }

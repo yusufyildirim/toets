@@ -1,4 +1,4 @@
-package tv.dpad.helper;
+package tv.toets.helper;
 
 import android.os.SystemClock;
 import android.view.InputDevice;
@@ -13,10 +13,10 @@ import java.lang.reflect.Method;
  * (the first one flagged as a long press) at the system key-repeat timing, then a key up.
  *
  * Neither `input keyevent` nor UiAutomator2 can hold a key for an arbitrary time with repeats,
- * so dpad pushes this class to the device and runs it with `app_process` (shell user, which
+ * so toets pushes this class to the device and runs it with `app_process` (shell user, which
  * may inject input events).
  *
- * Usage: CLASSPATH=dpad-key-hold.jar app_process / tv.dpad.helper.KeyHold <keycode> <holdMs>
+ * Usage: CLASSPATH=toets-key-hold.jar app_process / tv.toets.helper.KeyHold <keycode> <holdMs>
  * Prints `repeats=<n>` on success.
  */
 public final class KeyHold {

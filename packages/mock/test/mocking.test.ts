@@ -49,7 +49,7 @@ describe('mocked responses', () => {
       body: null,
       error: null,
     });
-    expect(record?.headers['x-dpad-original-origin']).toBe(API);
+    expect(record?.headers['x-toets-original-origin']).toBe(API);
     expect(record?.response?.body).toBe('{"name":"Ada"}');
     expect(record?.durationMs).toBeGreaterThanOrEqual(0);
   });
@@ -67,12 +67,12 @@ describe('mocked responses', () => {
   });
 
   it('gives handlers the request as the real origin would see it', async () => {
-    let seen: { host: string | null; dpad: string | null; body: unknown } | undefined;
+    let seen: { host: string | null; toets: string | null; body: unknown } | undefined;
     server.use(
       http.post(`${API}/v1/login`, async ({ request }) => {
         seen = {
           host: request.headers.get('host'),
-          dpad: request.headers.get('x-dpad-original-origin'),
+          toets: request.headers.get('x-toets-original-origin'),
           body: await request.json(),
         };
         return HttpResponse.json({ ok: true }, { status: 201 });
@@ -85,7 +85,7 @@ describe('mocked responses', () => {
       body: JSON.stringify({ user: 'ada' }),
     });
     expect(res.status).toBe(201);
-    expect(seen).toEqual({ host: 'api.example.test', dpad: null, body: { user: 'ada' } });
+    expect(seen).toEqual({ host: 'api.example.test', toets: null, body: { user: 'ada' } });
     expect(server.requests()[0]?.body).toBe('{"user":"ada"}');
   });
 
@@ -228,11 +228,11 @@ describe('failures served to the app', () => {
     expect(res.status).toBe(502);
     expect(res.headers.get(ERROR_HEADER)).toBe(MockErrorCode.NO_ORIGIN);
     const body = (await res.json()) as {
-      dpadError: { code: string; message: string; hint: string };
+      toetsError: { code: string; message: string; hint: string };
     };
-    expect(body.dpadError.code).toBe('MOCK_NO_ORIGIN');
-    expect(body.dpadError.message).toContain('GET /v1/unknown?q=1');
-    expect(body.dpadError.hint).toContain('x-dpad-original-origin');
+    expect(body.toetsError.code).toBe('MOCK_NO_ORIGIN');
+    expect(body.toetsError.message).toContain('GET /v1/unknown?q=1');
+    expect(body.toetsError.hint).toContain('x-toets-original-origin');
     expect(server.requests()[0]).toMatchObject({
       status: 502,
       mocked: false,
@@ -256,8 +256,8 @@ describe('failures served to the app', () => {
     );
     const res = await viaMock(server.url, '/boom');
     expect(res.status).toBe(500);
-    const body = (await res.json()) as { dpadError: { message: string } };
-    expect(body.dpadError.message).toContain('kaput');
+    const body = (await res.json()) as { toetsError: { message: string } };
+    expect(body.toetsError.message).toContain('kaput');
     expect(server.requests()[0]?.error?.code).toBe(MockErrorCode.HANDLER_ERROR);
   });
 

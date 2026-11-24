@@ -1,4 +1,4 @@
-import { expect, Key, type App, type Locator } from '@dpad-tv/test';
+import { expect, Key, type App, type Locator } from '@toets/test';
 
 /** Settings: the autoplay switch and diagnostics. */
 export class SettingsPage {

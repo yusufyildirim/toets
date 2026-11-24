@@ -1,9 +1,9 @@
-import { Key, KEY_CAPABILITY } from '@dpad-tv/core';
+import { Key, KEY_CAPABILITY } from '@toets/core';
 import { describe, expect, it } from 'vitest';
 import { ANDROID_KEYCODES, REMOTE_PROFILE_CAPABILITIES, keySupported } from '../src/keys.js';
 
 describe('ANDROID_KEYCODES', () => {
-  it('maps every dpad key to a distinct Android keycode', () => {
+  it('maps every toets key to a distinct Android keycode', () => {
     const keys = Object.values(Key);
     expect(Object.keys(ANDROID_KEYCODES).sort()).toEqual([...keys].sort());
     expect(new Set(Object.values(ANDROID_KEYCODES)).size).toBe(keys.length);

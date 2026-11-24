@@ -1,7 +1,7 @@
-import type { MediaInfo } from '@dpad-tv/protocol';
+import type { MediaInfo } from '@toets/protocol';
 import type { Media, Network, PlatformEvent, PlatformInfo, RecordedRequest } from '../api.js';
 import type { Capability } from '../capabilities.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import type { MockServerLike, RequestFilter } from '../mock.js';
 import type { Platform } from '../platform.js';
 import type { RuntimeContext } from './context.js';
@@ -21,12 +21,12 @@ export class MediaImpl implements Media {
 export class NetworkImpl implements Network {
   constructor(readonly ctx: RuntimeContext) {}
 
-  /** The mock server, or a `DpadError` explaining how to enable it. */
+  /** The mock server, or a `ToetsError` explaining how to enable it. */
   server(): MockServerLike {
     const mock = this.ctx.mock;
     if (!mock) {
-      throw new DpadError('MOCK_DISABLED', 'Network mocking is not enabled for this project.', {
-        hint: "Enable it in the dpad config (dpad: { mock: true }), or declare requires('network.mock') to skip where it is off.",
+      throw new ToetsError('MOCK_DISABLED', 'Network mocking is not enabled for this project.', {
+        hint: "Enable it in the toets config (toets: { mock: true }), or declare requires('network.mock') to skip where it is off.",
         docs: packageDocsLink('core', 'network'),
       });
     }
@@ -69,7 +69,7 @@ export class PlatformInfoImpl implements PlatformInfo {
     const driver = this.ctx.target.driver;
     const emit = driver.emit?.bind(driver);
     if (!emit) {
-      throw new DpadError(
+      throw new ToetsError(
         'DRIVER_CONTRACT',
         `${driver.platform} declares 'platform.events' but does not implement emit().`,
         {

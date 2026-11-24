@@ -1,9 +1,9 @@
-import type { Capability, DriverModule } from '@dpad-tv/core';
-import { FakeDriver, type FakeNodeSpec, type FakeScreen } from '@dpad-tv/core/testing';
+import type { Capability, DriverModule } from '@toets/core';
+import { FakeDriver, type FakeNodeSpec, type FakeScreen } from '@toets/core/testing';
 import { Client, InMemoryTransport, type CallToolResult } from '@modelcontextprotocol/client';
 import { afterEach } from 'vitest';
 import type { McpConfig, McpTargetConfig } from '../src/config.js';
-import { createDpadMcp, type DpadMcpOptions } from '../src/server.js';
+import { createToetsMcp, type ToetsMcpOptions } from '../src/server.js';
 
 const card = (id: string, label: string, x: number, y: number): FakeNodeSpec => ({
   id,
@@ -114,14 +114,14 @@ export function fakeDriverModule(capabilities: Capability[] = ['key.back', 'key.
 /** Fast timeouts for the default `web` target (unit-test speed, same semantics). */
 export const FAST_TIMEOUTS = { actionMs: 500, navigationSettleMs: 50, sdkConnectMs: 200 };
 
-/** Connects an MCP client to a dpad MCP server over an in-memory transport. */
+/** Connects an MCP client to a toets MCP server over an in-memory transport. */
 export async function connect(
   opts: {
     capabilities?: Capability[];
     config?: McpConfig | null;
     /** Extra fields of the default `web` target (SDK, mock, key overrides, ...). */
     target?: (driver: () => FakeDriver) => Partial<McpTargetConfig>;
-  } & Omit<DpadMcpOptions, 'config'> = {},
+  } & Omit<ToetsMcpOptions, 'config'> = {},
 ): Promise<Harness> {
   const fake = fakeDriverModule(opts.capabilities);
   const { target: extras, capabilities: _caps, ...rest } = opts;
@@ -133,21 +133,21 @@ export async function connect(
             web: {
               driver: fake.module,
               ...extra,
-              dpad: { ...extra.dpad, timeouts: { ...FAST_TIMEOUTS, ...extra.dpad?.timeouts } },
+              toets: { ...extra.toets, timeouts: { ...FAST_TIMEOUTS, ...extra.toets?.timeouts } },
             },
           },
         }
       : opts.config;
-  const dpad = createDpadMcp({ log: () => {}, ...rest, config });
-  const server = dpad.createServer();
+  const toets = createToetsMcp({ log: () => {}, ...rest, config });
+  const server = toets.createServer();
   const [clientTransport, serverTransport] = InMemoryTransport.createLinkedPair();
   await server.connect(serverTransport);
-  const client = new Client({ name: 'dpad-test', version: '0.0.0' });
+  const client = new Client({ name: 'toets-test', version: '0.0.0' });
   await client.connect(clientTransport);
   cleanups.push(async () => {
     await client.close();
     await server.close();
-    await dpad.close();
+    await toets.close();
   });
 
   const call = (name: string, args: Record<string, unknown> = {}): Promise<CallToolResult> =>
@@ -171,6 +171,6 @@ export async function connect(
       if (!result.isError) throw new Error(`${name} unexpectedly passed:\n${textOf(result)}`);
       return textOf(result);
     },
-    dispose: () => dpad.close(),
+    dispose: () => toets.close(),
   };
 }

@@ -1,8 +1,8 @@
 /**
  * Links in what a package ships (README and `docs/`) must work where it is read: on GitHub, on
- * npm and in `node_modules/@dpad-tv/<pkg>`. Relative links stay inside the package's shipped
+ * npm and in `node_modules/@toets/<pkg>`. Relative links stay inside the package's shipped
  * files, except docs pages linking another package's docs as `../../<pkg>/docs/<page>.md`, which
- * resolves the same in the repo and in `node_modules/@dpad-tv/`. Anything else is an absolute
+ * resolves the same in the repo and in `node_modules/@toets/`. Anything else is an absolute
  * URL into the repository named by `repository` in package.json.
  */
 import { existsSync, globSync, readFileSync } from 'node:fs';
@@ -71,7 +71,7 @@ describe('links in shipped markdown', () => {
       for (const target of linkTargets(readFileSync(file, 'utf8'))) {
         const where = `${dir}/${page}: ${target}`;
         if (/^https?:\/\//.test(target)) {
-          if (/github\.com\/[^/]+\/dpad\b/.test(target) && !target.startsWith(repoUrl!)) {
+          if (/github\.com\/[^/]+\/toets\b/.test(target) && !target.startsWith(repoUrl!)) {
             broken.push(`${where} (not the repository URL ${repoUrl})`);
           }
           continue;

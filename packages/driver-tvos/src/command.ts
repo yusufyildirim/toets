@@ -43,7 +43,7 @@ export const defaultRunner: CommandRunner = {
         opts.timeoutMs === undefined
           ? undefined
           : setTimeout(() => {
-              stderr += `\n[dpad] killed after ${opts.timeoutMs}ms timeout`;
+              stderr += `\n[toets] killed after ${opts.timeoutMs}ms timeout`;
               child.kill('SIGKILL');
             }, opts.timeoutMs);
       child.on('error', (err) => {

@@ -10,7 +10,7 @@ export async function bundleFixture(relative: string): Promise<string> {
   const bundle = await rolldown({
     input: fileURLToPath(new URL(relative, import.meta.url)),
     platform: 'browser',
-    resolve: { conditionNames: ['@dpad-tv/source', 'import', 'default'] },
+    resolve: { conditionNames: ['@toets/source', 'import', 'default'] },
     transform: { target: 'es2015' },
     logLevel: 'silent',
   });
@@ -53,10 +53,10 @@ export async function serveApp(
 
 /**
  * Whether the Playwright Chromium build is installed (`pnpm exec playwright-core install
- * chromium`). Browser tests skip without it unless `DPAD_REQUIRE_BROWSER=1`.
+ * chromium`). Browser tests skip without it unless `TOETS_REQUIRE_BROWSER=1`.
  */
 export function chromiumAvailable(): boolean {
-  if (process.env.DPAD_REQUIRE_BROWSER === '1') return true;
+  if (process.env.TOETS_REQUIRE_BROWSER === '1') return true;
   try {
     return existsSync(chromium.executablePath());
   } catch {

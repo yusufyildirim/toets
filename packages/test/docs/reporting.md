@@ -1,24 +1,24 @@
 # Reporting
 
-dpad reports through Playwright: every action is a step, artifacts are attachments, and a parity matrix shows which test ran where.
+toets reports through Playwright: every action is a step, artifacts are attachments, and a parity matrix shows which test ran where.
 
 ```text
-dpad parity (10 tests): web: 10 passed; tvos: 6 passed, 4 skipped
+toets parity (10 tests): web: 10 passed; tvos: 6 passed, 4 skipped
   differs: navigation.spec.ts > color keys work: web passed, tvos skipped (requires key.color: not available on tvos)
-Parity matrix: dpad-report/parity.md
+Parity matrix: toets-report/parity.md
 ```
 
 ## Steps and attachments
 
 - **Steps:** `launch`, `press SELECT`, `navigateTo getByTestId('rail-0-card-2')`, `repeat RIGHT x3`, `platformOnly web`. Overridden keys read `press FAST_FORWARD (override: hold RIGHT 800ms)`.
-- **On failure:** `dpad-failure` (the [failure dump](../../core/docs/failure-dumps.md)) and `dpad-screenshot`.
-- **Always, when present:** `dpad-logs` (app and driver logs) and `dpad-network.har` (the test's mock server traffic as HAR 1.2, failed requests included).
+- **On failure:** `toets-failure` (the [failure dump](../../core/docs/failure-dumps.md)) and `toets-screenshot`.
+- **Always, when present:** `toets-logs` (app and driver logs) and `toets-network.har` (the test's mock server traffic as HAR 1.2, failed requests included).
 - **Optional per step:** `steps: { screenshot: true, snapshot: true }` attaches the screen after every action.
-- **Video:** `video: 'on' | 'retain-on-failure'` attaches `dpad-video` where the driver supports `video`.
+- **Video:** `video: 'on' | 'retain-on-failure'` attaches `toets-video` where the driver supports `video`.
 
 ## Parity matrix
 
-Written to `dpad-report/parity.md` and `parity.json` next to the config after every run, one row per test and one column per dpad project:
+Written to `toets-report/parity.md` and `parity.json` next to the config after every run, one row per test and one column per toets project:
 
 ```md
 | Test                              | web    | tvos                                                |

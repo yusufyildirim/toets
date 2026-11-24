@@ -3,7 +3,7 @@ import {
   type DeviceLease,
   type DeviceProvider,
   type DeviceSpec,
-} from '@dpad-tv/core';
+} from '@toets/core';
 import { defaultRunner, type CommandRunner } from './command.js';
 import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 import {
@@ -34,9 +34,9 @@ export interface TvosManagedDeviceOptions {
   /** Maximum time to boot one simulator. Default 300000 (cold boots on CI are slow). */
   readonly bootTimeoutMs?: number;
   /**
-   * Prefix of the simulator names dpad creates and reuses, e.g. `dpad-ci` to keep a second
-   * checkout's simulators apart. Must start with `dpad`: the provider only ever touches
-   * simulators named so. Default `dpad`.
+   * Prefix of the simulator names toets creates and reuses, e.g. `toets-ci` to keep a second
+   * checkout's simulators apart. Must start with `toets`: the provider only ever touches
+   * simulators named so. Default `toets`.
    */
   readonly namePrefix?: string;
 }
@@ -63,13 +63,13 @@ export function createManagedDeviceProvider(
 ): DeviceProvider {
   const simctl = new Simctl(options.deviceSet, deps.runner ?? defaultRunner);
   const bootTimeoutMs = options.bootTimeoutMs ?? DEFAULT_BOOT_TIMEOUT_MS;
-  const prefix = options.namePrefix ?? 'dpad';
-  if (!/^dpad(-|$)/.test(prefix)) {
+  const prefix = options.namePrefix ?? 'toets';
+  if (!/^toets(-|$)/.test(prefix)) {
     throw tvosError(
       TvosErrorCode.CONFIG,
-      `managed.namePrefix "${prefix}" does not start with "dpad".`,
+      `managed.namePrefix "${prefix}" does not start with "toets".`,
       {
-        hint: `Use e.g. "dpad-${slug(prefix) || 'ci'}": dpad only creates and reuses simulators named dpad-*.`,
+        hint: `Use e.g. "toets-${slug(prefix) || 'ci'}": toets only creates and reuses simulators named toets-*.`,
         docs: DOCS.simulators,
       },
     );

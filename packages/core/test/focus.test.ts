@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { DpadError } from '../src/index.js';
+import type { ToetsError } from '../src/index.js';
 import { Key, type ActionInfo } from '../src/index.js';
 import { rankDirections, nextStepInGraph } from '../src/runtime/focus.js';
 import { setup } from './fixtures.js';
@@ -124,7 +124,7 @@ describe('focus.navigateTo', () => {
     });
     const err = (await app.focus
       .navigateTo(app.getByTestId('b'))
-      .catch((e: unknown) => e)) as DpadError;
+      .catch((e: unknown) => e)) as ToetsError;
     expect(err.code).toBe('FOCUS_UNREACHABLE');
     expect(err.message).toBe(
       "Could not move focus to getByTestId('b'): no untried direction is left. Focus is on a. Path: right, up, down, left.",

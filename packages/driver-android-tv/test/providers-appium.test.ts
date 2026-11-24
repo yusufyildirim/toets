@@ -15,7 +15,7 @@ import { resolveAndroidSdk, sdkAt } from '../src/sdk.js';
 import { bootedDevice, FakeRunner } from './fake-runner.js';
 
 const fakeSdk = () => {
-  const root = mkdtempSync(join(tmpdir(), 'dpad-sdk-'));
+  const root = mkdtempSync(join(tmpdir(), 'toets-sdk-'));
   mkdirSync(join(root, 'platform-tools'));
   return root;
 };

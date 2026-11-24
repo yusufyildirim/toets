@@ -62,6 +62,6 @@ jobs:
           path: |
             examples/tv-app/playwright-report/
             examples/tv-app/test-results/
-            examples/tv-app/dpad-report/
+            examples/tv-app/toets-report/
           if-no-files-found: ignore
           retention-days: 14

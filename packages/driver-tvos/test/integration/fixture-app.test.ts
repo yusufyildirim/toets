@@ -2,8 +2,8 @@
  * Drives the SwiftUI fixture app on a real tvOS simulator through the real driver (Appium,
  * WebDriverAgent, simctl). Skipped unless a simulator is provided:
  *
- *   DPAD_TVOS_UDID=<udid> [DPAD_TVOS_DEVICE_SET=<path>] [DPAD_TVOS_APP=<path to .app>] \
- *     pnpm --filter @dpad-tv/driver-tvos test test/integration
+ *   TOETS_TVOS_UDID=<udid> [TOETS_TVOS_DEVICE_SET=<path>] [TOETS_TVOS_APP=<path to .app>] \
+ *     pnpm --filter @toets/driver-tvos test test/integration
  *
  * The fixture is built on demand with `fixtures/tvos-app/build.sh`. Per-action latencies are
  * printed at the end (see docs/capabilities.md).
@@ -14,13 +14,13 @@ import { mkdtemp, rm, stat } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { Key, type ElementSnapshot } from '@dpad-tv/core';
+import { Key, type ElementSnapshot } from '@toets/core';
 import { PNG } from 'pngjs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { TvosDriver } from '../../src/index.js';
 
-const udid = process.env.DPAD_TVOS_UDID;
-const deviceSet = process.env.DPAD_TVOS_DEVICE_SET;
+const udid = process.env.TOETS_TVOS_UDID;
+const deviceSet = process.env.TOETS_TVOS_DEVICE_SET;
 const fixtureDir = join(
   dirname(fileURLToPath(import.meta.url)),
   '..',
@@ -28,7 +28,7 @@ const fixtureDir = join(
   'fixtures',
   'tvos-app',
 );
-const appPath = process.env.DPAD_TVOS_APP ?? join(fixtureDir, 'build', 'DpadFixture.app');
+const appPath = process.env.TOETS_TVOS_APP ?? join(fixtureDir, 'build', 'ToetsFixture.app');
 
 const latencies = new Map<string, number[]>();
 async function timed<T>(label: string, fn: () => Promise<T>): Promise<T> {
@@ -78,14 +78,14 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, ()
     );
 
   beforeAll(async () => {
-    if (!process.env.DPAD_TVOS_APP && !existsSync(appPath)) {
+    if (!process.env.TOETS_TVOS_APP && !existsSync(appPath)) {
       execFileSync(join(fixtureDir, 'build.sh'), { stdio: 'inherit' });
     }
-    artifactsDir = await mkdtemp(join(tmpdir(), 'dpad-tvos-it-'));
+    artifactsDir = await mkdtemp(join(tmpdir(), 'toets-tvos-it-'));
     driver = new TvosDriver(
       { udid: udid!, ...(deviceSet ? { deviceSet } : {}) },
       {
-        app: { bundleId: 'tv.dpad.fixture', app: appPath },
+        app: { bundleId: 'tv.toets.fixture', app: appPath },
         workerIndex: 0,
         artifactsDir,
         log: (m) => console.log(`[driver-tvos] ${m}`),
@@ -103,7 +103,7 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, ()
       return `${label.padEnd(16)} n=${String(ms.length).padStart(3)}  p50=${pct(0.5).toFixed(0)}ms  p90=${pct(0.9).toFixed(0)}ms  max=${sorted.at(-1)!.toFixed(0)}ms`;
     });
     console.log(`tvOS driver latencies:\n${rows.join('\n')}\nArtifacts: ${artifactsDir}`);
-    if (artifactsDir && !process.env.DPAD_KEEP_ARTIFACTS) {
+    if (artifactsDir && !process.env.TOETS_KEEP_ARTIFACTS) {
       await rm(artifactsDir, { recursive: true, force: true });
     }
   });
@@ -129,7 +129,7 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, ()
   it('maps tree state: text, enabled, focusWithin, viewport', async () => {
     const tree = await timed('tree', () => driver.tree());
     expect(tree.viewport.width).toBeGreaterThan(0);
-    expect((await byId('title'))?.text).toBe('dpad fixture');
+    expect((await byId('title'))?.text).toBe('toets fixture');
     expect((await byId('disabled_button'))?.enabled).toBe(false);
     expect((await byId('rail'))?.focusWithin).toBe(true);
     expect((await byId('rail_item_8'))?.inViewport).toBe(false);
@@ -184,7 +184,7 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, ()
     const logs = await waitFor(
       'app log lines',
       () => driver.drainLogs(),
-      (entries) => entries.some((e) => e.message.includes('dpad-fixture:')),
+      (entries) => entries.some((e) => e.message.includes('toets-fixture:')),
     );
     expect(logs.every((e) => e.source === 'app' || e.source === 'driver')).toBe(true);
   });

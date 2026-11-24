@@ -1,7 +1,7 @@
-import { KEY_CAPABILITY, type Capability, type Key } from '@dpad-tv/core';
+import { KEY_CAPABILITY, type Capability, type Key } from '@toets/core';
 
 /**
- * Android `KeyEvent` keycode for every dpad {@link Key}. Android TV defines a keycode for
+ * Android `KeyEvent` keycode for every toets {@link Key}. Android TV defines a keycode for
  * every canonical key, so the mapping is total; what a given remote physically has is
  * expressed by the {@link RemoteProfile}, not here.
  */

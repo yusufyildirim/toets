@@ -41,42 +41,42 @@ importers:
 
   docs:
     devDependencies:
-      '@dpad-tv/core':
-        specifier: workspace:^
-        version: link:../packages/core
-      '@dpad-tv/driver-android-tv':
-        specifier: workspace:^
-        version: link:../packages/driver-android-tv
-      '@dpad-tv/driver-tvos':
-        specifier: workspace:^
-        version: link:../packages/driver-tvos
-      '@dpad-tv/driver-web':
-        specifier: workspace:^
-        version: link:../packages/driver-web
-      '@dpad-tv/eslint-plugin':
-        specifier: workspace:^
-        version: link:../packages/eslint-plugin
-      '@dpad-tv/mcp':
-        specifier: workspace:^
-        version: link:../packages/mcp
-      '@dpad-tv/mock':
-        specifier: workspace:^
-        version: link:../packages/mock
-      '@dpad-tv/protocol':
-        specifier: workspace:^
-        version: link:../packages/protocol
-      '@dpad-tv/sdk':
-        specifier: workspace:^
-        version: link:../packages/sdk
-      '@dpad-tv/sdk-react-native':
-        specifier: workspace:^
-        version: link:../packages/sdk-react-native
-      '@dpad-tv/test':
-        specifier: workspace:^
-        version: link:../packages/test
       '@playwright/test':
         specifier: ^1.65.1
         version: 1.65.1
+      '@toets/core':
+        specifier: workspace:^
+        version: link:../packages/core
+      '@toets/driver-android-tv':
+        specifier: workspace:^
+        version: link:../packages/driver-android-tv
+      '@toets/driver-tvos':
+        specifier: workspace:^
+        version: link:../packages/driver-tvos
+      '@toets/driver-web':
+        specifier: workspace:^
+        version: link:../packages/driver-web
+      '@toets/eslint-plugin':
+        specifier: workspace:^
+        version: link:../packages/eslint-plugin
+      '@toets/mcp':
+        specifier: workspace:^
+        version: link:../packages/mcp
+      '@toets/mock':
+        specifier: workspace:^
+        version: link:../packages/mock
+      '@toets/protocol':
+        specifier: workspace:^
+        version: link:../packages/protocol
+      '@toets/sdk':
+        specifier: workspace:^
+        version: link:../packages/sdk
+      '@toets/sdk-react-native':
+        specifier: workspace:^
+        version: link:../packages/sdk-react-native
+      '@toets/test':
+        specifier: workspace:^
+        version: link:../packages/test
       '@types/node':
         specifier: ^24.19.2
         version: 24.19.2
@@ -113,12 +113,12 @@ importers:
 
   examples/tv-app:
     dependencies:
-      '@dpad-tv/sdk-react-native':
-        specifier: workspace:^
-        version: link:../../packages/sdk-react-native
       '@expo/metro-runtime':
         specifier: ~58.0.17
         version: 58.0.17(@expo/log-box@58.0.15)(expo@58.0.26)(react-dom@19.3.0(react@19.3.0))(react-native-tvos@0.88.1-0)(react@19.3.0)
+      '@toets/sdk-react-native':
+        specifier: workspace:^
+        version: link:../../packages/sdk-react-native
       expo:
         specifier: ~58.0.26
         version: 58.0.26(@babel/core@7.29.13)(@expo/dom-webview@58.0.2)(@expo/metro-runtime@58.0.17)(react-dom@19.3.0(react@19.3.0))(react-native-tvos@0.88.1-0)(react-native-web@0.21.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0))(react@19.3.0)(typescript@6.0.3)
@@ -138,24 +138,24 @@ importers:
         specifier: ~0.21.4
         version: 0.21.4(react-dom@19.3.0(react@19.3.0))(react@19.3.0)
     devDependencies:
-      '@dpad-tv/driver-android-tv':
-        specifier: workspace:^
-        version: link:../../packages/driver-android-tv
-      '@dpad-tv/driver-tvos':
-        specifier: workspace:^
-        version: link:../../packages/driver-tvos
-      '@dpad-tv/driver-web':
-        specifier: workspace:^
-        version: link:../../packages/driver-web
-      '@dpad-tv/test':
-        specifier: workspace:^
-        version: link:../../packages/test
       '@playwright/test':
         specifier: ^1.65.1
         version: 1.65.1
       '@react-native-tvos/config-tv':
         specifier: ^0.1.7
         version: 0.1.7(expo@58.0.26)
+      '@toets/driver-android-tv':
+        specifier: workspace:^
+        version: link:../../packages/driver-android-tv
+      '@toets/driver-tvos':
+        specifier: workspace:^
+        version: link:../../packages/driver-tvos
+      '@toets/driver-web':
+        specifier: workspace:^
+        version: link:../../packages/driver-web
+      '@toets/test':
+        specifier: workspace:^
+        version: link:../../packages/test
       '@types/node':
         specifier: ^24.0.0
         version: 24.19.2
@@ -168,7 +168,7 @@ importers:
 
   packages/core:
     dependencies:
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
       pngjs:
@@ -184,10 +184,10 @@ importers:
 
   packages/driver-android-tv:
     dependencies:
-      '@dpad-tv/core':
+      '@toets/core':
         specifier: workspace:^
         version: link:../core
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
       appium:
@@ -212,10 +212,10 @@ importers:
 
   packages/driver-tvos:
     dependencies:
-      '@dpad-tv/core':
+      '@toets/core':
         specifier: workspace:^
         version: link:../core
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
       appium:
@@ -237,10 +237,10 @@ importers:
 
   packages/driver-web:
     dependencies:
-      '@dpad-tv/core':
+      '@toets/core':
         specifier: workspace:^
         version: link:../core
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
       playwright-core:
@@ -249,7 +249,7 @@ importers:
 
   packages/eslint-plugin:
     dependencies:
-      '@dpad-tv/core':
+      '@toets/core':
         specifier: workspace:^
         version: link:../core
     devDependencies:
@@ -265,44 +265,44 @@ importers:
 
   packages/mcp:
     dependencies:
-      '@dpad-tv/core':
-        specifier: workspace:^
-        version: link:../core
-      '@dpad-tv/mock':
-        specifier: workspace:^
-        version: link:../mock
-      '@dpad-tv/protocol':
-        specifier: workspace:^
-        version: link:../protocol
       '@modelcontextprotocol/server':
         specifier: ^2.4.0
         version: 2.4.0
+      '@toets/core':
+        specifier: workspace:^
+        version: link:../core
+      '@toets/mock':
+        specifier: workspace:^
+        version: link:../mock
+      '@toets/protocol':
+        specifier: workspace:^
+        version: link:../protocol
       zod:
         specifier: ^4.2.0
         version: 4.6.7
     devDependencies:
-      '@dpad-tv/driver-web':
-        specifier: workspace:^
-        version: link:../driver-web
-      '@dpad-tv/test':
-        specifier: workspace:^
-        version: link:../test
       '@modelcontextprotocol/client':
         specifier: ^2.4.0
         version: 2.4.0
       '@playwright/test':
         specifier: ^1.65.1
         version: 1.65.1
+      '@toets/driver-web':
+        specifier: workspace:^
+        version: link:../driver-web
+      '@toets/test':
+        specifier: workspace:^
+        version: link:../test
       playwright-core:
         specifier: ^1.65.1
         version: 1.65.1
 
   packages/mock:
     dependencies:
-      '@dpad-tv/core':
+      '@toets/core':
         specifier: workspace:^
         version: link:../core
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
       msw:
@@ -321,7 +321,7 @@ importers:
 
   packages/sdk:
     dependencies:
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
     devDependencies:
@@ -340,10 +340,10 @@ importers:
 
   packages/sdk-react-native:
     dependencies:
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
-      '@dpad-tv/sdk':
+      '@toets/sdk':
         specifier: workspace:^
         version: link:../sdk
     devDependencies:
@@ -365,28 +365,28 @@ importers:
 
   packages/test:
     dependencies:
-      '@dpad-tv/core':
+      '@toets/core':
         specifier: workspace:^
         version: link:../core
-      '@dpad-tv/mock':
+      '@toets/mock':
         specifier: workspace:^
         version: link:../mock
-      '@dpad-tv/protocol':
+      '@toets/protocol':
         specifier: workspace:^
         version: link:../protocol
     devDependencies:
-      '@dpad-tv/driver-android-tv':
-        specifier: workspace:^
-        version: link:../driver-android-tv
-      '@dpad-tv/driver-tvos':
-        specifier: workspace:^
-        version: link:../driver-tvos
-      '@dpad-tv/driver-web':
-        specifier: workspace:^
-        version: link:../driver-web
       '@playwright/test':
         specifier: ^1.65.1
         version: 1.65.1
+      '@toets/driver-android-tv':
+        specifier: workspace:^
+        version: link:../driver-android-tv
+      '@toets/driver-tvos':
+        specifier: workspace:^
+        version: link:../driver-tvos
+      '@toets/driver-web':
+        specifier: workspace:^
+        version: link:../driver-web
 
 packages:
 

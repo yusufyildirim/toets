@@ -4,6 +4,8 @@
   "commit": false,
   "access": "public",
   "baseBranch": "main",
+  "fixed": [["@toets/*"]],
   "updateInternalDependencies": "patch",
+  "privatePackages": { "version": false, "tag": false },
   "ignore": []
 }

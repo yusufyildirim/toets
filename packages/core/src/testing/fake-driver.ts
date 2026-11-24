@@ -1,9 +1,9 @@
 /**
- * In-memory driver for unit tests across all dpad packages. Models a TV screen as a tree of
+ * In-memory driver for unit tests across all toets packages. Models a TV screen as a tree of
  * nodes with real focus movement (explicit neighbors, otherwise nearest node in the pressed
  * direction), key handlers and a press log. Not a platform: never ship it to users.
  */
-import type { FocusGraphNode, ProtocolNode } from '@dpad-tv/protocol';
+import type { FocusGraphNode, ProtocolNode } from '@toets/protocol';
 import { PNG } from 'pngjs';
 import type { PlatformEvent } from '../api.js';
 import type { Capability } from '../capabilities.js';

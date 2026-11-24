@@ -1,10 +1,10 @@
 import type { IncomingMessage } from 'node:http';
-import { ORIGINAL_ORIGIN_HEADER } from '@dpad-tv/protocol';
+import { ORIGINAL_ORIGIN_HEADER } from '@toets/protocol';
 
 /** Response header carrying the recorded request id, for correlating app logs with records. */
-export const REQUEST_ID_HEADER = 'x-dpad-request-id';
+export const REQUEST_ID_HEADER = 'x-toets-request-id';
 /** Response header naming the {@link MockErrorCode} of a response the mock server generated. */
-export const ERROR_HEADER = 'x-dpad-error';
+export const ERROR_HEADER = 'x-toets-error';
 
 /** Connection-scoped headers (RFC 9110 7.6.1) that must not be forwarded by a proxy. */
 const HOP_BY_HOP = new Set([
@@ -46,7 +46,7 @@ export function recordRequestHeaders(req: IncomingMessage): Readonly<Record<stri
 
 /**
  * Headers handlers and the upstream see: what the real origin would receive if the app had
- * called it directly. Drops hop-by-hop headers and the dpad origin header, sets `host`.
+ * called it directly. Drops hop-by-hop headers and the toets origin header, sets `host`.
  */
 export function forwardRequestHeaders(req: IncomingMessage, host: string): Array<[string, string]> {
   const drop = connectionTokens(headerValue(req, 'connection'));

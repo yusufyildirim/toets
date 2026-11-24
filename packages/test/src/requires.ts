@@ -1,5 +1,5 @@
 import type { TestDetails, TestInfo } from '@playwright/test';
-import { SDK_CAPABILITIES, type Capability } from '@dpad-tv/core';
+import { SDK_CAPABILITIES, type Capability } from '@toets/core';
 
 /** Annotation type carrying a test's required capabilities. */
 export const REQUIRES_ANNOTATION = 'requires';
@@ -32,8 +32,8 @@ export function requiredCapabilities(annotations: TestInfo['annotations']): Capa
 
 /**
  * Skip reason for missing capabilities, e.g. `requires key.color: not available on tvos`. When
- * the capability only needs a dpad option the project turned off, it says so:
- * `requires media.state: not available on web (dpad.sdk off)`.
+ * the capability only needs a toets option the project turned off, it says so:
+ * `requires media.state: not available on web (toets.sdk off)`.
  */
 export function requiresSkipReason(
   missing: readonly Capability[],
@@ -41,8 +41,8 @@ export function requiresSkipReason(
   enabled: { readonly sdk: boolean; readonly mock: boolean },
 ): string {
   const off: string[] = [];
-  if (!enabled.sdk && missing.some((c) => SDK_CAPABILITIES.includes(c))) off.push('dpad.sdk');
-  if (!enabled.mock && missing.includes('network.mock')) off.push('dpad.mock');
+  if (!enabled.sdk && missing.some((c) => SDK_CAPABILITIES.includes(c))) off.push('toets.sdk');
+  if (!enabled.mock && missing.includes('network.mock')) off.push('toets.mock');
   const suffix = off.length ? ` (${off.join(', ')} off)` : '';
   return `requires ${missing.join(', ')}: not available on ${platform}${suffix}`;
 }

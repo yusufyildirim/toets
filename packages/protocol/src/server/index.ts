@@ -1,5 +1,5 @@
 /**
- * Host side of the dpad protocol (Node only). Import from `@dpad-tv/protocol/host`.
+ * Host side of the toets protocol (Node only). Import from `@toets/protocol/host`.
  */
 export { createSdkHost } from './host.js';
 export type { SdkHost, SdkHostEvent, SdkHostOptions, SdkSession } from '../host.js';

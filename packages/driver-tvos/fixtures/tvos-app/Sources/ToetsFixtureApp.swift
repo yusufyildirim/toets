@@ -1,21 +1,21 @@
-// Minimal tvOS app the tvOS driver's integration tests run against. Plain SwiftUI, no dpad
+// Minimal tvOS app the tvOS driver's integration tests run against. Plain SwiftUI, no toets
 // SDK: it proves the driver works black-box on any native app. Every element tests touch has
-// an accessibility identifier (dpad's testId on tvOS).
+// an accessibility identifier (toets's testId on tvOS).
 
 import SwiftUI
 import os
 
-private let log = Logger(subsystem: "tv.dpad.fixture", category: "app")
+private let log = Logger(subsystem: "tv.toets.fixture", category: "app")
 
-/// The part of dpad's launch payload this fixture reads. dpad passes it as the launch
-/// arguments `-__dpad <base64url(JSON)>`, which UserDefaults exposes under the key `__dpad`.
+/// The part of toets's launch payload this fixture reads. toets passes it as the launch
+/// arguments `-__toets <base64url(JSON)>`, which UserDefaults exposes under the key `__toets`.
 struct LaunchPayload: Decodable {
   let v: Int
   let state: String?
 }
 
 func readLaunchPayload() -> LaunchPayload? {
-  guard let raw = UserDefaults.standard.string(forKey: "__dpad"),
+  guard let raw = UserDefaults.standard.string(forKey: "__toets"),
     let data = decodePayload(raw)
   else { return nil }
   return try? JSONDecoder().decode(LaunchPayload.self, from: data)
@@ -35,7 +35,7 @@ enum Route: Hashable {
 }
 
 @main
-struct DpadFixtureApp: App {
+struct ToetsFixtureApp: App {
   var body: some Scene {
     WindowGroup { RootView() }
   }
@@ -56,7 +56,7 @@ struct RootView: View {
         }
     }
     .onAppear {
-      log.notice("dpad-fixture: launched state=\(payload?.state ?? "none", privacy: .public)")
+      log.notice("toets-fixture: launched state=\(payload?.state ?? "none", privacy: .public)")
       // App-defined launch state, the way an app would apply the payload's `state`.
       if payload?.state == "details" { path = [.details(1)] }
     }
@@ -68,7 +68,7 @@ struct HomeView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 40) {
-      Text("dpad fixture")
+      Text("toets fixture")
         .font(.largeTitle)
         .accessibilityIdentifier("title")
       Text("payload: \(payloadState)")
@@ -88,7 +88,7 @@ struct HomeView: View {
       .accessibilityElement(children: .contain)
       .accessibilityIdentifier("rail")
       HStack(spacing: 40) {
-        Button("Settings") { log.notice("dpad-fixture: settings") }
+        Button("Settings") { log.notice("toets-fixture: settings") }
           .accessibilityIdentifier("settings_button")
         Button("Disabled") {}
           .disabled(true)
@@ -122,7 +122,7 @@ struct DetailsView: View {
           }
       }
     }
-    .onAppear { log.notice("dpad-fixture: details item=\(item)") }
+    .onAppear { log.notice("toets-fixture: details item=\(item)") }
   }
 }
 
@@ -145,6 +145,6 @@ struct PlayerView: View {
 
   private func toggle() {
     playing.toggle()
-    log.notice("dpad-fixture: player \(playing ? "playing" : "paused", privacy: .public)")
+    log.notice("toets-fixture: player \(playing ? "playing" : "paused", privacy: .public)")
   }
 }

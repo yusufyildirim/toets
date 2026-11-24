@@ -1,22 +1,35 @@
 {
-  "name": "@dpad-tv/mcp",
+  "name": "@toets/mcp",
   "version": "0.0.0",
-  "description": "dpad MCP server: drive TV apps and read dpad docs from agents with the same primitives tests use.",
+  "description": "toets MCP server: drive TV apps and read toets docs from agents with the same primitives tests use.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "mcp",
+    "model-context-protocol",
+    "agents"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/mcp"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/mcp#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/mcp#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "bin": {
-    "dpad-mcp": "./dist/cli.js"
+    "toets-mcp": "./dist/cli.js"
   },
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -36,15 +49,15 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^",
-    "@dpad-tv/mock": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^",
+    "@toets/core": "workspace:^",
+    "@toets/mock": "workspace:^",
+    "@toets/protocol": "workspace:^",
     "@modelcontextprotocol/server": "^2.4.0",
     "zod": "^4.2.0"
   },
   "devDependencies": {
-    "@dpad-tv/driver-web": "workspace:^",
-    "@dpad-tv/test": "workspace:^",
+    "@toets/driver-web": "workspace:^",
+    "@toets/test": "workspace:^",
     "@modelcontextprotocol/client": "^2.4.0",
     "@playwright/test": "^1.65.1",
     "playwright-core": "^1.65.1"

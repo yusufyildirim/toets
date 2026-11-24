@@ -1,4 +1,4 @@
-import { expect, failure, HttpResponse, http, Key, requires, test } from '@dpad-tv/test';
+import { expect, failure, HttpResponse, http, Key, requires, test } from '@toets/test';
 
 import { PICK_1, picksApi } from './data/catalog.js';
 import { DetailsPage } from './pages/DetailsPage.js';

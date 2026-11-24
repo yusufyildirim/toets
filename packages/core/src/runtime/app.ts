@@ -1,4 +1,4 @@
-import type { LaunchPayload, SdkHost, SdkSession } from '@dpad-tv/protocol';
+import type { LaunchPayload, SdkHost, SdkSession } from '@toets/protocol';
 import type {
   App,
   Focus,
@@ -15,7 +15,7 @@ import type {
 } from '../api.js';
 import type { Capability } from '../capabilities.js';
 import type { Driver } from '../driver.js';
-import { DpadError, packageDocsLink, fromProtocolError } from '../errors.js';
+import { ToetsError, packageDocsLink, fromProtocolError } from '../errors.js';
 import type { Key, PressOptions } from '../keys.js';
 import type { MockServerLike } from '../mock.js';
 import type { Platform } from '../platform.js';
@@ -55,7 +55,7 @@ const SDK_DOMAIN_OF: Partial<Record<Capability, string>> = Object.fromEntries(
 
 /**
  * Runs one app under test on one target. Owns the driver composition, SDK session, key log and
- * logs; exposes the authoring API as {@link AppRuntime.app}. Runners (`@dpad-tv/test`, the MCP
+ * logs; exposes the authoring API as {@link AppRuntime.app}. Runners (`@toets/test`, the MCP
  * server) create one per worker and call {@link AppRuntime.isolate} between tests.
  */
 export class AppRuntime implements RuntimeContext {
@@ -133,7 +133,7 @@ export class AppRuntime implements RuntimeContext {
     return this.launched;
   }
 
-  /** Runs an action as a step. SDK protocol errors escaping it surface as `DpadError`. */
+  /** Runs an action as a step. SDK protocol errors escaping it surface as `ToetsError`. */
   step<T>(info: ActionInfo, run: () => Promise<T>): Promise<T> {
     return this.currentHooks.step(info, () =>
       run().catch((e: unknown) => {
@@ -160,11 +160,11 @@ export class AppRuntime implements RuntimeContext {
     } else if (domain && session) {
       hint = `The connected SDK (${session.hello.sdk}) does not announce the '${domain}' domain. Implement it in the app's SDK integration, or declare requires('${capability}') to skip where it is missing.`;
     } else if (domain) {
-      hint = `It comes from the in-app SDK '${domain}' domain: enable dpad.sdk and integrate the SDK, or declare requires('${capability}') to skip the test where it is missing.`;
+      hint = `It comes from the in-app SDK '${domain}' domain: enable toets.sdk and integrate the SDK, or declare requires('${capability}') to skip the test where it is missing.`;
     } else {
       hint = `Declare requires('${capability}') on the test so it is skipped on platforms without it.`;
     }
-    throw new DpadError(
+    throw new ToetsError(
       'CAPABILITY_MISSING',
       `${feature} needs capability '${capability}', which ${platform} does not have here.`,
       { hint, docs: packageDocsLink('core', 'capabilities') },
@@ -176,7 +176,7 @@ export class AppRuntime implements RuntimeContext {
    * no long press), after key overrides; `null` when the press would be sent. Tools use it to
    * list the keys a target has without pressing them.
    */
-  checkKey(key: Key, opts?: PressOptions): DpadError | null {
+  checkKey(key: Key, opts?: PressOptions): ToetsError | null {
     return keyError(this, key, opts);
   }
 
@@ -206,7 +206,7 @@ export class AppRuntime implements RuntimeContext {
     for (const mask of opts?.mask ?? []) {
       const impl = locatorImpl(mask);
       if (!impl) {
-        throw new DpadError('INVALID_ARGUMENT', 'screenshot({ mask }) takes dpad Locators.', {
+        throw new ToetsError('INVALID_ARGUMENT', 'screenshot({ mask }) takes toets Locators.', {
           docs: packageDocsLink('core', 'screenshots'),
         });
       }
@@ -248,11 +248,11 @@ export class AppRuntime implements RuntimeContext {
     try {
       return await host.waitForSession(token, { timeoutMs });
     } catch (cause) {
-      throw new DpadError(
+      throw new ToetsError(
         'SDK_NOT_CONNECTED',
-        `The app did not connect to the dpad SDK host at ${host.url} within ${timeoutMs}ms.`,
+        `The app did not connect to the toets SDK host at ${host.url} within ${timeoutMs}ms.`,
         {
-          hint: 'Check that the app includes the dpad SDK and starts it at launch, that it reads the launch payload (__dpad), and that the device can reach the host (drivers set up adb reverse on Android). For black-box runs, disable dpad.sdk.',
+          hint: 'Check that the app includes the toets SDK and starts it at launch, that it reads the launch payload (__toets), and that the device can reach the host (drivers set up adb reverse on Android). For black-box runs, disable toets.sdk.',
           docs: packageDocsLink('core', 'sdk'),
           cause,
         },
@@ -319,7 +319,7 @@ export class AppRuntime implements RuntimeContext {
     }
   }
 
-  /** Logs since the last call (driver, app via SDK, dpad debug messages), oldest first. */
+  /** Logs since the last call (driver, app via SDK, toets debug messages), oldest first. */
   async takeLogs(): Promise<readonly LogEntry[]> {
     await this.drainLogs();
     const out = this.logBuffer;

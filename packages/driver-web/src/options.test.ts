@@ -1,18 +1,18 @@
-import { DpadError } from '@dpad-tv/core';
+import { ToetsError } from '@toets/core';
 import type { Browser, Page } from 'playwright-core';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_VIEWPORT, resolveOptions, type WebDriverOptions } from './options.js';
 
 const url = 'http://localhost:3000/app';
 
-function invalid(options: WebDriverOptions, app?: Record<string, unknown>): DpadError {
+function invalid(options: WebDriverOptions, app?: Record<string, unknown>): ToetsError {
   try {
     resolveOptions(options, app);
   } catch (error) {
-    expect(error).toBeInstanceOf(DpadError);
-    expect((error as DpadError).code).toBe('WEB_INVALID_CONFIG');
-    expect((error as DpadError).hint).toBeTruthy();
-    return error as DpadError;
+    expect(error).toBeInstanceOf(ToetsError);
+    expect((error as ToetsError).code).toBe('WEB_INVALID_CONFIG');
+    expect((error as ToetsError).hint).toBeTruthy();
+    return error as ToetsError;
   }
   throw new Error('expected resolveOptions to throw');
 }

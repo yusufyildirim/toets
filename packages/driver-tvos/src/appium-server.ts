@@ -108,7 +108,7 @@ export async function startAppiumServer(opts: StartAppiumOptions): Promise<Appiu
 
 /** The directory of this package: its `package.json` lists Appium and the XCUITest driver. */
 export function defaultAppiumHome(): string {
-  return dirname(require.resolve('@dpad-tv/driver-tvos/package.json'));
+  return dirname(require.resolve('@toets/driver-tvos/package.json'));
 }
 
 /** A TCP port that is free right now on localhost. */

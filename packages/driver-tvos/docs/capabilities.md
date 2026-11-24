@@ -1,18 +1,18 @@
 # Capabilities
 
-Static capabilities of the tvOS driver. A connected dpad SDK adds its own (`focus.graph`, `sync.idle`, `media.state`, `app.state`, ...).
+Static capabilities of the tvOS driver. A connected toets SDK adds its own (`focus.graph`, `sync.idle`, `media.state`, `app.state`, ...).
 
-| Capability                                                                                                                   | Supported | How                                                                                |
-| ---------------------------------------------------------------------------------------------------------------------------- | --------- | ---------------------------------------------------------------------------------- |
-| `key.back`, `key.home`, `key.media.toggle`                                                                                   | yes       | Siri Remote buttons, see [remote](./remote.md)                                     |
-| `key.longpress`                                                                                                              | yes       | `XCUIRemote` press with duration                                                   |
-| `screenshot.element`                                                                                                         | yes       | viewport screenshot cropped to the element's frame                                 |
-| `logs`                                                                                                                       | yes       | app's unified log (`log stream`), filtered to its process                          |
-| `video`                                                                                                                      | yes       | `simctl io recordVideo`, H.264 MP4 in the artifacts dir                            |
-| `key.menu`, `key.info`, `key.media.discrete`, `key.media.seek`, `key.media.track`, `key.color`, `key.numeric`, `key.channel` | no        | no such button                                                                     |
-| `platform.events`                                                                                                            | no        | not provided by the driver                                                         |
-| `tree.hierarchy`                                                                                                             | no        | XCUITest flattens plain containers (below); the SDK tree nests                     |
-| `network.mock`                                                                                                               | core      | granted by the core when `dpad.mock` is on (the simulator shares the host network) |
+| Capability                                                                                                                   | Supported | How                                                                                 |
+| ---------------------------------------------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------- |
+| `key.back`, `key.home`, `key.media.toggle`                                                                                   | yes       | Siri Remote buttons, see [remote](./remote.md)                                      |
+| `key.longpress`                                                                                                              | yes       | `XCUIRemote` press with duration                                                    |
+| `screenshot.element`                                                                                                         | yes       | viewport screenshot cropped to the element's frame                                  |
+| `logs`                                                                                                                       | yes       | app's unified log (`log stream`), filtered to its process                           |
+| `video`                                                                                                                      | yes       | `simctl io recordVideo`, H.264 MP4 in the artifacts dir                             |
+| `key.menu`, `key.info`, `key.media.discrete`, `key.media.seek`, `key.media.track`, `key.color`, `key.numeric`, `key.channel` | no        | no such button                                                                      |
+| `platform.events`                                                                                                            | no        | not provided by the driver                                                          |
+| `tree.hierarchy`                                                                                                             | no        | XCUITest flattens plain containers (below); the SDK tree nests                      |
+| `network.mock`                                                                                                               | core      | granted by the core when `toets.mock` is on (the simulator shares the host network) |
 
 ## Element mapping
 
@@ -29,7 +29,7 @@ One page source fetch (WebDriverAgent JSON) per `query`, `focused` or `tree` cal
 | `busy`                         | a visible activity indicator in the subtree                                                                                   |
 | `focusable`                    | focusable control types, Button/Link traits, accessible `Other` views (React Native touchables), or focused now (heuristic)   |
 
-XCUITest flattens a React Native view that has a `testID` but is not accessible (a screen, a rail) into a childless `Other` element, and reports it invisible. dpad treats it as visible when it has a size and lies in the viewport, but its children are siblings elsewhere in the tree: scoping a locator into it or `toHaveFocusWithin` on it only works with the dpad SDK connected.
+XCUITest flattens a React Native view that has a `testID` but is not accessible (a screen, a rail) into a childless `Other` element, and reports it invisible. toets treats it as visible when it has a size and lies in the viewport, but its children are siblings elsewhere in the tree: scoping a locator into it or `toHaveFocusWithin` on it only works with the toets SDK connected.
 
 ## Latency
 
@@ -53,11 +53,11 @@ Measured on an Apple Silicon Mac, Xcode 27.2, Apple TV 4K (3rd generation) (at 1
 29 elements is the Swift fixture app, 95 the React Native example's home screen. The p90 of `press` is presses right after a screen transition, which wait for focus (see [traps](./traps.md)). A raw `XCUIRemote` press costs ~235ms whatever its duration. The integration test prints p50/p90/max per action on your machine:
 
 ```sh
-DPAD_TVOS_UDID=<udid> pnpm --filter @dpad-tv/driver-tvos test test/integration
+TOETS_TVOS_UDID=<udid> pnpm --filter @toets/driver-tvos test test/integration
 ```
 
-The full stack (`@dpad-tv/test` on the fixture app) runs with `DPAD_TVOS_UDID=<udid>` (external) or `DPAD_TVOS_MANAGED=1` (managed provider):
+The full stack (`@toets/test` on the fixture app) runs with `TOETS_TVOS_UDID=<udid>` (external) or `TOETS_TVOS_MANAGED=1` (managed provider):
 
 ```sh
-DPAD_TVOS_MANAGED=1 pnpm --filter @dpad-tv/test exec vitest run test/tvos.test.ts
+TOETS_TVOS_MANAGED=1 pnpm --filter @toets/test exec vitest run test/tvos.test.ts
 ```

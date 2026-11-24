@@ -1,5 +1,5 @@
-import type { DriverModule } from '@dpad-tv/core';
-import { FakeDriver } from '@dpad-tv/core/testing';
+import type { DriverModule } from '@toets/core';
+import { FakeDriver } from '@toets/core/testing';
 
 /** A driver package stand-in: default-exports a DriverModule over FakeDriver. */
 const module: DriverModule<{ label?: string }> = {

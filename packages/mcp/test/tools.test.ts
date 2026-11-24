@@ -1,5 +1,5 @@
-import { AppRuntime, locatorMatchers } from '@dpad-tv/core';
-import { FakeMockServer, FakeSdkHost } from '@dpad-tv/core/testing';
+import { AppRuntime, locatorMatchers } from '@toets/core';
+import { FakeMockServer, FakeSdkHost } from '@toets/core/testing';
 import { describe, expect, it } from 'vitest';
 import { SERVER_INSTRUCTIONS } from '../src/server.js';
 import { connect } from './helpers.js';
@@ -22,7 +22,7 @@ const HOME_SNAPSHOT = [
 /** A matcher message up to its call log (attempt counts and durations vary between runs). */
 const stable = (message: string) => message.slice(0, message.indexOf('Call log:')).trimEnd();
 
-describe('dpad MCP tools over FakeDriver', () => {
+describe('toets MCP tools over FakeDriver', () => {
   it('lists every tool with a description and sends instructions', async () => {
     const h = await connect();
     const { tools } = await h.client.listTools();
@@ -110,7 +110,7 @@ describe('dpad MCP tools over FakeDriver', () => {
 
   it('applies key overrides from the config, like tests', async () => {
     const h = await connect({
-      target: () => ({ dpad: { keyOverrides: { FAST_FORWARD: { as: 'RIGHT', holdMs: 800 } } } }),
+      target: () => ({ toets: { keyOverrides: { FAST_FORWARD: { as: 'RIGHT', holdMs: 800 } } } }),
     });
     const caps = await h.ok('capabilities');
     expect(caps).toMatch(/Keys: .*FAST_FORWARD/);
@@ -351,13 +351,13 @@ describe('dpad MCP tools over FakeDriver', () => {
     let host: FakeSdkHost | undefined;
     const h = await connect({
       target: (driver) => ({
-        dpad: { sdk: { createHost: async () => (host = new FakeSdkHost(driver())) } },
+        toets: { sdk: { createHost: async () => (host = new FakeSdkHost(driver())) } },
       }),
     });
     expect(await h.ok('capabilities')).toContain('SDK: enabled, not connected');
 
     const out = await h.ok('launch', { state: 'details', flags: { kids: true, variant: 'b' } });
-    expect(out).toContain('SDK: connected (@dpad-tv/fake-sdk@0.0.0');
+    expect(out).toContain('SDK: connected (@toets/fake-sdk@0.0.0');
     expect(out).toContain(
       "Code: await app.launch({ state: 'details', flags: { kids: true, variant: 'b' } });",
     );
@@ -393,7 +393,7 @@ describe('dpad MCP tools over FakeDriver', () => {
     let mock: FakeMockServer | undefined;
     const h = await connect({
       target: () => ({
-        dpad: { mock: { createServer: async () => (mock = new FakeMockServer()) } },
+        toets: { mock: { createServer: async () => (mock = new FakeMockServer()) } },
       }),
     });
     await h.ok('launch');

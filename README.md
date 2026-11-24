@@ -1,13 +1,13 @@
-# dpad
+# toets
 
 Cross-platform E2E testing for TV apps. Write one test, run it on web, Android TV / Fire TV and tvOS, and trust that it tests the same thing everywhere.
 
 Focus and the remote are the primitives; there is no click. Built on Playwright Test, Appium and MSW.
 
-> **Pre-alpha.** Nothing is published yet and APIs will change. See [VISION.md](./VISION.md) for goals and decisions.
+> **Pre-alpha.** APIs will change. See [VISION.md](./VISION.md) for goals and decisions.
 
 ```ts
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('opens details from the first rail', async ({ app }) => {
   await app.launch();

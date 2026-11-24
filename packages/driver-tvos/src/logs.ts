@@ -1,5 +1,5 @@
 import type { ChildProcess } from 'node:child_process';
-import type { LogEntry } from '@dpad-tv/core';
+import type { LogEntry } from '@toets/core';
 import type { Simctl } from './simctl.js';
 
 const MAX_BUFFERED = 5000;

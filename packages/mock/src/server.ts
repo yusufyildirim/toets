@@ -4,8 +4,8 @@ import type { Duplex } from 'node:stream';
 import { Readable, Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as NodeReadableStream } from 'node:stream/web';
-import type { DpadError, MockServerConfig } from '@dpad-tv/core';
-import { ORIGINAL_ORIGIN_HEADER } from '@dpad-tv/protocol';
+import type { ToetsError, MockServerConfig } from '@toets/core';
+import { ORIGINAL_ORIGIN_HEADER } from '@toets/protocol';
 import { getResponse, isPassthroughResponse, type RequestHandler } from 'msw';
 import { BodyCapture } from './body.js';
 import {
@@ -244,7 +244,7 @@ class MockServerImpl implements MockServer {
     server.on('upgrade', (_req: IncomingMessage, socket: Duplex) => {
       socket.end(
         'HTTP/1.1 501 Not Implemented\r\nconnection: close\r\ncontent-type: text/plain\r\n\r\n' +
-          'The dpad mock server does not proxy WebSocket or other protocol upgrades.',
+          'The toets mock server does not proxy WebSocket or other protocol upgrades.',
       );
     });
     return server;
@@ -542,19 +542,24 @@ class MockServerImpl implements MockServer {
     exchange.responseStarted(status, text, all);
   }
 
-  /** Answers with a dpad error the app can log and a test can inspect via `requests()`. */
+  /** Answers with a toets error the app can log and a test can inspect via `requests()`. */
   private sendError(
     req: IncomingMessage,
     res: ServerResponse,
     exchange: Exchange,
     status: number,
-    error: DpadError,
+    error: ToetsError,
   ): void {
     if (exchange.done) return; // already settled, e.g. the app hung up
     exchange.error = { code: error.code, message: error.message };
     const body = Buffer.from(
       JSON.stringify({
-        dpadError: { code: error.code, message: error.message, hint: error.hint, docs: error.docs },
+        toetsError: {
+          code: error.code,
+          message: error.message,
+          hint: error.hint,
+          docs: error.docs,
+        },
       }),
     );
     if (res.headersSent || res.destroyed) {
@@ -599,8 +604,8 @@ function assertHandlers(handlers: readonly unknown[]): RequestHandler[] {
 }
 
 /**
- * {@link createMockServer} as the core's `MockServerFactory`, for runners (`@dpad-tv/test`, the
- * MCP server): the `mock` settings of a dpad config carry handlers untyped through the core;
+ * {@link createMockServer} as the core's `MockServerFactory`, for runners (`@toets/test`, the
+ * MCP server): the `mock` settings of a toets config carry handlers untyped through the core;
  * they are validated here (`MOCK_INVALID_HANDLER`).
  */
 export function mockServerFactory(settings: MockServerConfig): Promise<MockServer> {

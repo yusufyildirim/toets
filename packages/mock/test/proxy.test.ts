@@ -84,7 +84,7 @@ describe('upstream proxy', () => {
     const received = upstream.received[0]!;
     expect(received.headers.host).toBe(new URL(upstream.origin).host);
     expect(received.headers['x-app']).toBe('tv');
-    expect(received.headers['x-dpad-original-origin']).toBeUndefined();
+    expect(received.headers['x-toets-original-origin']).toBeUndefined();
     expect(received.headers['content-length']).toBe('5');
 
     expect(server.requests()[0]).toMatchObject({
@@ -154,8 +154,8 @@ describe('upstream proxy', () => {
     const res = await viaMock(server.url, '/v1/x', { origin: dead.origin });
     expect(res.status).toBe(502);
     expect(res.headers.get(ERROR_HEADER)).toBe(MockErrorCode.UPSTREAM_UNREACHABLE);
-    const body = (await res.json()) as { dpadError: { message: string } };
-    expect(body.dpadError.message).toContain('ECONNREFUSED');
+    const body = (await res.json()) as { toetsError: { message: string } };
+    expect(body.toetsError.message).toContain('ECONNREFUSED');
     expect(server.requests()[0]?.error?.code).toBe(MockErrorCode.UPSTREAM_UNREACHABLE);
   });
 
@@ -195,7 +195,7 @@ describe('upstream proxy', () => {
     expect(res.headers.get('keep-alive')).not.toBe('timeout=99');
     const seen = (await res.json()) as Record<string, string>;
     expect(seen['x-trace']).toBe('1');
-    expect(seen['x-dpad-original-origin']).toBeUndefined();
+    expect(seen['x-toets-original-origin']).toBeUndefined();
   });
 
   it('rejects unmatched requests instead of proxying with onUnhandledRequest: reject', async () => {

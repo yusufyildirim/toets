@@ -1,17 +1,17 @@
 # Launch payload on the web
 
-dpad configures the app at launch through one launch payload from `@dpad-tv/protocol` (SDK URL, token, mock URL, state, flags). On the web it travels in one of two ways, set by `launchTransport`:
+toets configures the app at launch through one launch payload from `@toets/protocol` (SDK URL, token, mock URL, state, flags). On the web it travels in one of two ways, set by `launchTransport`:
 
-| Transport         | What the app sees                                              |
-| ----------------- | -------------------------------------------------------------- |
-| `query` (default) | `?__dpad=<base64url(JSON)>` on the app URL                     |
-| `initScript`      | `window.__DPAD__ = '<base64url(JSON)>'`, before any app script |
+| Transport         | What the app sees                                               |
+| ----------------- | --------------------------------------------------------------- |
+| `query` (default) | `?__toets=<base64url(JSON)>` on the app URL                     |
+| `initScript`      | `window.__TOETS__ = '<base64url(JSON)>'`, before any app script |
 
-Both carry the same value, `encodeLaunchPayloadParam` from `@dpad-tv/protocol`; `decodeLaunchPayload` decodes and validates it. The dpad SDK reads both, so most apps never touch this.
+Both carry the same value, `encodeLaunchPayloadParam` from `@toets/protocol`; `decodeLaunchPayload` decodes and validates it. The toets SDK reads both, so most apps never touch this.
 
 ```js nocheck
 // Reading it without the SDK:
-const param = new URLSearchParams(location.search).get('__dpad') ?? window.__DPAD__;
+const param = new URLSearchParams(location.search).get('__toets') ?? window.__TOETS__;
 const json =
   param &&
   new TextDecoder().decode(

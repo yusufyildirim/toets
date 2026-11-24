@@ -3,24 +3,24 @@ import { readFile } from 'node:fs/promises';
 import { dirname, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import {
-  DpadError,
+  ToetsError,
   Key,
   packageDocsLink,
   type AppTargetConfig,
   type DriverModule,
   type Platform,
-} from '@dpad-tv/core';
-import type { DeviceSelection, RuntimeConfig } from '@dpad-tv/core/runner';
+} from '@toets/core';
+import type { DeviceSelection, RuntimeConfig } from '@toets/core/runner';
 import { z } from 'zod';
 import { fromTestConfig, isTestConfig } from './test-config.js';
 
 /**
  * One platform target the MCP server can drive. Same vocabulary as a `platforms.*()` project in
- * the dpad test config, so a target behaves like the project it mirrors.
+ * the toets test config, so a target behaves like the project it mirrors.
  */
 export interface McpTargetConfig {
   /**
-   * Driver package name (e.g. `@dpad-tv/driver-web`), a path to a module, or the module itself.
+   * Driver package name (e.g. `@toets/driver-web`), a path to a module, or the module itself.
    * Packages and paths are imported lazily and must default-export a `DriverModule`.
    */
   readonly driver: string | DriverModule<never>;
@@ -28,7 +28,7 @@ export interface McpTargetConfig {
   readonly platform?: Platform;
   /** Driver options, passed to `createDriver` as-is. */
   readonly options?: Readonly<Record<string, unknown>>;
-  /** Per-platform app config (URL, APK, bundle ID, ...), as in the dpad test config. */
+  /** Per-platform app config (URL, APK, bundle ID, ...), as in the toets test config. */
   readonly app?: AppTargetConfig;
   /** Device model for the device provider, e.g. `tv_1080p`. */
   readonly model?: string;
@@ -36,13 +36,13 @@ export interface McpTargetConfig {
   readonly osVersion?: string;
   /** Where the device comes from. Default: `managed` when the driver provides devices. */
   readonly devices?: DeviceSelection;
-  /** Runtime options, as the test config's `dpad`: `sdk`, `mock`, `keyOverrides`, `timeouts`, ... */
-  readonly dpad?: RuntimeConfig;
+  /** Runtime options, as the test config's `toets`: `sdk`, `mock`, `keyOverrides`, `timeouts`, ... */
+  readonly toets?: RuntimeConfig;
   /** Default timeout of the `assert` tool for this target. */
   readonly expectTimeoutMs?: number;
 }
 
-/** Config of the dpad MCP server. */
+/** Config of the toets MCP server. */
 export interface McpConfig {
   /** Named targets, e.g. `{ web: {...}, androidTV: {...} }`. */
   readonly targets: Readonly<Record<string, McpTargetConfig>>;
@@ -50,29 +50,29 @@ export interface McpConfig {
   readonly defaultTarget?: string;
   /** Default timeout of the `assert` tool. Default 5000. */
   readonly expectTimeoutMs?: number;
-  /** Runtime options for every target; a target's `dpad` overrides them. */
-  readonly dpad?: RuntimeConfig;
+  /** Runtime options for every target; a target's `toets` overrides them. */
+  readonly toets?: RuntimeConfig;
   /** Where drivers write artifacts (videos, logs). Default: a temp directory. */
   readonly artifactsDir?: string;
-  /** Extra docs folders for `docs_search`, besides the shipped docs of installed dpad packages. */
+  /** Extra docs folders for `docs_search`, besides the shipped docs of installed toets packages. */
   readonly docsDirs?: readonly string[];
 }
 
-/** Typed identity helper for `dpad.mcp.config.ts`. */
+/** Typed identity helper for `toets.mcp.config.ts`. */
 export function defineMcpConfig(config: McpConfig): McpConfig {
   return config;
 }
 
 /** MCP config file names looked up in the working directory when no path is given. */
 export const CONFIG_FILES = [
-  'dpad.mcp.config.ts',
-  'dpad.mcp.config.mts',
-  'dpad.mcp.config.js',
-  'dpad.mcp.config.mjs',
-  'dpad.mcp.config.json',
+  'toets.mcp.config.ts',
+  'toets.mcp.config.mts',
+  'toets.mcp.config.js',
+  'toets.mcp.config.mjs',
+  'toets.mcp.config.json',
 ] as const;
 
-/** dpad test configs (Playwright configs with `platforms.*()` projects), looked up after them. */
+/** toets test configs (Playwright configs with `platforms.*()` projects), looked up after them. */
 export const TEST_CONFIG_FILES = [
   'playwright.config.ts',
   'playwright.config.mts',
@@ -161,7 +161,7 @@ const configSchema = z
             model: z.string().optional(),
             osVersion: z.string().optional(),
             devices: devicesSchema.optional(),
-            dpad: runtimeSchema.optional(),
+            toets: runtimeSchema.optional(),
             expectTimeoutMs: z.number().int().positive().optional(),
           })
           .strict(),
@@ -169,7 +169,7 @@ const configSchema = z
       .refine((t) => Object.keys(t).length > 0, 'define at least one target'),
     defaultTarget: z.string().optional(),
     expectTimeoutMs: z.number().int().positive().optional(),
-    dpad: runtimeSchema.optional(),
+    toets: runtimeSchema.optional(),
     artifactsDir: z.string().optional(),
     docsDirs: z.array(z.string()).optional(),
   })
@@ -179,7 +179,7 @@ const configSchema = z
     path: ['defaultTarget'],
   });
 
-/** Validates a config object, throwing a `DpadError` that lists every problem. */
+/** Validates a config object, throwing a `ToetsError` that lists every problem. */
 export function validateMcpConfig(value: unknown, source = 'config'): McpConfig {
   const parsed = configSchema.safeParse(value);
   // The input itself, not zod's copy: driver modules and factories stay the same objects.
@@ -187,7 +187,7 @@ export function validateMcpConfig(value: unknown, source = 'config'): McpConfig 
   const problems = parsed.error.issues
     .map((i) => `- ${i.path.join('.') || '(root)'}: ${i.message}`)
     .join('\n');
-  throw new DpadError('MCP_CONFIG_INVALID', `Invalid dpad MCP ${source}:\n${problems}`, {
+  throw new ToetsError('MCP_CONFIG_INVALID', `Invalid toets MCP ${source}:\n${problems}`, {
     hint: 'Fix the listed fields. A config needs `targets` with at least one `{ driver }` entry.',
     docs: packageDocsLink('mcp', 'setup'),
   });
@@ -199,7 +199,7 @@ export interface LoadedMcpConfig {
   readonly baseDir: string;
   /** The file it came from. */
   readonly file: string;
-  /** `mcp`: a dpad MCP config; `test`: targets read from a dpad test (Playwright) config. */
+  /** `mcp`: a toets MCP config; `test`: targets read from a toets test (Playwright) config. */
   readonly kind: 'mcp' | 'test';
 }
 
@@ -209,7 +209,7 @@ async function importConfig(path: string): Promise<unknown> {
     const mod = (await import(pathToFileURL(path).href)) as { default?: unknown };
     return mod.default ?? mod;
   } catch (cause) {
-    throw new DpadError('MCP_CONFIG_INVALID', `Could not load config ${path}.`, {
+    throw new ToetsError('MCP_CONFIG_INVALID', `Could not load config ${path}.`, {
       hint: `${(cause as Error).message ?? String(cause)}. TypeScript configs run through Node's type stripping: erasable syntax only, and relative imports need their file extension.`,
       docs: packageDocsLink('mcp', 'setup'),
       cause,
@@ -229,7 +229,7 @@ async function fromFile(path: string): Promise<LoadedMcpConfig | null> {
 
 /**
  * Loads the config from `file`, or finds one in `cwd`: a {@link CONFIG_FILES} entry first, then
- * a dpad test config ({@link TEST_CONFIG_FILES}) whose `platforms.*()` projects become targets.
+ * a toets test config ({@link TEST_CONFIG_FILES}) whose `platforms.*()` projects become targets.
  * A file is read by its shape (`targets`: MCP config; `projects`: test config), so `file` may
  * name either. Returns `null` when no path is given and nothing usable exists (the server then
  * only offers docs).
@@ -242,15 +242,15 @@ export async function loadMcpConfig(
   if (file) {
     const path = resolve(cwd, file);
     if (!existsSync(path)) {
-      throw new DpadError('MCP_CONFIG_NOT_FOUND', `Config not found at ${path}.`, {
+      throw new ToetsError('MCP_CONFIG_NOT_FOUND', `Config not found at ${path}.`, {
         hint: 'Check the `--config` path (relative paths resolve against the working directory).',
         docs: packageDocsLink('mcp', 'setup'),
       });
     }
     const loaded = await fromFile(path);
     if (loaded) return loaded;
-    throw new DpadError('MCP_CONFIG_INVALID', `${path} has no dpad projects.`, {
-      hint: 'Pass a dpad MCP config (`targets`) or a dpad test config with `platforms.*()` projects.',
+    throw new ToetsError('MCP_CONFIG_INVALID', `${path} has no toets projects.`, {
+      hint: 'Pass a toets MCP config (`targets`) or a toets test config with `platforms.*()` projects.',
       docs: packageDocsLink('mcp', 'setup'),
     });
   }
@@ -259,7 +259,7 @@ export async function loadMcpConfig(
     if (!existsSync(path)) continue;
     const loaded = await fromFile(path);
     if (loaded) return loaded;
-    log(`dpad mcp: ${path} has no dpad projects; skipped`);
+    log(`toets mcp: ${path} has no toets projects; skipped`);
   }
   return null;
 }

@@ -33,7 +33,7 @@ export async function listenWebSocket(opts: {
   const listenOn = (host: string, port: number): Promise<number> => {
     const server = createServer((_req, res) => {
       res.writeHead(426, { 'content-type': 'text/plain' });
-      res.end('dpad SDK host: WebSocket connections only.\n');
+      res.end('toets SDK host: WebSocket connections only.\n');
     });
     server.on('upgrade', (req: IncomingMessage, socket: Duplex, head: Buffer) => {
       socket.on('error', () => socket.destroy());
@@ -75,7 +75,7 @@ export async function listenWebSocket(opts: {
     await closeServers();
     throw new ProtocolError(
       'sdk.listen-failed',
-      `The dpad SDK host could not listen: ${(error as Error).message}`,
+      `The toets SDK host could not listen: ${(error as Error).message}`,
       {
         hint: 'Pick another port or free the requested one.',
         docs: 'reference/protocol/docs/host',

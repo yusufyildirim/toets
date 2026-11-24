@@ -1,7 +1,7 @@
-import { Key, type AppRuntime, type LaunchOptions } from '@dpad-tv/core';
+import { Key, type AppRuntime, type LaunchOptions } from '@toets/core';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
-import { describeKeyOverride, jsString } from '@dpad-tv/core/runner';
+import { describeKeyOverride, jsString } from '@toets/core/runner';
 import { focusLine, guarded, text, type ToolContext } from './shared.js';
 
 export function registerAppTools(server: McpServer, { session }: ToolContext): void {
@@ -11,7 +11,7 @@ export function registerAppTools(server: McpServer, { session }: ToolContext): v
       title: 'Launch app',
       description: [
         'Start (or restart) the app under test on a TV target, like `app.launch()` at the start of a test. Call this first: every other device tool needs a running app.',
-        'Each launch starts clean: the previous instance is terminated and you are back on the start screen. With the dpad SDK enabled it waits for the app to connect.',
+        'Each launch starts clean: the previous instance is terminated and you are back on the start screen. With the toets SDK enabled it waits for the app to connect.',
         'Returns the platform, the SDK status and the focused element; call `snapshot` next to see the screen.',
       ].join(' '),
       inputSchema: z.object({
@@ -26,7 +26,7 @@ export function registerAppTools(server: McpServer, { session }: ToolContext): v
           .string()
           .optional()
           .describe(
-            'Named app state to launch into. Needs the `app.state` capability (dpad SDK in the app, `sdk` on in the config).',
+            'Named app state to launch into. Needs the `app.state` capability (toets SDK in the app, `sdk` on in the config).',
           ),
         flags: z
           .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))

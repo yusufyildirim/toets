@@ -5,11 +5,11 @@ import {
   type ExpectMatcherState,
   type TestInfo,
 } from '@playwright/test';
-import type { MediaState } from '@dpad-tv/protocol';
+import type { MediaState } from '@toets/protocol';
 import {
   appRuntime,
   packageDocsLink,
-  DpadError,
+  ToetsError,
   isLocator,
   locatorMatchers as lm,
   mediaMatchers as mm,
@@ -24,10 +24,10 @@ import {
   type Media,
   type Network,
   type RequestFilter,
-} from '@dpad-tv/core';
+} from '@toets/core';
 import { withExplainedErrors } from './errors.js';
 
-/** Every dpad matcher accepts a per-call timeout (ms); the default is `expect.timeout`. */
+/** Every toets matcher accepts a per-call timeout (ms); the default is `expect.timeout`. */
 export interface TimeoutOption {
   readonly timeout?: number;
 }
@@ -73,8 +73,8 @@ function defaultName(testInfo: TestInfo, ext: string): string {
   return `${slug || 'snapshot'}-${n}.${ext}`;
 }
 
-function notSupported(name: string): DpadError {
-  return new DpadError('NEGATION_UNSUPPORTED', `${name}() cannot be negated.`, {
+function notSupported(name: string): ToetsError {
+  return new ToetsError('NEGATION_UNSUPPORTED', `${name}() cannot be negated.`, {
     hint: 'Assert the expected state instead.',
     docs: packageDocsLink('core', 'assertions'),
   });
@@ -82,7 +82,7 @@ function notSupported(name: string): DpadError {
 
 function assertSnapshotSubject(name: string, subject: unknown): asserts subject is App | Locator {
   if (!isLocator(subject) && !appRuntime(subject)) {
-    throw new DpadError('INVALID_SUBJECT', `${name}() expects the app or a dpad Locator.`, {
+    throw new ToetsError('INVALID_SUBJECT', `${name}() expects the app or a toets Locator.`, {
       hint: `e.g. await expect(app).${name}() or await expect(app.getByTestId('rail')).${name}()`,
       docs: packageDocsLink('core', 'assertions'),
     });
@@ -174,8 +174,8 @@ async function toMatchScreenshot(
   );
 }
 
-/** The dpad matchers, typed per subject: locators, `app`, `app.media`, `app.network`. */
-export const dpadMatchers = {
+/** The toets matchers, typed per subject: locators, `app`, `app.media`, `app.network`. */
+export const toetsMatchers = {
   toBeVisible(this: ExpectMatcherState, locator: Locator, opts?: TimeoutOption) {
     return lm.toBeVisible(ctx(this, opts), locator);
   },
@@ -256,12 +256,12 @@ export const dpadMatchers = {
 };
 
 /**
- * Playwright's `expect` with the dpad matchers. Every dpad matcher retries until it passes or
+ * Playwright's `expect` with the toets matchers. Every toets matcher retries until it passes or
  * `expect.timeout` elapses, waiting for app idle first when the SDK provides it.
  */
-export const expect = baseExpect.extend(explainingErrors(dpadMatchers));
+export const expect = baseExpect.extend(explainingErrors(toetsMatchers));
 
-/** The same matchers, with `DpadError`s they throw explained for Playwright's output. */
+/** The same matchers, with `ToetsError`s they throw explained for Playwright's output. */
 function explainingErrors<T extends Record<string, (...args: never[]) => Promise<MatchResult>>>(
   matchers: T,
 ): T {

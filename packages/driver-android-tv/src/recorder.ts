@@ -53,7 +53,7 @@ export class ScreenRecorder {
 
   async start(): Promise<void> {
     if (this.session) return;
-    const id = `dpad-${Date.now()}-${this.counter++}`;
+    const id = `toets-${Date.now()}-${this.counter++}`;
     const session: RecordingSession = {
       id,
       segments: [],

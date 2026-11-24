@@ -1,6 +1,6 @@
-import { decodeLaunchPayload, type LaunchPayload } from '@dpad-tv/protocol';
+import { decodeLaunchPayload, type LaunchPayload } from '@toets/protocol';
 import type { MediaReporter, MediaSnapshot, MediaSource } from './media.js';
-import { Dpad, type DpadOptions } from './runtime.js';
+import { Toets, type ToetsOptions } from './runtime.js';
 import type { StateHandler } from './state.js';
 
 /*
@@ -9,7 +9,7 @@ import type { StateHandler } from './state.js';
  * can call them unconditionally.
  */
 
-let current: Dpad | null = null;
+let current: Toets | null = null;
 let launchPayload: LaunchPayload | null = null;
 
 interface Binding<T> {
@@ -19,42 +19,42 @@ interface Binding<T> {
 
 const stateHandlers: Array<Binding<StateHandler>> = [];
 const mediaSources: Array<
-  Binding<{ id: string; source: MediaSource; onAttach?: (d: Dpad) => void }>
+  Binding<{ id: string; source: MediaSource; onAttach?: (d: Toets) => void }>
 > = [];
 
 /**
  * Creates the runtime. With a valid payload it becomes the active runtime that
  * {@link markBusy}, {@link onState}, {@link registerMedia} and {@link focusChanged} use.
- * Adapters call this; apps normally call an adapter's `startDpad()` instead.
+ * Adapters call this; apps normally call an adapter's `startToets()` instead.
  */
-export function createDpad(options: DpadOptions): Dpad {
-  const dpad = new Dpad(options);
+export function createToets(options: ToetsOptions): Toets {
+  const toets = new Toets(options);
   launchPayload = decodeLaunchPayload(options.payload) ?? launchPayload;
-  if (!dpad.active) return dpad;
-  if (current && current !== dpad) current.stop();
-  current = dpad;
+  if (!toets.active) return toets;
+  if (current && current !== toets) current.stop();
+  current = toets;
   for (const b of stateHandlers) {
     b.detach?.();
-    b.detach = dpad.onState(b.value);
+    b.detach = toets.onState(b.value);
   }
   for (const b of mediaSources) {
     b.detach?.();
-    b.detach = dpad.media.register(b.value.id, b.value.source);
-    b.value.onAttach?.(dpad);
+    b.detach = toets.media.register(b.value.id, b.value.source);
+    b.value.onAttach?.(toets);
   }
-  return dpad;
+  return toets;
 }
 
 /** The active runtime, or `null` when the SDK is not running (no payload, production). */
-export function getDpad(): Dpad | null {
+export function getToets(): Toets | null {
   return current;
 }
 
 /**
  * The launch payload the app was started with (`mockUrl`, `state`, `flags`), or `null` for a
- * normal launch. Unlike {@link getDpad} it is also set when dpad runs without the SDK session
+ * normal launch. Unlike {@link getToets} it is also set when toets runs without the SDK session
  * (black-box runs with network mocking: the payload has a `mockUrl` but no `sdkUrl`), so read
- * the mock server URL here. Available once an adapter looked for the payload (`startDpad()`;
+ * the mock server URL here. Available once an adapter looked for the payload (`startToets()`;
  * on React Native Android when the root first renders).
  *
  * @example
@@ -119,12 +119,12 @@ export function createMediaReporter(
   initial: Partial<MediaSnapshot> = {},
 ): MediaReporter {
   let snapshot: MediaSnapshot = { state: 'idle', position: 0, duration: null, rate: 1, ...initial };
-  let dpad: Dpad | null = null;
-  const dispose = bindMedia(id, { getSnapshot: () => snapshot }, (d) => (dpad = d));
+  let toets: Toets | null = null;
+  const dispose = bindMedia(id, { getSnapshot: () => snapshot }, (d) => (toets = d));
   return {
     update(patch) {
       snapshot = { ...snapshot, ...patch };
-      dpad?.media.changed(id);
+      toets?.media.changed(id);
     },
     get snapshot() {
       return snapshot;
@@ -138,7 +138,7 @@ export function focusChanged(): void {
   current?.focusChanged();
 }
 
-function bindMedia(id: string, source: MediaSource, onAttach?: (d: Dpad) => void): () => void {
+function bindMedia(id: string, source: MediaSource, onAttach?: (d: Toets) => void): () => void {
   const value = onAttach ? { id, source, onAttach } : { id, source };
   const binding: Binding<typeof value> = { value, detach: null };
   if (current) {

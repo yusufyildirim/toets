@@ -71,7 +71,7 @@ describe('LogcatCollector', () => {
     for (let i = 0; i < 5; i++) collector.accept(`1.00${i} 1000 50 50 I T: line ${i}`);
     const out = collector.drain();
     expect(out.map((e) => e.message)).toEqual([
-      'dpad: 3 older log lines were dropped (buffer full)',
+      'toets: 3 older log lines were dropped (buffer full)',
       'T: line 3',
       'T: line 4',
     ]);
@@ -94,7 +94,7 @@ describe('LogcatCollector', () => {
 describe('ScreenRecorder', () => {
   it('records with screenrecord, finalizes with SIGINT and pulls the file', async () => {
     const runner = new FakeRunner();
-    const outputDir = mkdtempSync(join(tmpdir(), 'dpad-rec-'));
+    const outputDir = mkdtempSync(join(tmpdir(), 'toets-rec-'));
     const recorder = new ScreenRecorder(new Adb(runner, 'adb', 'emulator-5554', {}), {
       outputDir,
       runner,
@@ -103,7 +103,7 @@ describe('ScreenRecorder', () => {
     expect(recorder.recording).toBe(true);
     const spawn = runner.lines('spawn')[0]!;
     expect(spawn).toMatch(
-      /^adb -s emulator-5554 shell screenrecord --bit-rate 4000000 --time-limit 180 \/sdcard\/dpad-\d+-0-0\.mp4$/,
+      /^adb -s emulator-5554 shell screenrecord --bit-rate 4000000 --time-limit 180 \/sdcard\/toets-\d+-0-0\.mp4$/,
     );
     const remote = spawn.split(' ').pop()!;
 
@@ -124,7 +124,7 @@ describe('ScreenRecorder', () => {
 
   it('continues in a new segment at the 180 s limit and joins segments with ffmpeg', async () => {
     const runner = new FakeRunner();
-    const outputDir = mkdtempSync(join(tmpdir(), 'dpad-rec-'));
+    const outputDir = mkdtempSync(join(tmpdir(), 'toets-rec-'));
     const logs: string[] = [];
     const recorder = new ScreenRecorder(new Adb(runner, 'adb', 'emulator-5554', {}), {
       outputDir,
@@ -144,7 +144,7 @@ describe('ScreenRecorder', () => {
       return '';
     });
     const file = await recorder.stop();
-    expect(file).toMatch(/dpad-\d+-0\.mp4$/);
+    expect(file).toMatch(/toets-\d+-0\.mp4$/);
     expect(
       runner.lines('run').filter((l) => l.startsWith('adb -s emulator-5554 pull')),
     ).toHaveLength(2);
@@ -165,7 +165,7 @@ describe('ScreenRecorder', () => {
 
   it('does not restart a failing screenrecord and explains the failure', async () => {
     const runner = new FakeRunner();
-    const outputDir = mkdtempSync(join(tmpdir(), 'dpad-rec-'));
+    const outputDir = mkdtempSync(join(tmpdir(), 'toets-rec-'));
     const recorder = new ScreenRecorder(new Adb(runner, 'adb', 'emulator-5554', {}), {
       outputDir,
       runner,

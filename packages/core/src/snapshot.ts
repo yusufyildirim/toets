@@ -1,4 +1,4 @@
-import type { Rect } from '@dpad-tv/protocol';
+import type { Rect } from '@toets/protocol';
 
 export type { Rect };
 

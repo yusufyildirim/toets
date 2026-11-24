@@ -77,7 +77,7 @@ function fakePlatform(root: string, runner: FakeRunner): FakeRunner {
 describe('embedXctestFrameworks', () => {
   let root: string;
   beforeEach(async () => {
-    root = await mkdtemp(join(tmpdir(), 'dpad-wda-embed-'));
+    root = await mkdtemp(join(tmpdir(), 'toets-wda-embed-'));
   });
   afterEach(async () => {
     await rm(root, { recursive: true, force: true });
@@ -116,7 +116,7 @@ describe('embedXctestFrameworks', () => {
 describe('ensurePrebuiltWda', () => {
   let cacheDir: string;
   beforeEach(async () => {
-    cacheDir = await mkdtemp(join(tmpdir(), 'dpad-wda-'));
+    cacheDir = await mkdtemp(join(tmpdir(), 'toets-wda-'));
   });
   afterEach(async () => {
     await rm(cacheDir, { recursive: true, force: true });
@@ -170,7 +170,7 @@ describe('ensurePrebuiltWda', () => {
     const builds = { count: 0 };
     const dir = join(cacheDir, 'wda-custom-xcode-27B52');
     mkdirSync(join(dir, PRODUCT), { recursive: true });
-    writeFileSync(join(dir, '.dpad-complete'), '');
+    writeFileSync(join(dir, '.toets-complete'), '');
     const path = await ensurePrebuiltWda({
       cacheDir,
       runner: buildingRunner(builds),
