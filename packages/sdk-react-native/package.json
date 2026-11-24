@@ -1,6 +1,6 @@
 {
   "name": "@toets/sdk-react-native",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toets in-app SDK adapter for React Native (incl. react-native-tvos and react-native-web).",
   "keywords": [
     "toets",

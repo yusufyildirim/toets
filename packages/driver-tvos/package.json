@@ -1,6 +1,6 @@
 {
   "name": "@toets/driver-tvos",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toets driver for tvOS simulators, built on Appium XCUITest.",
   "keywords": [
     "toets",

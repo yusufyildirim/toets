@@ -1,6 +1,6 @@
 {
   "name": "@toets/driver-android-tv",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toets driver for Android TV / Fire TV emulators, built on Appium UiAutomator2.",
   "keywords": [
     "toets",

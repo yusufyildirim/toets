@@ -1,6 +1,6 @@
 {
   "name": "@toets/driver-web",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toets driver for web TV apps in Chromium, built on Playwright.",
   "keywords": [
     "toets",

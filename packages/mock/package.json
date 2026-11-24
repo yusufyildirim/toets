@@ -1,6 +1,6 @@
 {
   "name": "@toets/mock",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toets network mocking: MSW handlers served by a host-side mock server with upstream proxying.",
   "keywords": [
     "toets",

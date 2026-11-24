@@ -1,6 +1,6 @@
 {
   "name": "@toets/mcp",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toets MCP server: drive TV apps and read toets docs from agents with the same primitives tests use.",
   "keywords": [
     "toets",

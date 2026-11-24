@@ -132,7 +132,7 @@ describe('activation', () => {
     expect(RN.AppRegistry.provider?.()).toBe(sdk.ToetsRoot);
     const session = await l.session();
     expect(session.hello.framework).toBe('react-native');
-    expect(session.hello.sdk).toBe('@toets/sdk-react-native@0.0.0');
+    expect(session.hello.sdk).toMatch(/^@toets\/sdk-react-native@\d+\.\d+\.\d+/);
     expect([...session.domains].sort()).toEqual([
       'focus',
       'logs',

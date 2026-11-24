@@ -1,6 +1,6 @@
 {
   "name": "@toets/test",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "toets test runner: Playwright Test fixtures, config and matchers for cross-platform TV E2E tests.",
   "keywords": [
     "toets",
@@ -65,9 +65,9 @@
     "@playwright/test": "^1.65.1"
   },
   "peerDependencies": {
-    "@toets/driver-android-tv": "workspace:^",
-    "@toets/driver-tvos": "workspace:^",
-    "@toets/driver-web": "workspace:^",
+    "@toets/driver-android-tv": "workspace:>=0.1.0 <1",
+    "@toets/driver-tvos": "workspace:>=0.1.0 <1",
+    "@toets/driver-web": "workspace:>=0.1.0 <1",
     "@playwright/test": "^1.65.0"
   },
   "peerDependenciesMeta": {

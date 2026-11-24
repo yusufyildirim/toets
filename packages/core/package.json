@@ -1,6 +1,6 @@
 {
   "name": "@toets/core",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Platform-neutral core of toets: driver contract, locators, matchers, focus, keys, capabilities.",
   "keywords": [
     "toets",
