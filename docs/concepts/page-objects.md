@@ -29,7 +29,8 @@ class HomePage {
   }
 
   async openCard(rail: number, index: number): Promise<void> {
-    await this.app.focus.navigateTo(this.card(rail, index));
+    await this.app.focus.pressUntil(Key.DOWN, this.app.getByTestId(`rail-${rail}`));
+    await this.app.focus.pressUntil(Key.RIGHT, this.card(rail, index));
     await this.app.remote.press(Key.SELECT);
   }
 }

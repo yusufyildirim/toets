@@ -13,7 +13,7 @@ What the driver declares black-box (without the in-app SDK). The SDK adds its do
 | `network.mock`                                                                            | with `toets.mock`   | Granted by the core when the mock server is on; payload ports are `adb reverse`d, the app must use `mockUrl`.                                                       |
 | `platform.events`                                                                         | yes                 | `network-lost`/`-restored`: `svc wifi` and `svc data` off/on (`adb reverse` keeps the host reachable). `suspend`: HOME. `resume`: the app's task back to the front. |
 | `tree.hierarchy`                                                                          | no                  | The accessibility tree may flatten containers: React Native lists a plain `View`'s children as its siblings ([traps](./traps.md)). The SDK tree nests.              |
-| `focus.graph` `sync.idle` `media.state` `app.state`                                       | no                  | Need the SDK.                                                                                                                                                       |
+| `sync.idle` `media.state` `app.state`                                                     | no                  | Need the SDK.                                                                                                                                                       |
 
 ## Snapshot fields
 

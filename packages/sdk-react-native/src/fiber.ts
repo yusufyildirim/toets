@@ -1,7 +1,6 @@
 import {
   RpcError,
   RpcErrorCode,
-  type FocusGraphNode,
   type ProtocolNode,
   type Rect,
   type Viewport,
@@ -115,43 +114,6 @@ export class FiberMapper {
     const target = this.opts.focused();
     const fiber = target === null ? null : this.find((f) => matches(f, target));
     return fiber ? this.idOf(fiber) : null;
-  }
-
-  /**
-   * Focusable nodes with their declared neighbors (`nextFocusUp/Down/Left/Right`). A
-   * neighbor pointing at the node itself means focus does not move; no prop = unknown.
-   */
-  async graph(rootId?: string): Promise<FocusGraphNode[]> {
-    const draft = this.draft(rootId);
-    const drafts = draft ? [draft] : this.rootDrafts();
-    const focusable: Draft[] = [];
-    const visit = (d: Draft): void => {
-      if (d.info.focusable) focusable.push(d);
-      d.children.forEach(visit);
-    };
-    drafts.forEach(visit);
-    const byTag: Record<string, string> = {};
-    const reported: Record<string, true> = {};
-    for (const d of focusable) reported[d.id] = true;
-    this.walkHosts((f) => {
-      const tag = nativeTagOf(f);
-      if (tag !== undefined) byTag[String(tag)] = this.idOf(f);
-    });
-    return focusable.map((d) => {
-      const props = hostProps(d.fiber);
-      const own = nativeTagOf(d.fiber);
-      const node: { -readonly [K in keyof FocusGraphNode]: FocusGraphNode[K] } = { id: d.id };
-      for (const dir of ['up', 'down', 'left', 'right'] as const) {
-        const tag = props[`nextFocus${dir.charAt(0).toUpperCase()}${dir.slice(1)}`];
-        if (typeof tag !== 'number') continue;
-        if (tag === own) node[dir] = null;
-        else {
-          const target = byTag[String(tag)];
-          if (target !== undefined && reported[target]) node[dir] = target;
-        }
-      }
-      return node;
-    });
   }
 
   private draft(rootId: string | undefined): Draft | null {

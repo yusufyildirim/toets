@@ -1,6 +1,6 @@
 import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { afterAll, afterEach, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from 'vitest';
 import { createSdkHost } from '@toets/protocol/host';
 import { encodeLaunchPayloadParam, RpcErrorCode, type ProtocolNode } from '@toets/protocol';
 import {
@@ -12,6 +12,7 @@ import {
   markBusy,
   onState,
   registerMedia,
+  reportFocus,
 } from '../src/index.js';
 import { closeAll, connect, sleep } from './helpers.js';
 
@@ -125,13 +126,12 @@ describe('connected runtime', () => {
     }
   });
 
-  it('announces focus only with tree and both focus handlers', async () => {
+  it('announces focus only with tree and focus handlers', async () => {
     const { session } = await connect({
       logs: false,
       setup: (d) => {
         d.handle('tree.get', () => ({ root: leaf, viewport: { width: 1, height: 1 } }));
         d.handle('focus.get', () => ({ node: null }));
-        d.handle('focus.graph', () => ({ nodes: [] }));
       },
     });
     expect([...session.domains]).toEqual(['tree', 'focus', 'sync', 'media', 'state']);
@@ -301,7 +301,6 @@ describe('connected runtime', () => {
       setup: (d) => {
         d.handle('tree.get', () => ({ root: leaf, viewport: { width: 1, height: 1 } }));
         d.handle('focus.get', () => ({ node: null }));
-        d.handle('focus.graph', () => ({ nodes: [] }));
         d.setFocusSource({ current: () => focused });
       },
     });
@@ -314,6 +313,43 @@ describe('connected runtime', () => {
     toets.focusChanged();
     await sleep(50);
     expect(events).toEqual([{ from: 'n1', to: 'n2' }]);
+  });
+
+  it('switches to reported focus on the first reportFocus() call', async () => {
+    const { session, toets } = await connect({
+      setup: (d) => {
+        d.handle('tree.get', () => ({ root: leaf, viewport: { width: 1, height: 1 } }));
+        d.handle('focus.get', () => ({ node: null }));
+        // How adapters resolve focus: reported once the app reports, the platform's before.
+        d.setFocusSource({
+          current: () => (d.reportedFocus ? (d.reportedFocus.target as string | null) : 'native'),
+        });
+      },
+    });
+    const events: unknown[] = [];
+    session.on('focus.changed', (e) => events.push(e));
+    expect(toets.reportedFocus).toBeNull();
+    reportFocus('card-1');
+    await sleep(20);
+    reportFocus(null);
+    await sleep(20);
+    expect(toets.reportedFocus).toEqual({ target: null });
+    expect(events).toEqual([
+      { from: 'native', to: 'card-1' },
+      { from: 'card-1', to: null },
+    ]);
+  });
+
+  it('replays focus reported before the runtime exists', async () => {
+    vi.resetModules();
+    const sdk = await import('../src/index.js');
+    sdk.reportFocus('early');
+    const toets = sdk.createToets({
+      framework: 'test',
+      payload: { v: 1, sdkUrl: 'ws://localhost:1', token: 't' },
+    });
+    expect(toets.reportedFocus).toEqual({ target: 'early' });
+    toets.stop();
   });
 
   it('stops and restores hooks when the host closes the session', async () => {
@@ -390,6 +426,6 @@ describe('noop module', () => {
     noop.markBusy('x')();
     noop.onState(() => {})();
     noop.createMediaReporter('m').update({ state: 'playing' });
-    noop.focusChanged();
+    noop.reportFocus(null);
   });
 });

@@ -17,25 +17,16 @@ The web driver passes the payload as `?__toets=<base64url>` (also read inside ha
 ## What it maps
 
 - **tree:** the DOM from `document.body`. An element becomes a node when it carries meaning (test id, focusable, own text, label, role, state, media, form control); structural wrappers are collapsed. Test ids come from `data-testid` (react-native-web renders `testID` there). Open shadow roots are traversed.
-- **focus:** `document.activeElement` and `focusin`/`focusout`.
+- **focus:** `document.activeElement` and `focusin`/`focusout`; what the app reports with `reportFocus()` once it reports ([focus.md](./focus.md)).
 - **sync:** fetch, XHR, short timers, and CSS animations/transitions via `document.getAnimations()` (event fallback on older engines). Infinite animations are ignored.
 - **media:** every `<video>`/`<audio>`; id = test id, else element id.
 - **logs:** console, `error` and `unhandledrejection`.
 
-## Custom focus engines
+## JS focus engines
 
-Many TV web apps move a "focused" class instead of DOM focus. Tell the adapter:
+Many TV web apps move a "focused" class instead of DOM focus. Report every move with `reportFocus(element)`; from the first report on, the adapter ignores DOM focus. See [focus.md](./focus.md).
 
-```ts nocheck
-startToets({
-  focusedElement: () => document.querySelector('.focused'),
-  isFocusable: (el) => el.classList.contains('focusable') || undefined,
-  focusNeighbors: (el) => engine.neighbors(el), // { up, down, left, right }: element, null = blocked
-});
-// and call focusChanged() (from @toets/sdk/web) when the engine moves focus
-```
-
-Other options: `testIdAttribute`, `root`, `animations: false`, `ignoreAnimation`, `media: false`, plus the runtime options (`idle`, `logs`, `allowRemoteHost`).
+Options: `testIdAttribute`, `root`, `isFocusable`, `animations: false`, `ignoreAnimation`, `media: false`, plus the runtime options (`idle`, `logs`, `allowRemoteHost`).
 
 ## TV trap
 

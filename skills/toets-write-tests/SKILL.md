@@ -15,7 +15,7 @@ Docs are referenced by slug, for example `concepts/focus`: the docs site page `/
 - **Locators are lazy, assertions retry.** Never sleep, never read a value and compare it yourself. (`concepts/locators-and-assertions`)
 - **Keys are semantic.** `Key.PLAY_PAUSE`, never keycodes; keys a remote lacks are capability-gated. (`concepts/remote-and-keys`)
 - **Platform gaps are capabilities.** Declare `requires`; never branch on the platform. (`concepts/capabilities`)
-- **The SDK is optional.** It adds idle sync, focus graph, media state and named states. (`concepts/sdk`)
+- **The SDK is optional.** It adds idle sync, media state and named states. Apps with a JS focus engine need it to report focus. (`concepts/sdk`)
 
 ## Workflow
 
@@ -36,7 +36,8 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
   await app.launch();
 
   const tab = app.getByTestId('menu-watchlist');
-  await app.focus.navigateTo(tab);
+  await app.focus.pressUntil(Key.LEFT, app.getByTestId('side-menu'));
+  await app.focus.pressUntil(Key.DOWN, tab);
   await expect(tab).toBeFocused();
   await app.remote.press(Key.SELECT);
 
@@ -50,7 +51,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 | --------------------------- | ------------------------------------------------------------------ |
 | Start the app               | `app.launch()`, `app.launch({ state, flags, clearData })`          |
 | Find elements               | `app.getByTestId(id)`, `app.getByText(text)`, `.nth(i)`, chaining  |
-| Get somewhere               | `app.focus.navigateTo(locator)`                                    |
+| Get somewhere               | `app.focus.pressUntil(Key.RIGHT, locator)`, or `navigateTo`        |
 | Press keys                  | `app.remote.press(Key.X)`, `longPress`, `repeat`, `sequence`       |
 | Check focus                 | `expect(l).toBeFocused()`, `expect(container).toHaveFocusWithin()` |
 | Check content               | `toBeVisible`, `toHaveText`, `toContainText`, `toHaveCount`        |
@@ -62,7 +63,8 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 ## Rules
 
 - `await` every action and assertion.
-- `navigateTo` to get somewhere; explicit presses when navigation itself is under test.
+- `pressUntil(key, locator)` to get somewhere, one call per direction (`navigateTo` when the route is not worth spelling out); explicit presses when navigation itself is under test. (`concepts/focus`)
+- A JS focus engine (focus only in app state) must report focus with the SDK's `reportFocus()`, or focus assertions see nothing. (`reference/sdk/docs/focus`)
 - Negative assertions (`.not`) only after a positive assertion proved the screen is in the intended state. (`concepts/idle`)
 - Mock data the test depends on (needs `toets: { mock: true }` and app cooperation); a relative path like `/api/x` matches any origin. (`concepts/network-mocking`)
 - Page objects take `app`, expose locators and intent-level actions, and do not assert except to wait until loaded. (`concepts/page-objects`)
@@ -75,6 +77,6 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 
 - tvOS has only D-pad, select, back, play/pause and home keys. (`platforms/tvos`)
 - Android TV has every TV key; emulators are slower than web. (`platforms/android-tv`)
-- Web focus is `document.activeElement`, unless the web driver's `focus` selectors or the SDK report the app's own focus. (`platforms/web`)
+- Web focus is `document.activeElement`, unless the app reports its own focus with the SDK. (`platforms/web`)
 
 If a test fails and the cause is not obvious, switch to the toets-debug-failures skill.

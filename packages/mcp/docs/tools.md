@@ -7,7 +7,8 @@ Every device tool runs the toets core code its test API runs and answers with th
 | `launch`       | Starts or restarts the app on a target, optionally into a `state` with `flags`.         | `await app.launch({ state, flags })`             |
 | `snapshot`     | Text snapshot of the screen (or a subtree), byte for byte what a test gets.             | `await app.snapshot()`                           |
 | `press`        | Presses remote keys in order (key overrides applied); reports where focus landed.       | `app.remote.press / repeat / sequence`           |
-| `navigate_to`  | Moves focus to a target with real D-pad presses; reports the path.                      | `await app.focus.navigateTo(locator)`            |
+| `press_until`  | Presses one D-pad direction until a target holds focus; reports the presses.            | `await app.focus.pressUntil(Key.RIGHT, locator)` |
+| `navigate_to`  | Moves focus to an on-screen target with real D-pad presses; reports the path.           | `await app.focus.navigateTo(locator)`            |
 | `query`        | Lists current matches of a target with state and bounds.                                | `app.getByTestId(...)`                           |
 | `assert`       | Any toets matcher, retried until timeout; passes and fails exactly like `expect`.       | `await expect(locator).toBeFocused()`            |
 | `screenshot`   | PNG of the screen or of one element.                                                    | `await app.screenshot()`, `locator.screenshot()` |
@@ -38,9 +39,10 @@ Failures come back as tool errors with a code, a hint and a docs link, like ever
 | `MCP_NO_CONFIG`         | No test config with toets projects and no `toets.mcp.config.*`; see [setup](./setup.md).      |
 | `KEY_UNSUPPORTED`       | The target lacks the key's capability; check `capabilities`. Nothing was pressed.             |
 | `CAPABILITY_MISSING`    | `state`, media or network checks need the SDK or mocking on.                                  |
-| `ELEMENT_NOT_FOUND`     | Nothing matches. Virtualized lists only render items near focus: move toward it.              |
+| `ELEMENT_NOT_FOUND`     | Nothing matches. Virtualized lists only render items near focus: `press_until` toward it.     |
 | `STRICT_MODE_VIOLATION` | The target matches several elements; use a test ID, `exact` or `nth`.                         |
+| `FOCUS_STUCK`           | A `press_until` press did not move focus: end of a row, a trap or a disabled target.          |
+| `FOCUS_LOOP`            | Focus came back to an element it left: the target is not in that direction.                   |
 | `FOCUS_UNREACHABLE`     | D-pad presses can not get there (focus trap, disabled path). The message says where focus is. |
-| `TARGET_NOT_FOCUSABLE`  | The target neither is nor contains a focusable element.                                       |
 
 `assert` failing is also a tool error: `FAIL after 5000ms: <code>`, then the message `expect` would print.

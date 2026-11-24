@@ -18,7 +18,7 @@ if (app.platform.has('media.state')) {
 
 - **Declare, do not branch.** `requires(...)` skips the test with a reason on platforms without the capability, and the parity report shows where and why. A test that branches on `app.platform.name` hides gaps.
 - **Using a missing capability fails loudly** with `CAPABILITY_MISSING` or `KEY_UNSUPPORTED`, naming the capability and how to declare it.
-- **SDK capabilities** (`tree.hierarchy`, `focus.graph`, `sync.idle`, `media.state`, `app.state`, `logs`) count as available for `requires` when the SDK is configured, because the app connects only at launch.
+- **SDK capabilities** (`tree.hierarchy`, `sync.idle`, `media.state`, `app.state`, `logs`) count as available for `requires` when the SDK is configured, because the app connects only at launch.
 
 ## TV trap: same key, different remotes
 

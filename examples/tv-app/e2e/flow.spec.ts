@@ -10,7 +10,8 @@ test.describe.serial('save and watch a documentary', requires('key.back'), () =>
   test('browse to the title', async ({ app }) => {
     const home = new HomePage(app);
     await home.open();
-    await app.focus.navigateTo(home.card('documentaries-2'));
+    await app.focus.pressUntil(Key.DOWN, home.rail('documentaries'));
+    await app.focus.pressUntil(Key.RIGHT, home.card('documentaries-2'));
     await expect(home.heroTitle).toHaveText('Made by Hand');
   });
 

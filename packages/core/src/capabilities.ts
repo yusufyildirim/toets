@@ -18,7 +18,6 @@ export type Capability =
   | 'key.numeric'
   | 'key.channel'
   | 'key.longpress'
-  | 'focus.graph'
   /**
    * The element tree nests like the app's views: a container's children are its children in
    * the tree. The DOM and the SDK tree do; accessibility trees may list a plain container's

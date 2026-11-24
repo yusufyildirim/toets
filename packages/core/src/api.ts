@@ -7,7 +7,7 @@
  */
 import type { MediaInfo } from '@toets/protocol';
 import type { Capability } from './capabilities.js';
-import type { Direction, Key, PressOptions } from './keys.js';
+import type { Direction, DirectionKey, Key, PressOptions } from './keys.js';
 import type { Platform } from './platform.js';
 
 /** Reference to UI element(s). Lazy: resolved on every use, so it never goes stale. Opaque. */
@@ -56,13 +56,34 @@ export interface NavigateOptions {
   readonly maxPresses?: number;
 }
 
+export interface PressUntilOptions {
+  /** Give up after this many presses. Default 50. */
+  readonly maxPresses?: number;
+}
+
 export interface Focus {
   /** Locator for the currently focused element. */
   current(): Locator;
   /**
-   * Moves focus to `target` with real D-pad presses, choosing directions from the SDK focus
-   * graph when available, otherwise from element geometry. The path taken is reported.
-   * Throws when the target is unreachable.
+   * Presses `key` until `target` (or an element inside it) is focused, reading focus after
+   * every press. The recommended way to move focus: the app's focus engine decides every step,
+   * toets only checks where focus landed. `target` may not exist yet (virtualized lists render
+   * items as focus approaches). Fails fast when a press does not move focus (`FOCUS_STUCK`),
+   * when focus comes back to an element it already left (`FOCUS_LOOP`) or after `maxPresses`
+   * (`FOCUS_UNREACHABLE`).
+   *
+   * @returns The number of presses (0 when `target` already holds focus).
+   * @example
+   * await app.focus.pressUntil(Key.RIGHT, app.getByTestId('rail-0-card-3'));
+   */
+  pressUntil(key: DirectionKey, target: Locator, opts?: PressUntilOptions): Promise<number>;
+  /**
+   * Moves focus to `target` with real D-pad presses when the way there is not one direction.
+   * Each press is aimed by element geometry and checked by reading focus, like
+   * {@link Focus.pressUntil}; presses that do not move focus are learned and detoured around.
+   * `target` must be on screen. Throws `FOCUS_UNREACHABLE` when no option is left.
+   *
+   * @returns The directions pressed.
    */
   navigateTo(target: Locator, opts?: NavigateOptions): Promise<readonly Direction[]>;
   /** Runs `action` and waits until focus moves to a different element. */

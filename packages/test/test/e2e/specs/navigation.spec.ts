@@ -4,8 +4,7 @@ test('opens details from the rail', async ({ app }) => {
   await app.launch();
   await expect(app.getByTestId('menu_home')).toBeFocused();
 
-  const path = await app.focus.navigateTo(app.getByTestId('card_2'));
-  expect(path.length).toBeGreaterThan(0);
+  expect(await app.focus.pressUntil(Key.RIGHT, app.getByTestId('card_2'))).toBe(2);
   await expect(app.getByTestId('rail')).toHaveFocusWithin();
   await expect(app.getByText('Movie', { exact: false })).toHaveCount(3);
 

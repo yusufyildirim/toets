@@ -11,6 +11,8 @@ import type { StateHandler } from './state.js';
 
 let current: Toets | null = null;
 let launchPayload: LaunchPayload | null = null;
+/** A `reportFocus()` call made before any runtime existed (React Native on Android starts late). */
+let pendingFocus: { readonly target: unknown } | null = null;
 
 interface Binding<T> {
   readonly value: T;
@@ -24,7 +26,7 @@ const mediaSources: Array<
 
 /**
  * Creates the runtime. With a valid payload it becomes the active runtime that
- * {@link markBusy}, {@link onState}, {@link registerMedia} and {@link focusChanged} use.
+ * {@link markBusy}, {@link onState}, {@link registerMedia} and {@link reportFocus} use.
  * Adapters call this; apps normally call an adapter's `startToets()` instead.
  */
 export function createToets(options: ToetsOptions): Toets {
@@ -33,6 +35,8 @@ export function createToets(options: ToetsOptions): Toets {
   if (!toets.active) return toets;
   if (current && current !== toets) current.stop();
   current = toets;
+  if (pendingFocus) toets.reportFocus(pendingFocus.target);
+  pendingFocus = null;
   for (const b of stateHandlers) {
     b.detach?.();
     b.detach = toets.onState(b.value);
@@ -133,9 +137,22 @@ export function createMediaReporter(
   };
 }
 
-/** Tells the SDK that focus may have moved (custom focus engines without DOM/native focus). */
-export function focusChanged(): void {
-  current?.focusChanged();
+/**
+ * Tells toets which element holds focus, for JS focus engines that keep focus in app state
+ * instead of moving DOM or native focus (Norigin Spatial Navigation, LRUD,
+ * react-tv-space-navigation, ...). Call it whenever the engine focuses an element, with what
+ * the platform adapter understands: a DOM element on web, a ref, host instance or native tag on
+ * React Native, a ref object (`{ current }`) on both, or `null` when nothing is focused.
+ *
+ * The first call switches the session to reported focus: from then on toets ignores DOM and
+ * native focus, so there is one source of truth. Inert when the SDK is not running.
+ *
+ * @example
+ * engine.on('focus', (el) => reportFocus(el));
+ */
+export function reportFocus(target: unknown): void {
+  if (current) current.reportFocus(target);
+  else pendingFocus = { target };
 }
 
 function bindMedia(id: string, source: MediaSource, onAttach?: (d: Toets) => void): () => void {

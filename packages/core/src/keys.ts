@@ -46,6 +46,9 @@ export const TOETS_KEYS: readonly Key[] = [Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 
+/** The D-pad keys: the keys that move focus. */
+export type DirectionKey = typeof Key.UP | typeof Key.DOWN | typeof Key.LEFT | typeof Key.RIGHT;
+
 export const DIRECTION_KEY: Readonly<Record<Direction, Key>> = {
   up: Key.UP,
   down: Key.DOWN,

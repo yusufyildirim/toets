@@ -88,6 +88,15 @@ export interface FocusSource {
   current(): string | null;
 }
 
+/** Focus as the app reported it with `reportFocus()`. */
+export interface ReportedFocus {
+  /**
+   * What the app passed: an element, a ref, a host instance or a native tag, as the adapter
+   * understands it; `null` when nothing is focused.
+   */
+  readonly target: unknown;
+}
+
 const QUEUE_LIMIT = 500;
 const HELLO_TIMEOUT_MS = 10_000;
 const RETRY_DELAYS_MS = [250, 500, 1000, 2000, 2000];
@@ -115,6 +124,7 @@ export class Toets {
   private peer: RpcPeer | null = null;
   private attempt = 0;
   private focusSource: FocusSource | null = null;
+  private reported: ReportedFocus | null = null;
   private lastFocus: string | null = null;
   private focusCheckScheduled = false;
 
@@ -162,9 +172,8 @@ export class Toets {
   }
 
   /**
-   * Registers the handler for a host request. Adapters provide `tree.get`, `focus.get` and
-   * `focus.graph`; a domain is announced when all its methods have handlers. Register
-   * before `start()`.
+   * Registers the handler for a host request. Adapters provide `tree.get` and `focus.get`; a
+   * domain is announced when all its methods have handlers. Register before `start()`.
    */
   handle<M extends HostToAppMethod>(method: M, handler: HostRequestHandler<M>): void {
     this.handlers[method] = handler as unknown as HostRequestHandler<HostToAppMethod>;
@@ -212,8 +221,26 @@ export class Toets {
   }
 
   /**
+   * Records the element a JS focus engine focused (see the `reportFocus()` function). From the
+   * first report on, adapters take focus only from these reports for the rest of the session.
+   */
+  reportFocus(target: unknown): void {
+    if (!this.active) return;
+    this.reported = { target };
+    this.focusChanged();
+  }
+
+  /**
+   * The last focus the app reported, or `null` while it reported none. Adapters read focus from
+   * here when it is set, and from the platform (DOM or native focus) otherwise.
+   */
+  get reportedFocus(): ReportedFocus | null {
+    return this.reported;
+  }
+
+  /**
    * Signals that focus may have moved; emits `focus.changed` (coalesced, deduplicated).
-   * Adapters call it from focus events; apps with custom focus engines call it too.
+   * Adapters call it from platform focus events.
    */
   focusChanged(): void {
     if (!this.active || !this.focusSource || this.focusCheckScheduled) return;
@@ -378,8 +405,7 @@ export class Toets {
   private computeDomains(): Domain[] {
     const domains: Domain[] = ['sync', 'media', 'state'];
     if (this.handlers['tree.get']) domains.unshift('tree');
-    if (this.handlers['tree.get'] && this.handlers['focus.get'] && this.handlers['focus.graph'])
-      domains.splice(1, 0, 'focus');
+    if (this.handlers['tree.get'] && this.handlers['focus.get']) domains.splice(1, 0, 'focus');
     if (this.options.logs !== false) domains.push('logs');
     return domains;
   }

@@ -67,5 +67,5 @@ export default defineConfig({
 
 - **`PLAY`, `PAUSE` and `PLAY_PAUSE` are different keys.** Most remotes only have the toggle. Use `PLAY_PAUSE` unless the test is about discrete play or pause.
 - **`BACK` is the Menu button on Apple TV.** The driver maps it; tests stay semantic.
-- **Fixed key sequences are brittle.** `repeat(Key.RIGHT, 7)` encodes today's layout. Use [`navigateTo`](./focus.md) unless the sequence itself is under test.
+- **Fixed key sequences are brittle.** `repeat(Key.RIGHT, 7)` encodes today's layout. Use [`pressUntil`](./focus.md) unless the sequence itself is under test.
 - **Do not add sleeps between presses.** `repeat` and `sequence` already space presses (`intervalMs`, default 100 ms, configurable as `toets.remote.intervalMs`). Between separate presses, assert the state you expect instead of waiting.

@@ -114,19 +114,6 @@ export interface BusyResource {
   readonly durationMs?: number;
 }
 
-/**
- * One focusable node and where focus moves from it per direction.
- * Edge values: node id = focus moves there; `null` = focus does not move (edge of the
- * screen or a trap); absent = unknown (the host falls back to geometry).
- */
-export interface FocusGraphNode {
-  readonly id: string;
-  readonly up?: string | null;
-  readonly down?: string | null;
-  readonly left?: string | null;
-  readonly right?: string | null;
-}
-
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
 export interface LogEntryParams {
@@ -148,10 +135,6 @@ export interface HostToAppRequests {
     result: { readonly root: ProtocolNode; readonly viewport: Viewport };
   };
   'focus.get': { params: Record<string, never>; result: { readonly node: ProtocolNode | null } };
-  'focus.graph': {
-    params: { readonly rootId?: string };
-    result: { readonly nodes: readonly FocusGraphNode[] };
-  };
   'sync.waitForIdle': {
     params: { readonly timeoutMs: number; readonly quietMs?: number };
     result: { readonly idle: boolean; readonly busy: readonly BusyResource[] };
@@ -183,7 +166,6 @@ export type AppToHostNotificationMethod = keyof AppToHostNotifications;
 export const METHOD_DOMAIN: Readonly<Record<HostToAppMethod, Domain>> = {
   'tree.get': 'tree',
   'focus.get': 'focus',
-  'focus.graph': 'focus',
   'sync.waitForIdle': 'sync',
   'media.get': 'media',
   'media.list': 'media',
@@ -197,7 +179,6 @@ export const METHOD_DOMAIN: Readonly<Record<HostToAppMethod, Domain>> = {
 export const METHOD_SINCE: Readonly<Record<HostToAppMethod, string>> = {
   'tree.get': '1.0',
   'focus.get': '1.0',
-  'focus.graph': '1.0',
   'sync.waitForIdle': '1.0',
   'media.get': '1.0',
   'media.list': '1.0',

@@ -1,6 +1,6 @@
 # In-app SDK
 
-The SDK is an optional library inside the app under test. toets works black-box without it; with it, tests get a uniform element tree, reliable focus, idle sync (no polling sleeps), media state, app state launch and app logs.
+The SDK is an optional library inside the app under test. toets works black-box without it; with it, tests get a uniform element tree, idle sync (no polling sleeps), media state, app state launch and app logs. Apps with a JS focus engine need it: their focus lives in app state, and only the app can report it ([focus.md](./focus.md)).
 
 - `@toets/sdk`: the framework-neutral runtime and the app-facing API below.
 - `@toets/sdk/web`: web adapter ([web.md](./web.md)).
@@ -33,7 +33,7 @@ const mockUrl = getLaunchPayload()?.mockUrl; // route API calls through it, see 
 | `onState(handler)`                      | Launch into a named state, apply flags ([state.md](./state.md)). |
 | `markBusy(description)`                 | Work the SDK cannot see ([idle.md](./idle.md)).                  |
 | `registerMedia` / `createMediaReporter` | Players ([media.md](./media.md)).                                |
-| `focusChanged()`                        | Custom focus engines: focus moved.                               |
+| `reportFocus(element)`                  | JS focus engines: what holds focus ([focus.md](./focus.md)).     |
 | `getLaunchPayload()`                    | The launch payload (`mockUrl`, `state`, `flags`) or `null`.      |
 | `getToets()`                            | The running runtime (`status`, `domains`) or `null`.             |
 

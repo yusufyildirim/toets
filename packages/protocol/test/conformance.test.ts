@@ -87,13 +87,6 @@ function fakeFixtureApp(bugs: Bugs = {}): ConformanceTarget {
           }
           case 'focus.get':
             return { node: focused ? (find(tree(), focused) ?? null) : null };
-          case 'focus.graph':
-            return {
-              nodes: [
-                { id: 'n1', right: 'n2', left: null },
-                { id: 'n2', left: 'n1' },
-              ],
-            };
           case 'sync.waitForIdle': {
             const end = Date.now() + Number(p.timeoutMs);
             while (Date.now() < busyUntil && Date.now() < end)

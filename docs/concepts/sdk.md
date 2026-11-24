@@ -1,15 +1,17 @@
 ---
-description: The optional in-app SDK reports the app's own tree, focus graph, idle state and media state over an open protocol. It speeds tests up and adds capabilities; it is never required.
+description: The optional in-app SDK reports the app's own tree, focus, idle state and media state over an open protocol. It speeds tests up and adds capabilities; only apps with a JS focus engine need it, to report focus.
 ---
 
 # The in-app SDK
 
 toets works **black-box**: the first test needs no app changes. The optional **SDK** is a small library inside the app that talks to the test host and reports what the app itself knows. It makes tests faster and more reliable, and adds capabilities a black-box driver can not offer.
 
+One exception: an app whose focus lives in a **JS focus engine** (Norigin Spatial Navigation, LRUD, react-tv-space-navigation, ...) has no focus a driver can see. It reports focus through the SDK with `reportFocus()` ([reporting focus](../reference/sdk/docs/focus.md)).
+
 | Domain  | Adds                                                    | Capability       |
 | ------- | ------------------------------------------------------- | ---------------- |
 | `tree`  | uniform element tree, free of accessibility-tree quirks | `tree.hierarchy` |
-| `focus` | the app's real focus and focus graph                    | `focus.graph`    |
+| `focus` | the app's real focus, including app-reported focus      |                  |
 | `sync`  | idle signal, busy resources                             | `sync.idle`      |
 | `media` | player state, position, duration, errors                | `media.state`    |
 | `state` | launch into a named state, feature flags                | `app.state`      |

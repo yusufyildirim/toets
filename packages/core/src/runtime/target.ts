@@ -1,10 +1,4 @@
-import type {
-  Domain,
-  FocusGraphNode,
-  HostToAppMethod,
-  MediaInfo,
-  SdkSession,
-} from '@toets/protocol';
+import type { Domain, HostToAppMethod, MediaInfo, SdkSession } from '@toets/protocol';
 import type { Capability } from '../capabilities.js';
 import { fromProtocolError } from '../errors.js';
 import type { Driver } from '../driver.js';
@@ -16,7 +10,7 @@ import { evaluateChain, focusedIn, protocolToTree } from './tree.js';
 /** Capabilities each SDK domain adds to a target. */
 export const DOMAIN_CAPABILITIES: Readonly<Record<Domain, readonly Capability[]>> = {
   tree: ['tree.hierarchy'],
-  focus: ['focus.graph'],
+  focus: [],
   sync: ['sync.idle'],
   media: ['media.state'],
   state: ['app.state'],
@@ -30,7 +24,6 @@ export const DOMAIN_CAPABILITIES: Readonly<Record<Domain, readonly Capability[]>
  */
 const CAPABILITY_METHOD: Partial<Record<Capability, HostToAppMethod>> = {
   'tree.hierarchy': 'tree.get',
-  'focus.graph': 'focus.graph',
   'sync.idle': 'sync.waitForIdle',
   'media.state': 'media.get',
   'app.state': 'state.apply',
@@ -49,7 +42,7 @@ export interface TargetOptions {
 
 /**
  * One app target: a driver plus, when connected, an SDK session. Composes them per VISION:
- * the SDK answers tree, query, focus, focus graph, media and idle; the driver does input,
+ * the SDK answers tree, query, focus, media and idle; the driver does input,
  * launch and screenshots. An SDK failure never fails a read: the target logs it and falls back
  * to the driver, so the SDK stays an accelerator.
  */
@@ -128,14 +121,6 @@ export class Target {
   async focused(): Promise<ElementSnapshot | null> {
     const tree = await this.sdkTree();
     return tree ? focusedIn(tree) : await this.driver.focused();
-  }
-
-  /** The SDK focus graph, or `null` without the `focus` domain. */
-  async focusGraph(): Promise<readonly FocusGraphNode[] | null> {
-    return (
-      (await this.viaSdk('focus.graph', async (s) => (await s.request('focus.graph', {})).nodes)) ??
-      null
-    );
   }
 
   /** Media state from the SDK; `undefined` when the `media` domain is unavailable. */

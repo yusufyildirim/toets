@@ -148,7 +148,7 @@ describe('@toets/test end to end', () => {
     );
     const titles = stepTitles(web?.result.steps);
     expect(titles).toContain('launch');
-    expect(titles).toContain("navigateTo getByTestId('card_2')");
+    expect(titles).toContain("pressUntil RIGHT getByTestId('card_2')");
     expect(titles).toContain('press SELECT');
     expect(web?.result.attachments.some((a) => a.name === 'step-snapshot')).toBe(true);
   });
@@ -210,9 +210,9 @@ describe('@toets/test end to end', () => {
     expect(message).toContain(
       "ToetsError: [ELEMENT_NOT_FOUND] getByTestId('no_such_element') matched no element",
     );
-    expect(message).toContain('\nHint: Check the test ID');
+    expect(message).toContain('\nHint: navigateTo aims at the target on screen');
     expect(message).toMatch(
-      /\nDocs: reference\/core\/docs\/locators \(offline: \S*core\/docs\/locators\.md\)/,
+      /\nDocs: reference\/core\/docs\/focus-navigation \(offline: \S*core\/docs\/focus-navigation\.md\)/,
     );
   });
 });

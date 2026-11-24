@@ -1,6 +1,6 @@
 # Capabilities
 
-Static capabilities of the tvOS driver. A connected toets SDK adds its own (`focus.graph`, `sync.idle`, `media.state`, `app.state`, ...).
+Static capabilities of the tvOS driver. A connected toets SDK adds its own (`sync.idle`, `media.state`, `app.state`, ...).
 
 | Capability                                                                                                                   | Supported | How                                                                                 |
 | ---------------------------------------------------------------------------------------------------------------------------- | --------- | ----------------------------------------------------------------------------------- |

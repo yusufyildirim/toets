@@ -10,7 +10,6 @@
 export * from '@toets/sdk';
 export {
   startToets,
-  reportFocus,
   withToets,
   ToetsRoot,
   SDK_ID,

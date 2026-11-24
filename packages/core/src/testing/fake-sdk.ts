@@ -96,8 +96,6 @@ export class FakeSdkSession implements SdkSession {
             n.focused ? n : (n.children.map(find).find((c) => c !== null) ?? null);
           return { node: find(this.driver.protocolTree()) };
         }
-        case 'focus.graph':
-          return { nodes: this.driver.focusGraph() };
         case 'sync.waitForIdle': {
           const p = params as { timeoutMs: number; quietMs?: number };
           return typeof this.idle === 'function' ? this.idle(p) : this.idle;

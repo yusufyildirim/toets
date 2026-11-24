@@ -16,14 +16,12 @@ export {
   onState,
   registerMedia,
   createMediaReporter,
-  focusChanged,
+  reportFocus,
 } from '@toets/sdk/noop';
 
 function noop(): void {}
 
 export function startToets(_options?: unknown): void {}
-
-export function reportFocus(_target: unknown): void {}
 
 export function ToetsRoot(props: { readonly children?: ReactNode }): ReactNode {
   return props.children ?? null;

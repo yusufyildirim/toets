@@ -18,13 +18,12 @@ test('the red key opens the guide', requires('key.color'), async ({ app }) => {
 
 ## Where capabilities come from
 
-A target's capabilities are the union of its **driver's** (what the platform and its automation can do) and those granted by the [in-app SDK](./sdk.md) when connected (`tree.hierarchy`, `focus.graph`, `sync.idle`, `media.state`, `app.state`).
+A target's capabilities are the union of its **driver's** (what the platform and its automation can do) and those granted by the [in-app SDK](./sdk.md) when connected (`tree.hierarchy`, `sync.idle`, `media.state`, `app.state`, `logs`).
 
 | Capability           | Means                                                                                                                          |
 | -------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
 | `key.*`              | the remote has the key, see [Remote and keys](./remote-and-keys.md)                                                            |
 | `key.longpress`      | keys can be held                                                                                                               |
-| `focus.graph`        | focus neighbors are known without pressing                                                                                     |
 | `tree.hierarchy`     | the tree nests like the app's views (a whole-screen [text snapshot](./text-snapshots.md) has the same shape everywhere)        |
 | `sync.idle`          | the app reports when it is idle, see [Idle](./idle.md)                                                                         |
 | `media.state`        | player state can be read: `expect(app.media)`                                                                                  |

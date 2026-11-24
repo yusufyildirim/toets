@@ -26,6 +26,8 @@ const inert = {
   log: noop,
   setFocusSource: noop,
   focusChanged: noop,
+  reportFocus: noop,
+  reportedFocus: null,
   onStop: noop,
   onStatusChange: () => noop,
   start: noop,
@@ -66,4 +68,4 @@ export function createMediaReporter(
   };
   return { update: noop, snapshot, dispose: noop };
 }
-export function focusChanged(): void {}
+export function reportFocus(_target: unknown): void {}

@@ -6,7 +6,7 @@ A locator describes how to find an element, not the element itself. It is resolv
 const rail = app.getByTestId('rail-popular');
 const card = rail.getByText(/the matrix/i).first();
 
-await app.focus.navigateTo(card);
+await app.focus.pressUntil(Key.RIGHT, card);
 await expect(card).toBeFocused();
 ```
 
@@ -20,4 +20,4 @@ await expect(card).toBeFocused();
 
 ## TV trap: virtualized lists
 
-TV rails and grids render only the items near focus. An item ten cards to the right does not exist yet, so `getByTestId('rail-0-card-10')` finds nothing. Navigate toward it first (`app.focus.navigateTo` walks the visible part), or press `RIGHT` until it appears, then locate it.
+TV rails and grids render only the items near focus. An item ten cards to the right does not exist yet, so `getByTestId('rail-0-card-10')` finds nothing. Press toward it: `app.focus.pressUntil(Key.RIGHT, card)` works before the card exists, re-reading the screen after every press.
