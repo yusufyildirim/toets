@@ -1,5 +1,5 @@
-import { DPAD_KEYS, type AppRuntime, type Key } from '@dpad-tv/core';
-import { settleFocus } from '@dpad-tv/core/runner';
+import { TOETS_KEYS, type AppRuntime, type Key } from '@toets/core';
+import { settleFocus } from '@toets/core/runner';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { locate, locatorCode } from '../locate.js';
@@ -48,8 +48,8 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
           // Like navigateTo between presses: until idle, focus moved, or the settle time passed.
           await settleFocus(runtime.target, before?.ref, runtime.timeouts.navigationSettleMs);
           const after = await runtime.target.focused();
-          const onlyDpad = keys.every((k) => DPAD_KEYS.includes(k));
-          const stuck = onlyDpad && before !== null && after?.ref === before.ref;
+          const onlyToets = keys.every((k) => TOETS_KEYS.includes(k));
+          const stuck = onlyToets && before !== null && after?.ref === before.ref;
           return text(
             `Pressed ${keys.join(', ')}.`,
             focusLine(after),

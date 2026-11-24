@@ -1,4 +1,4 @@
-import type { LogEntry } from '@dpad-tv/core';
+import type { LogEntry } from '@toets/core';
 import type { Adb } from './adb.js';
 import type { SpawnedProcess } from './command.js';
 
@@ -96,7 +96,7 @@ export class LogcatCollector {
     if (this.dropped > 0) {
       out.unshift({
         level: 'warn',
-        message: `dpad: ${this.dropped} older log lines were dropped (buffer full)`,
+        message: `toets: ${this.dropped} older log lines were dropped (buffer full)`,
         timestamp: out[0]?.timestamp ?? Date.now(),
         source: 'driver',
       });

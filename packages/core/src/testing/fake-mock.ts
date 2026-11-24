@@ -3,7 +3,7 @@ import type { MockServerLike, RequestFilter } from '../mock.js';
 import { testRegExp } from '../runtime/tree.js';
 
 /**
- * In-memory stand-in for `@dpad-tv/mock`'s server. Tests record requests with
+ * In-memory stand-in for `@toets/mock`'s server. Tests record requests with
  * {@link FakeMockServer.record}; handlers are stored, not executed.
  */
 export class FakeMockServer implements MockServerLike {

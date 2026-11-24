@@ -40,7 +40,7 @@ export async function connectFakeApp(
     closed,
     hello: (overrides = {}) =>
       peer.request(
-        'dpad.hello',
+        'toets.hello',
         {
           protocol: PROTOCOL_VERSION,
           token: opts.token ?? '',

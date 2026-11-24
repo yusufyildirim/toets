@@ -1,4 +1,4 @@
-import type { LogEntryParams, LogLevel } from '@dpad-tv/protocol';
+import type { LogEntryParams, LogLevel } from '@toets/protocol';
 import { getGlobal, now, sdkLogDepth } from '../env.js';
 
 const MAX_MESSAGE = 10_000;

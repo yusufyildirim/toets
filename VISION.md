@@ -1,4 +1,4 @@
-# dpad - Vision
+# toets - Vision
 
 > Write one E2E test. Run it on every TV platform. Trust that it tests the same thing everywhere.
 
@@ -12,7 +12,7 @@ TV apps ship to many platforms at once: web-based TV OSes (Tizen, webOS, Vizio, 
 - Appium / WebdriverIO cover native but with weaker DX, slow round trips and no TV semantics.
 - Every tool assumes pointer/touch. TV apps are driven by a **focus engine and a remote**. Nobody treats focus, D-pad navigation, remote keys, media playback or platform lifecycle as first-class.
 
-dpad is a **glue layer**, not a reinvention: a small, opinionated, TV-semantic API on top of industry-standard tools, with one runner, one mental model and platform parity enforced by the framework instead of by convention. Building our own lower-level drivers is allowed later, where performance demands it.
+toets is a **glue layer**, not a reinvention: a small, opinionated, TV-semantic API on top of industry-standard tools, with one runner, one mental model and platform parity enforced by the framework instead of by convention. Building our own lower-level drivers is allowed later, where performance demands it.
 
 ## Principles
 
@@ -36,13 +36,13 @@ dpad is a **glue layer**, not a reinvention: a small, opinionated, TV-semantic A
 | 4   | **v1 targets emulators, simulators and browsers only.** No real devices yet.                                                                                                                                                                                                                                                          |
 | 5   | **Black-box parity for the core API.** Locators, focus, remote, screenshots, mocking work without the SDK. The SDK adds speed, idle-sync reliability and extra domains (media, app state, focus graph).                                                                                                                               |
 | 6   | **Selectors in v1: test ID + text.** Role/label come later, once the SDK tree gives a uniform model.                                                                                                                                                                                                                                  |
-| 7   | **Device orchestration is built in.** dpad boots, snapshots, leases and resets emulators/simulators, one device per worker.                                                                                                                                                                                                           |
+| 7   | **Device orchestration is built in.** toets boots, snapshots, leases and resets emulators/simulators, one device per worker.                                                                                                                                                                                                          |
 | 8   | **CI: documentation only.** Agent-friendly setup recipes (Linux + KVM for Android, macOS for tvOS, caching). No shipped actions/workflows.                                                                                                                                                                                            |
-| 9   | **Monorepo, scoped packages, ESM-only, latest Node LTS.** App-specific concerns (app IDs, launch/readiness flows) live in user config and fixtures, never in dpad.                                                                                                                                                                    |
+| 9   | **Monorepo, scoped packages, ESM-only, latest Node LTS.** App-specific concerns (app IDs, launch/readiness flows) live in user config and fixtures, never in toets.                                                                                                                                                                   |
 | 10  | **MIT licensed.**                                                                                                                                                                                                                                                                                                                     |
 | 11  | **API breakage is acceptable** at this stage. Prior internal APIs are inspiration, not a contract.                                                                                                                                                                                                                                    |
 | 12  | **Documentation is first-class, as important as the code**, agents being the primary audience. Concise, principle-based, never micro-managing. Ships with the packages, version-matched. See [Documentation](#documentation).                                                                                                         |
-| 13  | **npm scope `@dpad-tv`.** Brand stays "dpad". Unscoped `dpad` is blocked by npm's similarity check and `@dpad` is taken. Main package `@dpad-tv/test`.                                                                                                                                                                                |
+| 13  | **npm scope `@toets`.** Brand "toets". All packages are versioned together. Main package `@toets/test`.                                                                                                                                                                                                                               |
 | 14  | **One `app` fixture.** Tests receive `{ app }`: the app under test on the current target (like Playwright's `page`). Page objects take `app`. Serial blocks share one `app` instance.                                                                                                                                                 |
 | 15  | **SDK protocol:** JSON-RPC 2.0 over WebSocket, app connects to the host. Semver handshake announcing domains; domains extend driver capabilities. Single launch payload (SDK URL, one-time token, mock URL). SDK inert without a valid payload, excluded from production builds. Versioned spec + conformance suite.                  |
 | 16  | **Idle is an accelerator, never a gate.** Idle = no tracked work (network, animations, short timers < ~1.5s, focus/navigation transitions) for ~100ms. Custom busy via `markBusy()`, noise exclusion supported. Assertions always retry with timeout; when never idle, fall back to polling and name the busy resource in the report. |
@@ -55,11 +55,11 @@ dpad is a **glue layer**, not a reinvention: a small, opinionated, TV-semantic A
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ Authoring API (@dpad-tv/test): test · app · expect · Key     │
+│ Authoring API (@toets/test): test · app · expect · Key     │
 ├──────────────────────────────────────────────────────────────┤
 │ Runner: Playwright Test (projects = platform matrix)         │
 ├──────────────────────────────────────────────────────────────┤
-│ Core (@dpad-tv/core): locators, matchers, focus, remote,     │
+│ Core (@toets/core): locators, matchers, focus, remote,     │
 │ idle, text snapshots, failure dumps, capabilities            │
 ├───────────────┬──────────────────┬───────────────────────────┤
 │ driver-web    │ driver-android-tv│ driver-tvos               │
@@ -75,7 +75,7 @@ The details are in the docs: [concepts](./docs/concepts/locators-and-assertions.
 
 ## Documentation
 
-Agents write most dpad tests, so docs are designed for agents first and humans second. The bar: an agent with no prior context can set up dpad, write a correct cross-platform test and debug a failure using only what dpad ships.
+Agents write most toets tests, so docs are designed for agents first and humans second. The bar: an agent with no prior context can set up toets, write a correct cross-platform test and debug a failure using only what toets ships.
 
 - **Concise.** Say it once, in the fewest words that stay unambiguous. No marketing, no filler.
 - **Principles over procedures.** Explain what a concept is, why it exists and its constraints. Prescribe steps only where order truly matters (setup).
@@ -91,7 +91,7 @@ The mechanics (site, checks, markers) are in [docs/README.md](./docs/README.md).
 
 ### Next: first release
 
-- Changesets, versioning, publish under `@dpad-tv`.
+- Publish `0.1.0` under `@toets`: Changesets and the release workflow are set up (see [RELEASING.md](./RELEASING.md)).
 - First CI run on GitHub (the workflow exists but has never run).
 
 ### Known gaps in v1
@@ -99,7 +99,7 @@ The mechanics (site, checks, markers) are in [docs/README.md](./docs/README.md).
 - No `tvos-blackbox` project in the example app: XCUITest flattens the tree, so its page objects need rework.
 - The web SDK claims `focus.graph` without direction data.
 - The failure dump is attached twice, and its capabilities line is noisy.
-- The ESLint plugin, the MCP server and `dpad.steps` have not been dogfooded on a real project.
+- The ESLint plugin, the MCP server and `toets.steps` have not been dogfooded on a real project.
 
 ### Later
 
@@ -118,11 +118,11 @@ The mechanics (site, checks, markers) are in [docs/README.md](./docs/README.md).
 
 ## Lessons from the predecessor
 
-dpad grows out of an internal cross-platform TV E2E layer (Playwright on web, Jest + WebdriverIO + Appium on Android).
+toets grows out of an internal cross-platform TV E2E layer (Playwright on web, Jest + WebdriverIO + Appium on Android).
 
 **Keep:** focus and remote as primitives; a small, opaque, restricted API; cooperative proxy mocking with MSW; page objects with lint-enforced rules; a fast web-first iteration loop.
 
-**Fixed in dpad:**
+**Fixed in toets:**
 
 - Two runners caused semantic drift (retries, timeouts, serial mode, reporters, traces): one runner (decision 1).
 - Per-platform matchers drifted in meaning and timeouts: core matchers (decision 20).

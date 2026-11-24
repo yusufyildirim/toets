@@ -1,8 +1,8 @@
 /**
  * Runs the real driver (Appium UiAutomator2 + adb) against the native fixture app on a real
- * Android TV emulator. Skipped unless `DPAD_ANDROID_SERIAL` names a booted device:
+ * Android TV emulator. Skipped unless `TOETS_ANDROID_SERIAL` names a booted device:
  *
- *   DPAD_ANDROID_SERIAL=emulator-5554 pnpm --filter @dpad-tv/driver-android-tv test:device
+ *   TOETS_ANDROID_SERIAL=emulator-5554 pnpm --filter @toets/driver-android-tv test:device
  *
  * The fixture APK is built with Gradle when missing (`pnpm fixture:build`).
  */
@@ -11,7 +11,7 @@ import {
   type DriverCreateContext,
   type ElementSnapshot,
   type SelectorChain,
-} from '@dpad-tv/core';
+} from '@toets/core';
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdtempSync, statSync, writeFileSync } from 'node:fs';
 import { createServer, type Server } from 'node:http';
@@ -21,7 +21,7 @@ import { PNG } from 'pngjs';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { createAndroidTvDriver, type AndroidTvDriver } from '../src/index.js';
 
-const serial = process.env.DPAD_ANDROID_SERIAL;
+const serial = process.env.TOETS_ANDROID_SERIAL;
 const fixtureDir = join(import.meta.dirname, '..', 'fixtures', 'android-tv-app');
 const apk = join(fixtureDir, 'app', 'build', 'outputs', 'apk', 'debug', 'app-debug.apk');
 
@@ -47,7 +47,7 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
   let driver: AndroidTvDriver;
   let server: Server;
   let mockPort = 0;
-  const artifactsDir = mkdtempSync(join(tmpdir(), 'dpad-android-it-'));
+  const artifactsDir = mkdtempSync(join(tmpdir(), 'toets-android-it-'));
   const latency: Record<string, number[]> = {};
 
   async function timed<T>(name: string, fn: () => Promise<T>): Promise<T> {
@@ -75,7 +75,7 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
     mockPort = (server.address() as { port: number }).port;
 
     const ctx: DriverCreateContext = {
-      app: { package: 'tv.dpad.fixture', apk },
+      app: { package: 'tv.toets.fixture', apk },
       device: {
         id: serial!,
         platform: 'android-tv',
@@ -255,7 +255,7 @@ describe.skipIf(!serial)('android-tv driver on a real emulator', () => {
     await new Promise((r) => setTimeout(r, 500));
     const logs = await driver.drainLogs();
     expect(
-      logs.some((l) => l.source === 'app' && l.message.startsWith('DpadFixture: launch payload')),
+      logs.some((l) => l.source === 'app' && l.message.startsWith('ToetsFixture: launch payload')),
     ).toBe(true);
     expect(
       logs.every((l) => l.source !== 'device' || l.level === 'warn' || l.level === 'error'),

@@ -33,7 +33,7 @@ describe('request headers', () => {
     'text/html',
     'Accept',
     'application/json',
-    'X-Dpad-Original-Origin',
+    'X-Toets-Original-Origin',
     'https://api.example.test',
     'Content-Length',
     '3',
@@ -45,7 +45,7 @@ describe('request headers', () => {
     const recorded = recordRequestHeaders(req);
     expect(recorded.cookie).toBe('a=1; b=2');
     expect(recorded.accept).toBe('text/html, application/json');
-    expect(recorded['x-dpad-original-origin']).toBe('https://api.example.test');
+    expect(recorded['x-toets-original-origin']).toBe('https://api.example.test');
   });
 
   it('forwards what the real origin should see', () => {
@@ -53,7 +53,7 @@ describe('request headers', () => {
     const names = forwarded.map(([n]) => n);
     expect(names).not.toContain('connection');
     expect(names).not.toContain('x-secret-hop');
-    expect(names).not.toContain('x-dpad-original-origin');
+    expect(names).not.toContain('x-toets-original-origin');
     expect(names).not.toContain('content-length');
     expect(names).not.toContain('transfer-encoding');
     expect(forwarded.filter(([n]) => n === 'host')).toEqual([['host', 'api.example.test']]);

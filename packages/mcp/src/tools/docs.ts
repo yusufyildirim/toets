@@ -7,9 +7,9 @@ export function registerDocsTools(server: McpServer, { docs }: ToolContext): voi
   server.registerTool(
     'docs_search',
     {
-      title: 'Search dpad docs',
+      title: 'Search toets docs',
       description: [
-        'Search the dpad documentation shipped with the installed @dpad-tv packages (test API, locators, matchers, keys, focus, capabilities, config, page objects, platforms, errors).',
+        'Search the toets documentation shipped with the installed @toets packages (test API, locators, matchers, keys, focus, capabilities, config, page objects, platforms, errors).',
         'Returns the best matching sections with their file paths. Use it before writing test code you are unsure about, and to look up an error code or hint.',
         'Works without a running app.',
       ].join(' '),
@@ -27,10 +27,10 @@ export function registerDocsTools(server: McpServer, { docs }: ToolContext): voi
         const index = await docs();
         if (!index.sectionCount) {
           return text(
-            'No dpad docs found.',
-            `Looked in node_modules/@dpad-tv/*/docs above the working directory${
+            'No toets docs found.',
+            `Looked in node_modules/@toets/*/docs above the working directory${
               index.sources.length ? ` and ${index.sources.map((s) => s.dir).join(', ')}` : ''
-            }. Install the dpad packages you use (e.g. @dpad-tv/test) in the project.`,
+            }. Install the toets packages you use (e.g. @toets/test) in the project.`,
           );
         }
         const hits = index.search(query, limit ?? 5);

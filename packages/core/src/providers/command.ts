@@ -1,18 +1,18 @@
 import { exec } from 'node:child_process';
 import type { DeviceLease, DeviceProvider, DeviceSpec } from '../devices.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 
 export interface CommandDevicesOptions {
   /**
    * Shell command that leases one device and prints JSON on its last stdout line:
    * `{ "address": "emulator-5554", "id"?: "lease-1", "meta"?: { ... }, "environment"?: { ... } }`.
    * `environment` (variables the device must be driven with) lands in `meta.environment`.
-   * Receives `DPAD_PLATFORM`, `DPAD_WORKER_INDEX`, `DPAD_PARALLEL_INDEX`, `DPAD_DEVICE_SPEC` (JSON).
+   * Receives `TOETS_PLATFORM`, `TOETS_WORKER_INDEX`, `TOETS_PARALLEL_INDEX`, `TOETS_DEVICE_SPEC` (JSON).
    */
   readonly acquire: string;
   /**
-   * Shell command that returns the device. Receives the acquire variables plus `DPAD_DEVICE_ID`,
-   * `DPAD_DEVICE_ADDRESS` and `DPAD_DEVICE_META` (JSON).
+   * Shell command that returns the device. Receives the acquire variables plus `TOETS_DEVICE_ID`,
+   * `TOETS_DEVICE_ADDRESS` and `TOETS_DEVICE_META` (JSON).
    */
   readonly release?: string;
   /** Default 600000 (booting a device can take minutes). */
@@ -59,7 +59,7 @@ function parseLease(stdout: string): {
   const v = value as
     { address?: unknown; id?: unknown; meta?: unknown; environment?: unknown } | undefined;
   if (!v || typeof v.address !== 'string' || !v.address) {
-    throw new DpadError(
+    throw new ToetsError(
       'DEVICE_COMMAND_OUTPUT',
       `The device acquire command must print JSON with an "address" on its last line; got: ${line ?? '(nothing)'}`,
       {
@@ -88,13 +88,13 @@ function isStringMap(value: unknown): value is Record<string, string> {
   );
 }
 
-const commandError = (what: string, command: string, cause: unknown): DpadError => {
+const commandError = (what: string, command: string, cause: unknown): ToetsError => {
   const stderr = (cause as { stderr?: string }).stderr;
-  return new DpadError(
+  return new ToetsError(
     'DEVICE_COMMAND_FAILED',
     `The device ${what} command failed: ${command}${stderr ? `\n${stderr}` : ''}`,
     {
-      hint: 'Run the command by hand with the same DPAD_* variables to debug it.',
+      hint: 'Run the command by hand with the same TOETS_* variables to debug it.',
       docs: packageDocsLink('test', 'devices'),
       cause,
     },
@@ -103,17 +103,17 @@ const commandError = (what: string, command: string, cause: unknown): DpadError 
 
 /**
  * `command` device mode: shell commands lease and release devices. Integrates device farms and
- * lease brokers without dpad knowing them.
+ * lease brokers without toets knowing them.
  */
 export function createCommandDeviceProvider(opts: CommandDevicesOptions): DeviceProvider {
   const leases = new Set<DeviceLease>();
   return {
     async acquire(spec: DeviceSpec, { workerIndex, parallelIndex }): Promise<DeviceLease> {
       const baseEnv = {
-        DPAD_PLATFORM: spec.platform,
-        DPAD_WORKER_INDEX: String(workerIndex),
-        DPAD_PARALLEL_INDEX: String(parallelIndex),
-        DPAD_DEVICE_SPEC: JSON.stringify(spec),
+        TOETS_PLATFORM: spec.platform,
+        TOETS_WORKER_INDEX: String(workerIndex),
+        TOETS_PARALLEL_INDEX: String(parallelIndex),
+        TOETS_DEVICE_SPEC: JSON.stringify(spec),
       };
       let stdout: string;
       try {
@@ -136,9 +136,9 @@ export function createCommandDeviceProvider(opts: CommandDevicesOptions): Device
           if (!opts.release) return;
           const env = {
             ...baseEnv,
-            DPAD_DEVICE_ID: lease.id,
-            DPAD_DEVICE_ADDRESS: lease.address,
-            DPAD_DEVICE_META: JSON.stringify(meta),
+            TOETS_DEVICE_ID: lease.id,
+            TOETS_DEVICE_ADDRESS: lease.address,
+            TOETS_DEVICE_META: JSON.stringify(meta),
           };
           try {
             await run(opts.release, env, opts.releaseTimeoutMs ?? 120_000, opts.cwd);

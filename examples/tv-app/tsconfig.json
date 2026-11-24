@@ -6,8 +6,8 @@
     "exactOptionalPropertyTypes": true,
     "verbatimModuleSyntax": true,
     "allowImportingTsExtensions": true,
-    // Workspace dpad packages resolve to their TypeScript sources (no build needed to typecheck).
-    "customConditions": ["react-native", "@dpad-tv/source"],
+    // Workspace toets packages resolve to their TypeScript sources (no build needed to typecheck).
+    "customConditions": ["react-native", "@toets/source"],
     "types": ["node"]
   },
   "include": ["index.ts", "*.config.ts", "*.config.mts", "src", "server", "scripts"]

@@ -1,25 +1,38 @@
 {
-  "name": "@dpad-tv/sdk-react-native",
-  "version": "0.0.0",
-  "description": "dpad in-app SDK adapter for React Native (incl. react-native-tvos and react-native-web).",
+  "name": "@toets/sdk-react-native",
+  "version": "0.1.0",
+  "description": "toets in-app SDK adapter for React Native (incl. react-native-tvos and react-native-web).",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "react-native",
+    "react-native-tvos",
+    "sdk"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/sdk-react-native"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/sdk-react-native#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/sdk-react-native#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./noop": {
-      "@dpad-tv/source": "./src/noop.ts",
+      "@toets/source": "./src/noop.ts",
       "typedoc": "./src/noop.ts",
       "types": "./dist/noop.d.ts",
       "default": "./dist/noop.js"
@@ -39,8 +52,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/protocol": "workspace:^",
-    "@dpad-tv/sdk": "workspace:^"
+    "@toets/protocol": "workspace:^",
+    "@toets/sdk": "workspace:^"
   },
   "peerDependencies": {
     "react": ">=18",

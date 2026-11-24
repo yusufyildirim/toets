@@ -1,19 +1,32 @@
 {
-  "name": "@dpad-tv/driver-web",
-  "version": "0.0.0",
-  "description": "dpad driver for web TV apps in Chromium, built on Playwright.",
+  "name": "@toets/driver-web",
+  "version": "0.1.0",
+  "description": "toets driver for web TV apps in Chromium, built on Playwright.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "smart-tv",
+    "chromium",
+    "playwright"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/driver-web"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/driver-web#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/driver-web#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -33,8 +46,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^",
+    "@toets/core": "workspace:^",
+    "@toets/protocol": "workspace:^",
     "playwright-core": "^1.65.1"
   }
 }

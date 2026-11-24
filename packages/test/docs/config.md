@@ -1,10 +1,10 @@
 # Config
 
-A dpad suite is a Playwright Test suite with one project per platform. `defineConfig` and `platforms.*` from `@dpad-tv/test` build it.
+A toets suite is a Playwright Test suite with one project per platform. `defineConfig` and `platforms.*` from `@toets/test` build it.
 
 ```ts
 // playwright.config.ts
-import { defineConfig, platforms, Key } from '@dpad-tv/test';
+import { defineConfig, platforms, Key } from '@toets/test';
 
 export default defineConfig({
   testDir: 'e2e',
@@ -13,11 +13,11 @@ export default defineConfig({
     androidTV: { apk: 'build/app.apk', package: 'com.example.tv' },
     tvOS: { app: 'build/App.app', bundleId: 'com.example.tv' },
   },
-  dpad: { sdk: true, mock: true },
+  toets: { sdk: true, mock: true },
   projects: [
     platforms.web(),
     platforms.androidTV({ model: 'tv_1080p', osVersion: '34' }),
-    platforms.tvOS({ dpad: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } } }),
+    platforms.tvOS({ toets: { keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } } } }),
   ],
 });
 ```
@@ -26,16 +26,16 @@ export default defineConfig({
 
 - **Everything Playwright stays Playwright.** `workers`, `retries`, `reporter`, `grep`, `expect.timeout`, UI mode and sharding work unchanged.
 - **One project per platform.** A project name defaults to the platform (`web`, `android-tv`, `tvos`); add more projects for more devices of one platform.
-- **Drivers load lazily by package name**: `@dpad-tv/driver-web`, `@dpad-tv/driver-android-tv`, `@dpad-tv/driver-tvos`. Install only the ones you use. `driver` overrides the module (a package or a path relative to the config file).
-- **One flat options object per project.** `platforms.androidTV({ ... })` takes Playwright project fields (`name`, `retries`, `use`, ...), dpad's keys (`driver`, `app`, `model`, `osVersion`, `devices`, `dpad`) and the driver's options (e.g. `remote: 'fire-tv'`), typed by the driver package. A custom driver passes its type: `platforms.web<MyOptions>({ driver: './my-driver.ts', ... })`.
-- **Every config type is exported** from `@dpad-tv/test`, driver option types included (`WebDriverOptions`, `AndroidTvDriverOptions`, `TvosAppConfig`, ...), so a config can be factored into typed pieces without importing driver packages.
+- **Drivers load lazily by package name**: `@toets/driver-web`, `@toets/driver-android-tv`, `@toets/driver-tvos`. Install only the ones you use. `driver` overrides the module (a package or a path relative to the config file).
+- **One flat options object per project.** `platforms.androidTV({ ... })` takes Playwright project fields (`name`, `retries`, `use`, ...), toets's keys (`driver`, `app`, `model`, `osVersion`, `devices`, `toets`) and the driver's options (e.g. `remote: 'fire-tv'`), typed by the driver package. A custom driver passes its type: `platforms.web<MyOptions>({ driver: './my-driver.ts', ... })`.
+- **Every config type is exported** from `@toets/test`, driver option types included (`WebDriverOptions`, `AndroidTvDriverOptions`, `TvosAppConfig`, ...), so a config can be factored into typed pieces without importing driver packages.
 - **`model` and `osVersion`** tell the device provider what to boot or lease, e.g. `model: 'tv_1080p', osVersion: '34'`.
 - **Relative app paths** (`apk`, `app`) resolve against the config file's directory.
-- **Options merge** from the top-level `dpad` into each project's `dpad`. The `app` entry for the platform merges with the project's `app`.
-- **Snapshot baselines are per project, not per host.** dpad projects default `snapshotPathTemplate` to Playwright's default without the host OS suffix; a top-level or project `snapshotPathTemplate` wins.
-- **The parity reporter is added** after your reporters; `parityReport: false` turns it off. Without a `reporter`, dpad uses `list` (`dot` in CI) and `html` (`open: 'never'`), so `npx playwright show-report` works.
+- **Options merge** from the top-level `toets` into each project's `toets`. The `app` entry for the platform merges with the project's `app`.
+- **Snapshot baselines are per project, not per host.** toets projects default `snapshotPathTemplate` to Playwright's default without the host OS suffix; a top-level or project `snapshotPathTemplate` wins.
+- **The parity reporter is added** after your reporters; `parityReport: false` turns it off. Without a `reporter`, toets uses `list` (`dot` in CI) and `html` (`open: 'never'`), so `npx playwright show-report` works.
 
-| `dpad` option  | Meaning                                                                                |
+| `toets` option | Meaning                                                                                |
 | -------------- | -------------------------------------------------------------------------------------- |
 | `sdk`          | Wait for the in-app SDK on launch (adds idle sync, focus graph, media, launch states). |
 | `mock`         | Run a host-side mock server per worker (`network.mock`): `true` or its settings.       |

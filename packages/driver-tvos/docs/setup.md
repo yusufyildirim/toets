@@ -4,10 +4,10 @@ The tvOS driver needs a Mac with Xcode, the tvOS platform (`xcodebuild -download
 
 ## App config
 
-The app under test is user config, never dpad code:
+The app under test is user config, never toets code:
 
 ```ts
-import { defineConfig, platforms } from '@dpad-tv/test';
+import { defineConfig, platforms } from '@toets/test';
 
 export default defineConfig({
   app: {
@@ -25,11 +25,11 @@ export default defineConfig({
 ## What happens per worker
 
 1. The simulator is prepared (booted, verified to run tvOS). See [simulators](./simulators.md).
-2. dpad starts its pinned Appium server on a free localhost port. Its log is `appium-w<worker>.log` in the worker's artifacts dir: the first place to look when a session fails.
-3. WebDriverAgent (the on-device automation server) is built once per WDA and Xcode version for the generic tvOS Simulator and cached in `~/Library/Caches/dpad/tvos-wda`. Sessions install that bundle instead of compiling: the first run takes about a minute longer, later sessions start in seconds. dpad copies the XCTest frameworks of Xcode's tvOS Simulator platform into the bundle, because a runner launched without `xcodebuild test` has no other way to load them.
+2. toets starts its pinned Appium server on a free localhost port. Its log is `appium-w<worker>.log` in the worker's artifacts dir: the first place to look when a session fails.
+3. WebDriverAgent (the on-device automation server) is built once per WDA and Xcode version for the generic tvOS Simulator and cached in `~/Library/Caches/toets/tvos-wda`. Sessions install that bundle instead of compiling: the first run takes about a minute longer, later sessions start in seconds. toets copies the XCTest frameworks of Xcode's tvOS Simulator platform into the bundle, because a runner launched without `xcodebuild test` has no other way to load them.
 4. An XCUITest session opens, the app is installed and its unified log is streamed.
 
-`launch` terminates the app and starts it with the launch payload (`@dpad-tv/protocol`) as launch arguments `-__dpad <value>`, where the value is unpadded base64url of the JSON (`encodeLaunchPayloadParam`). The app (or the dpad SDK) reads it with `UserDefaults.standard.string(forKey: "__dpad")` and decodes it. Payload URLs use `localhost`: the simulator shares the host's network.
+`launch` terminates the app and starts it with the launch payload (`@toets/protocol`) as launch arguments `-__toets <value>`, where the value is unpadded base64url of the JSON (`encodeLaunchPayloadParam`). The app (or the toets SDK) reads it with `UserDefaults.standard.string(forKey: "__toets")` and decodes it. Payload URLs use `localhost`: the simulator shares the host's network.
 
 ## Driver options
 
@@ -48,4 +48,4 @@ All optional, passed to `platforms.tvOS({ ... })`:
 
 ## CI
 
-Cache `~/Library/Caches/dpad/tvos-wda` keyed by the Xcode version to skip the one-time WDA build. Boot timeouts default to 5 minutes; cold CI machines need them.
+Cache `~/Library/Caches/toets/tvos-wda` keyed by the Xcode version to skip the one-time WDA build. Boot timeouts default to 5 minutes; cold CI machines need them.

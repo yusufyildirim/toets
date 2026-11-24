@@ -1,4 +1,4 @@
-/** Minimal JSON-RPC 2.0 envelope types used by the dpad protocol. */
+/** Minimal JSON-RPC 2.0 envelope types used by the toets protocol. */
 
 export type JsonRpcId = number | string;
 
@@ -36,7 +36,7 @@ export interface JsonRpcFailure {
 export type JsonRpcResponse<R = unknown> = JsonRpcSuccess<R> | JsonRpcFailure;
 export type JsonRpcMessage = JsonRpcRequest | JsonRpcNotification | JsonRpcResponse;
 
-/** Standard and dpad-specific error codes. */
+/** Standard and toets-specific error codes. */
 export const RpcErrorCode = {
   ParseError: -32700,
   InvalidRequest: -32600,

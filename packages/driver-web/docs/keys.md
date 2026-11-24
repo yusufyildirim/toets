@@ -1,12 +1,12 @@
 # Keys on the web
 
-Remote keys become real keyboard events: trusted `keydown`/`keyup` (and `keypress` for keys that produce text) sent through the Chrome DevTools Protocol, the same path as physical input. The app's own key handling runs unchanged; dpad never calls app code to "press" a key.
+Remote keys become real keyboard events: trusted `keydown`/`keyup` (and `keypress` for keys that produce text) sent through the Chrome DevTools Protocol, the same path as physical input. The app's own key handling runs unchanged; toets never calls app code to "press" a key.
 
 ## Default map
 
 `key` follows W3C UI Events. `keyCode` follows the OIPF/HbbTV codes shared by Tizen, webOS and HbbTV browsers, except BACK.
 
-| dpad key                    | `key`                                    | `keyCode`         |
+| toets key                   | `key`                                    | `keyCode`         |
 | --------------------------- | ---------------------------------------- | ----------------- |
 | UP / DOWN / LEFT / RIGHT    | `ArrowUp` ...                            | 38 / 40 / 37 / 39 |
 | SELECT                      | `Enter`                                  | 13                |
@@ -28,7 +28,7 @@ HOME and MENU are unmapped because TV operating systems keep them for themselves
 Map what your app listens to. A spec replaces the default; `null` removes the key and, with it, the capability (tests requiring it are skipped):
 
 ```ts
-import { platforms } from '@dpad-tv/test';
+import { platforms } from '@toets/test';
 
 // A Tizen build that reads keyCodes:
 platforms.web({

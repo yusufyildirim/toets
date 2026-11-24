@@ -27,8 +27,8 @@ describe('external devices', () => {
     });
   });
 
-  it('reads DPAD_DEVICES and explains when it is empty', async () => {
-    expect(devicesFromEnv({ DPAD_DEVICES: ' a, ,b ' })).toEqual(['a', 'b']);
+  it('reads TOETS_DEVICES and explains when it is empty', async () => {
+    expect(devicesFromEnv({ TOETS_DEVICES: ' a, ,b ' })).toEqual(['a', 'b']);
     const provider = createExternalDeviceProvider({ addresses: [] });
     await expect(
       provider.acquire(spec, { workerIndex: 0, parallelIndex: 0 }),
@@ -39,12 +39,12 @@ describe('external devices', () => {
 });
 
 describe('command devices', () => {
-  it('leases through shell commands with DPAD_* variables', async () => {
+  it('leases through shell commands with TOETS_* variables', async () => {
     const provider = createCommandDeviceProvider({
       acquire: node(
-        'console.log("booting"); console.log(JSON.stringify({ address: "emulator-" + (5554 + 2 * Number(process.env.DPAD_PARALLEL_INDEX)), id: "lease-" + process.env.DPAD_WORKER_INDEX, meta: { spec: JSON.parse(process.env.DPAD_DEVICE_SPEC) } }))',
+        'console.log("booting"); console.log(JSON.stringify({ address: "emulator-" + (5554 + 2 * Number(process.env.TOETS_PARALLEL_INDEX)), id: "lease-" + process.env.TOETS_WORKER_INDEX, meta: { spec: JSON.parse(process.env.TOETS_DEVICE_SPEC) } }))',
       ),
-      release: node('if (process.env.DPAD_DEVICE_ID !== "lease-3") process.exit(1)'),
+      release: node('if (process.env.TOETS_DEVICE_ID !== "lease-3") process.exit(1)'),
     });
     const lease = await provider.acquire(spec, { workerIndex: 3, parallelIndex: 1 });
     expect(lease).toMatchObject({ id: 'lease-3', address: 'emulator-5556', meta: { spec } });

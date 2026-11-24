@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- A deliberately plain View-based TV screen: no framework, no libraries. Resource IDs are the
-     dpad test IDs. Three screens (home, details, player) live in one activity and are toggled
+     toets test IDs. Three screens (home, details, player) live in one activity and are toggled
      by visibility; a status bar at the bottom echoes received keys and the launch payload. -->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/root"

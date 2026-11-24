@@ -3,7 +3,7 @@
 Tests should start where they need to be, not click through onboarding. The launch payload carries `state` and `flags`; the app applies them in an `onState` handler, which also serves `state.apply` from tests later.
 
 ```ts nocheck
-import { onState } from '@dpad-tv/sdk';
+import { onState } from '@toets/sdk';
 
 onState(async (state, flags) => {
   featureFlags.override(flags);
@@ -16,7 +16,7 @@ onState(async (state, flags) => {
 - The app counts as busy until the returned promise settles, so the test waits for the state to be applied.
 - A throwing handler fails `state.apply` (HandlerFailed). A failing launch state is reported as an `uncaught` app log.
 - State names and flags are app-defined; keep them in one place shared with the tests.
-- `getDpad()?.launchState` / `.flags` are available synchronously for apps that choose their initial route before rendering.
+- `getToets()?.launchState` / `.flags` are available synchronously for apps that choose their initial route before rendering.
 
 ## TV trap
 

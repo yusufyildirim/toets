@@ -14,8 +14,8 @@ import {
   type PressOptions,
   type SelectorChain,
   type UITree,
-} from '@dpad-tv/core';
-import { encodeLaunchPayloadParam, LAUNCH_PARAM, type LaunchPayload } from '@dpad-tv/protocol';
+} from '@toets/core';
+import { encodeLaunchPayloadParam, LAUNCH_PARAM, type LaunchPayload } from '@toets/protocol';
 import { join } from 'node:path';
 import { Adb, type LaunchTarget } from './adb.js';
 import {
@@ -61,7 +61,7 @@ export interface AndroidTvDriverDeps {
 
 /**
  * UiAutomator2 settings applied to every session. `waitForIdleTimeout: 0` stops UiAutomator
- * from waiting for the UI to idle before each command (dpad retries in the core instead, and
+ * from waiting for the UI to idle before each command (toets retries in the core instead, and
  * TV screens with video or animations may never idle); invisible elements are included so
  * `visible: false` can be reported instead of the element vanishing.
  */
@@ -158,7 +158,7 @@ export class AndroidTvDriver implements Driver {
         'ANDROID_APP_NOT_INSTALLED',
         `${this.app.package} is not installed on ${this.serial}.`,
         {
-          hint: 'Set `app.apk` so dpad installs it, or install it before the run.',
+          hint: 'Set `app.apk` so toets installs it, or install it before the run.',
           docs: DOCS.setup,
         },
       );
@@ -240,7 +240,7 @@ export class AndroidTvDriver implements Driver {
       throw androidError(
         'ANDROID_APP_CONFIG',
         `${this.app.package} has no launcher activity (LEANBACK_LAUNCHER or LAUNCHER).`,
-        { hint: 'Set `app.activity` to the activity dpad should start.', docs: DOCS.setup },
+        { hint: 'Set `app.activity` to the activity toets should start.', docs: DOCS.setup },
       );
     }
     return resolved;
@@ -413,7 +413,7 @@ export function createAndroidTvDriver(
   const serial = ctx.device?.address ?? options.serial ?? env.ANDROID_SERIAL;
   if (!serial) {
     throw androidError('ANDROID_NO_DEVICE', 'No Android device to run on.', {
-      hint: 'Use the `managed` device provider, or pass a serial (DPAD_DEVICES, `serial` option or ANDROID_SERIAL).',
+      hint: 'Use the `managed` device provider, or pass a serial (TOETS_DEVICES, `serial` option or ANDROID_SERIAL).',
       docs: DOCS.devices,
     });
   }
@@ -458,6 +458,6 @@ function decodeBase64(b64: string): Uint8Array {
 
 function notStarted() {
   return androidError('ANDROID_NOT_STARTED', 'The Android TV driver is not started.', {
-    hint: 'Call `start()` first (the dpad runner does this for you).',
+    hint: 'Call `start()` first (the toets runner does this for you).',
   });
 }

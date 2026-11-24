@@ -1,6 +1,6 @@
 import type { Remote } from '../api.js';
 import { KEY_CAPABILITY } from '../capabilities.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import { Key, type KeyOverride, type PressOptions } from '../keys.js';
 import type { RuntimeContext } from './context.js';
 import { sleep } from './retry.js';
@@ -9,7 +9,7 @@ const KEYS = new Set<string>(Object.values(Key));
 
 function assertKey(key: unknown): asserts key is Key {
   if (typeof key !== 'string' || !KEYS.has(key)) {
-    throw new DpadError('UNKNOWN_KEY', `Unknown key ${JSON.stringify(key)}.`, {
+    throw new ToetsError('UNKNOWN_KEY', `Unknown key ${JSON.stringify(key)}.`, {
       hint: 'Use the semantic Key constants (Key.SELECT, Key.PLAY_PAUSE, ...). Raw platform keycodes are not accepted.',
       docs: packageDocsLink('core', 'remote'),
     });
@@ -18,7 +18,7 @@ function assertKey(key: unknown): asserts key is Key {
 
 function assertCount(name: string, value: number): void {
   if (!Number.isInteger(value) || value < 0) {
-    throw new DpadError(
+    throw new ToetsError(
       'INVALID_ARGUMENT',
       `${name} must be a non-negative integer, got ${value}.`,
       {
@@ -56,35 +56,39 @@ function planPress(ctx: RuntimeContext, key: Key, opts?: PressOptions): PressPla
  * Why pressing `key` would fail on this target (unknown key, missing key capability, no long
  * press), after key overrides; `null` when the press would be sent.
  */
-export function keyError(ctx: RuntimeContext, key: unknown, opts?: PressOptions): DpadError | null {
+export function keyError(
+  ctx: RuntimeContext,
+  key: unknown,
+  opts?: PressOptions,
+): ToetsError | null {
   try {
     assertKey(key);
   } catch (e) {
-    return e as DpadError;
+    return e as ToetsError;
   }
   return planError(ctx, key, planPress(ctx, key, opts));
 }
 
-function planError(ctx: RuntimeContext, key: Key, plan: PressPlan): DpadError | null {
+function planError(ctx: RuntimeContext, key: Key, plan: PressPlan): ToetsError | null {
   const { performed, holdMs, performedAs } = plan;
   const platform = ctx.target.driver.platform;
   const caps = ctx.target.capabilities;
   const needed = KEY_CAPABILITY[performed];
   const via = performedAs ? ` (performed as ${performedAs} by a key override)` : '';
   if (needed && !caps.has(needed)) {
-    return new DpadError(
+    return new ToetsError(
       'KEY_UNSUPPORTED',
       `${platform} has no ${performed} key${via}: it needs capability '${needed}'.`,
       {
         hint: performedAs
-          ? `Fix the key override for ${key} in the dpad config so it uses a key this platform has.`
+          ? `Fix the key override for ${key} in the toets config so it uses a key this platform has.`
           : `Declare requires('${needed}') on the test so it is skipped here, or, if the app maps this action to another gesture on ${platform}, add a key override for ${key}.`,
         docs: packageDocsLink('core', 'remote'),
       },
     );
   }
   if (holdMs !== undefined && !caps.has('key.longpress')) {
-    return new DpadError(
+    return new ToetsError(
       'KEY_UNSUPPORTED',
       `${platform} cannot hold keys${via}: long presses need capability 'key.longpress'.`,
       {

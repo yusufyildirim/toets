@@ -18,7 +18,7 @@ export type ProtocolErrorCode =
   | 'sdk.remote-error';
 
 /**
- * Error thrown by the host side of the protocol. Shaped like the core's `DpadError`
+ * Error thrown by the host side of the protocol. Shaped like the core's `ToetsError`
  * (`code`, `hint`, `docs`) so the core can surface it unchanged.
  */
 export class ProtocolError extends Error {

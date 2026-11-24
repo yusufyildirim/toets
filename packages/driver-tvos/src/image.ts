@@ -1,4 +1,4 @@
-import type { Rect } from '@dpad-tv/core';
+import type { Rect } from '@toets/core';
 import { PNG } from 'pngjs';
 
 /**

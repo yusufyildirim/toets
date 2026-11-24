@@ -4,17 +4,17 @@ With the in-app SDK connected (`sync.idle`), the app reports when it is idle: no
 
 ```ts
 // playwright.config.ts
-import { defineConfig } from '@dpad-tv/test';
+import { defineConfig } from '@toets/test';
 
 export default defineConfig({
-  dpad: { sdk: true, idle: { quietMs: 100, budgetMs: 2000 } },
+  toets: { sdk: true, idle: { quietMs: 100, budgetMs: 2000 } },
   // ...
 });
 ```
 
 ## Principles
 
-- **Idle is an accelerator, never a gate.** Every assertion still retries until its timeout. Without the SDK, or when the app never goes idle, dpad polls instead. A test never fails only because the app was busy.
+- **Idle is an accelerator, never a gate.** Every assertion still retries until its timeout. Without the SDK, or when the app never goes idle, toets polls instead. A test never fails only because the app was busy.
 - **Busy is reported.** When an assertion fails and the app never became idle within `budgetMs`, the failure names what kept it busy, for example `app never became idle within 2000ms (busy: network GET /api/home); polled instead`.
 - **Navigation settles on idle too.** `focus.navigateTo` waits for idle (or a short focus poll) between presses.
 

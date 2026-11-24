@@ -1,6 +1,6 @@
 import http, { type IncomingMessage, type ServerResponse } from 'node:http';
 import type { AddressInfo } from 'node:net';
-import { ORIGINAL_ORIGIN_HEADER } from '@dpad-tv/protocol';
+import { ORIGINAL_ORIGIN_HEADER } from '@toets/protocol';
 
 export interface UpstreamRequest {
   readonly method: string;

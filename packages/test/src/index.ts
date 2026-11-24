@@ -1,10 +1,10 @@
 /**
- * `@dpad-tv/test`: write one TV E2E test, run it on every platform. Playwright Test with the
- * dpad `app` fixture, TV matchers, semantic keys and platform projects.
+ * `@toets/test`: write one TV E2E test, run it on every platform. Playwright Test with the
+ * toets `app` fixture, TV matchers, semantic keys and platform projects.
  */
-export { test, type DpadTestFixtures, type DpadWorkerFixtures } from './fixtures.js';
+export { test, type ToetsTestFixtures, type ToetsWorkerFixtures } from './fixtures.js';
 export {
-  dpadMatchers,
+  toetsMatchers,
   expect,
   type ScreenshotAssertionOptions,
   type TextSnapshotOptions,
@@ -16,15 +16,15 @@ export {
   platforms,
   type AppTargets,
   type DeviceSelection,
-  type DpadConfig,
-  type DpadMockOptions,
-  type DpadOptions,
-  type DpadProjectConfig,
-  type DpadProjectKeys,
+  type ToetsConfig,
+  type ToetsMockOptions,
+  type ToetsOptions,
+  type ToetsProjectConfig,
+  type ToetsProjectKeys,
   type PlatformProjectOptions,
 } from './config.js';
 export type { ParityReporterOptions } from './reporter.js';
-/** Runtime option types of the `dpad` config field (shared with the MCP server). */
+/** Runtime option types of the `toets` config field (shared with the MCP server). */
 export type {
   AppTargetConfig,
   CommandDevicesOptions,
@@ -34,9 +34,9 @@ export type {
   MockServerLike,
   RemoteOptions,
   Timeouts,
-} from '@dpad-tv/core';
-export type { MockServerFactory, RuntimeConfig } from '@dpad-tv/core/runner';
-export type { SdkHost } from '@dpad-tv/protocol';
+} from '@toets/core';
+export type { MockServerFactory, RuntimeConfig } from '@toets/core/runner';
+export type { SdkHost } from '@toets/protocol';
 /*
  * Driver config types. The published declarations inline them, so they work without the
  * (optional) driver packages installed. Generic driver names get a platform prefix.
@@ -47,7 +47,7 @@ export type {
   WebDriverOptions,
   WebKeyMap,
   WebKeySpec,
-} from '@dpad-tv/driver-web';
+} from '@toets/driver-web';
 export type {
   AndroidTvAppConfig,
   AndroidTvDriverOptions,
@@ -57,16 +57,16 @@ export type {
   RemoteProfile as AndroidTvRemoteProfile,
   TestIdAttribute as AndroidTvTestIdAttribute,
   VideoOptions as AndroidTvVideoOptions,
-} from '@dpad-tv/driver-android-tv';
+} from '@toets/driver-android-tv';
 export type {
   TvosAppConfig,
   TvosDriverOptions,
   TvosManagedDeviceOptions,
-} from '@dpad-tv/driver-tvos';
-export { Key, DpadError } from '@dpad-tv/core';
-/** Network mocking building blocks for `app.network.use(...)` (from `@dpad-tv/mock`, MSW based). */
-export { bypass, delay, failure, http, HttpResponse, latency, passthrough } from '@dpad-tv/mock';
-export type { FailureOptions, HttpHandler, LatencySpec } from '@dpad-tv/mock';
+} from '@toets/driver-tvos';
+export { Key, ToetsError } from '@toets/core';
+/** Network mocking building blocks for `app.network.use(...)` (from `@toets/mock`, MSW based). */
+export { bypass, delay, failure, http, HttpResponse, latency, passthrough } from '@toets/mock';
+export type { FailureOptions, HttpHandler, LatencySpec } from '@toets/mock';
 export type {
   App,
   Capability,
@@ -86,4 +86,4 @@ export type {
   RequestFilter,
   Screenshot,
   ScreenshotOptions,
-} from '@dpad-tv/core';
+} from '@toets/core';

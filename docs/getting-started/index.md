@@ -1,22 +1,22 @@
 ---
-description: Install dpad, configure platforms and run a first cross-platform TV test.
+description: Install toets, configure platforms and run a first cross-platform TV test.
 ---
 
 # Install and first test
 
-dpad is a set of [Playwright Test](https://playwright.dev/docs/intro) fixtures for TV apps. Every platform is a Playwright project, and every test receives one fixture, `app`: the app under test on the current platform. You keep Playwright's runner, reporters, UI mode, retries and sharding.
+toets is a set of [Playwright Test](https://playwright.dev/docs/intro) fixtures for TV apps. Every platform is a Playwright project, and every test receives one fixture, `app`: the app under test on the current platform. You keep Playwright's runner, reporters, UI mode, retries and sharding.
 
 ::: warning Pre-alpha
-dpad is not on npm yet and its APIs may change. Until the first release, install tarballs packed from a checkout of the dpad repository:
+toets is not on npm yet and its APIs may change. Until the first release, install tarballs packed from a checkout of the toets repository:
 
 ```sh
-# in the dpad checkout: packs every package into /tmp/dpad (absolute path)
-pnpm install && pnpm build && pnpm pack:local /tmp/dpad
-# in your project, instead of the npm install below (add dpad-tv-sdk for the in-app SDK)
-npm install --save-dev /tmp/dpad/dpad-tv-{core,protocol,mock,test,driver-web}-0.0.0.tgz @playwright/test
+# in the toets checkout: packs every package into /tmp/toets (absolute path)
+pnpm install && pnpm build && pnpm pack:local /tmp/toets
+# in your project, instead of the npm install below (add toets-tv-sdk for the in-app SDK)
+npm install --save-dev /tmp/toets/toets-tv-{core,protocol,mock,test,driver-web}-0.0.0.tgz @playwright/test
 ```
 
-Install tarballs, not `link:`s to the checkout: a link loads the checkout's own `@playwright/test` next to yours and fails with `Playwright Test did not expect test() to be called here`. With pnpm, also set `pnpm.overrides` for `@dpad-tv/core`, `@dpad-tv/protocol` and `@dpad-tv/mock` to their `file:` tarballs, or it looks them up on npm.
+Install tarballs, not `link:`s to the checkout: a link loads the checkout's own `@playwright/test` next to yours and fails with `Playwright Test did not expect test() to be called here`. With pnpm, also set `pnpm.overrides` for `@toets/core`, `@toets/protocol` and `@toets/mock` to their `file:` tarballs, or it looks them up on npm.
 
 :::
 
@@ -28,14 +28,14 @@ Install tarballs, not `link:`s to the checkout: a link loads the checkout's own 
 | Android TV / Fire TV | macOS, or Linux with KVM | Android SDK with an Android TV system image |
 | tvOS                 | macOS                    | Xcode with a tvOS simulator runtime         |
 
-Node 24 or later. dpad starts Appium and boots, resets and shuts down emulators and simulators itself; see the [platform pages](../platforms/web.md).
+Node 24 or later. toets starts Appium and boots, resets and shuts down emulators and simulators itself; see the [platform pages](../platforms/web.md).
 
 ## 1. Install
 
 ```sh
-npm install --save-dev @dpad-tv/test @playwright/test
+npm install --save-dev @toets/test @playwright/test
 # one driver per platform you target
-npm install --save-dev @dpad-tv/driver-web @dpad-tv/driver-android-tv @dpad-tv/driver-tvos
+npm install --save-dev @toets/driver-web @toets/driver-android-tv @toets/driver-tvos
 npx playwright install chromium
 ```
 
@@ -46,7 +46,7 @@ Drivers load when a project first needs them, so install only the platforms you 
 `playwright.config.ts`:
 
 ```ts
-import { defineConfig, platforms } from '@dpad-tv/test';
+import { defineConfig, platforms } from '@toets/test';
 
 export default defineConfig({
   testDir: './e2e',
@@ -65,22 +65,22 @@ export default defineConfig({
 ```
 
 - `app` says how to start the app on each platform; `projects` says where tests run. Drop the platforms you do not target.
-- dpad does not serve or build the app. `webServer` (Playwright's option) serves the web build; the APK and `.app` come from your build.
+- toets does not serve or build the app. `webServer` (Playwright's option) serves the web build; the APK and `.app` come from your build.
 - Project names are the platform names: `web`, `android-tv`, `tvos`.
 - App-specific flows (sign-in, waiting for your splash screen) belong in your own fixtures, not here: see [Writing tests](../guides/writing-tests.md).
 
-Every option: [`@dpad-tv/test` config](../reference/test/docs/config.md).
+Every option: [`@toets/test` config](../reference/test/docs/config.md).
 
 ## 3. Give elements test IDs
 
-dpad finds elements by test ID or text. The test ID is `data-testid` on web, the resource ID on Android and the accessibility identifier on tvOS; React Native's `testID` sets all three. Elements also need to be focusable the way the platform expects (on web: a focusable element or `tabindex`). See [Locators and assertions](../concepts/locators-and-assertions.md).
+toets finds elements by test ID or text. The test ID is `data-testid` on web, the resource ID on Android and the accessibility identifier on tvOS; React Native's `testID` sets all three. Elements also need to be focusable the way the platform expects (on web: a focusable element or `tabindex`). See [Locators and assertions](../concepts/locators-and-assertions.md).
 
 ## 4. Write a test
 
 `e2e/home.spec.ts`:
 
 ```ts run
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('opens details from the first rail', async ({ app }) => {
   await app.launch();
@@ -104,19 +104,19 @@ npx playwright test                 # every platform
 npx playwright show-report          # steps, failure dumps, logs
 ```
 
-A run ends with the parity summary; the full matrix (which test ran on which platform, and why any was skipped) is in `dpad-report/parity.md`:
+A run ends with the parity summary; the full matrix (which test ran on which platform, and why any was skipped) is in `toets-report/parity.md`:
 
 ```text
   1 passed (1.3s)
 
-dpad parity (1 tests): web: 1 passed
-Parity matrix: dpad-report/parity.md
+toets parity (1 tests): web: 1 passed
+Parity matrix: toets-report/parity.md
 ```
 
 A failure prints the error with a `Hint:` and a `Docs:` page, and attaches a failure dump. See [Debugging failures](../guides/debugging-failures.md).
 
 ## Next
 
-- [Concepts](../concepts/locators-and-assertions.md): the few ideas dpad is built on.
+- [Concepts](../concepts/locators-and-assertions.md): the few ideas toets is built on.
 - [Working with agents](./agents.md): skills, an `AGENTS.md` template and docs for coding agents.
 - [CI recipes](../ci/index.md).

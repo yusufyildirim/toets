@@ -15,8 +15,8 @@ import {
   type PressOptions,
   type SelectorChain,
   type UITree,
-} from '@dpad-tv/core';
-import { LAUNCH_PARAM, encodeLaunchPayloadParam } from '@dpad-tv/protocol';
+} from '@toets/core';
+import { LAUNCH_PARAM, encodeLaunchPayloadParam } from '@toets/protocol';
 import {
   startAppiumServer,
   freePort,
@@ -68,7 +68,7 @@ interface Started {
 }
 
 /**
- * dpad driver for tvOS simulators on Appium XCUITest. One instance drives one simulator for
+ * toets driver for tvOS simulators on Appium XCUITest. One instance drives one simulator for
  * one worker. Every read (`query`, `focused`, `tree`) is a single page source fetch; input is
  * real `XCUIRemote` button presses.
  */
@@ -192,7 +192,7 @@ export class TvosDriver implements Driver {
     const name = REMOTE_BUTTONS[key];
     if (!name) {
       throw tvosError(TvosErrorCode.KEY_UNSUPPORTED, `The Siri Remote has no button for ${key}.`, {
-        hint: 'Gate the test with `requires`, or declare an app-level key override (e.g. FAST_FORWARD = hold RIGHT) in your dpad config.',
+        hint: 'Gate the test with `requires`, or declare an app-level key override (e.g. FAST_FORWARD = hold RIGHT) in your toets config.',
         docs: DOCS.remote,
       });
     }
@@ -289,7 +289,7 @@ export class TvosDriver implements Driver {
   private require(): Started {
     if (!this.started) {
       throw tvosError(TvosErrorCode.NOT_STARTED, 'The tvOS driver is not started.', {
-        hint: 'Call start() first; @dpad-tv/test does this per worker.',
+        hint: 'Call start() first; @toets/test does this per worker.',
       });
     }
     return this.started;
@@ -385,7 +385,7 @@ export class TvosDriver implements Driver {
         TvosErrorCode.APP_NOT_INSTALLED,
         `${this.app.bundleId} is not installed on simulator ${udid}.`,
         {
-          hint: 'Set `app` in the tvOS app config to a simulator .app build so dpad installs it, or install it before the run.',
+          hint: 'Set `app` in the tvOS app config to a simulator .app build so toets installs it, or install it before the run.',
           docs: DOCS.setup,
         },
       );
@@ -430,7 +430,7 @@ export function buildCapabilities(input: {
     'appium:wdaLocalPort': input.wdaLocalPort,
     ...(wdaPath ? { 'appium:usePreinstalledWDA': true, 'appium:prebuiltWDAPath': wdaPath } : {}),
     'appium:noReset': true,
-    // dpad streams app logs itself, filtered to the app process.
+    // toets streams app logs itself, filtered to the app process.
     'appium:skipLogCapture': true,
     // Reads must return the current state immediately; the core owns waiting.
     'appium:waitForIdleTimeout': 0,

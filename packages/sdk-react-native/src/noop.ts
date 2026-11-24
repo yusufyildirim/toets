@@ -1,5 +1,5 @@
 /**
- * Inert stand-in for `@dpad-tv/sdk-react-native` with the same app-facing API and no
+ * Inert stand-in for `@toets/sdk-react-native` with the same app-facing API and no
  * dependency on React Native internals. Alias the SDK to this module in production builds:
  * see `docs/production.md`.
  */
@@ -9,27 +9,27 @@ import type { VideoMediaProps } from './media.js';
 
 export type * from './index.js';
 export {
-  createDpad,
-  getDpad,
+  createToets,
+  getToets,
   getLaunchPayload,
   markBusy,
   onState,
   registerMedia,
   createMediaReporter,
   focusChanged,
-} from '@dpad-tv/sdk/noop';
+} from '@toets/sdk/noop';
 
 function noop(): void {}
 
-export function startDpad(_options?: unknown): void {}
+export function startToets(_options?: unknown): void {}
 
 export function reportFocus(_target: unknown): void {}
 
-export function DpadRoot(props: { readonly children?: ReactNode }): ReactNode {
+export function ToetsRoot(props: { readonly children?: ReactNode }): ReactNode {
   return props.children ?? null;
 }
 
-export function withDpad<P extends object>(App: ComponentType<P>, _options?: unknown) {
+export function withToets<P extends object>(App: ComponentType<P>, _options?: unknown) {
   return App;
 }
 
@@ -45,7 +45,7 @@ const videoProps: VideoMediaProps = {
   onError: noop,
 };
 
-export function useDpadMedia(_id: string): VideoMediaProps {
+export function useToetsMedia(_id: string): VideoMediaProps {
   return videoProps;
 }
 

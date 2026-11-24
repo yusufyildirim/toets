@@ -145,7 +145,7 @@ export function renderFull(pages: readonly LlmsPage[], opts: LlmsOptions): strin
 
 /** VitePress `buildEnd` hook. */
 export function generateLlms(config: SiteConfig, opts: Omit<LlmsOptions, 'origin'>): void {
-  const origin = (process.env.DPAD_DOCS_URL ?? '').replace(/\/$/, '');
+  const origin = (process.env.TOETS_DOCS_URL ?? '').replace(/\/$/, '');
   const generated = new Set(config.dynamicRoutes.routes.map((r) => r.path));
   const sourceOf = new Map<string, string>();
   for (const page of config.pages) {

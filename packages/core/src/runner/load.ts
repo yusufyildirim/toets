@@ -2,7 +2,7 @@ import { createRequire } from 'node:module';
 import { isAbsolute, join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 import type { DriverModule } from '../driver.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import type { Platform } from '../platform.js';
 
 const isPath = (specifier: string): boolean =>
@@ -10,7 +10,7 @@ const isPath = (specifier: string): boolean =>
 
 /**
  * Imports a module the user installed (a driver, a config). Packages are resolved from the
- * user's config directory first, so strict package managers (pnpm) work without dpad depending
+ * user's config directory first, so strict package managers (pnpm) work without toets depending
  * on every driver; paths are relative to the config directory.
  */
 export async function importUserModule(
@@ -29,7 +29,7 @@ export async function importUserModule(
         url = pathToFileURL(createRequire(join(dir, 'noop.js')).resolve(specifier)).href;
         break;
       } catch {
-        // try the next base, then a plain import from dpad itself
+        // try the next base, then a plain import from toets itself
       }
     }
   }
@@ -39,7 +39,7 @@ export async function importUserModule(
     const notFound =
       (cause as { code?: string }).code === 'ERR_MODULE_NOT_FOUND' ||
       (cause as { code?: string }).code === 'MODULE_NOT_FOUND';
-    throw new DpadError(
+    throw new ToetsError(
       'MODULE_NOT_FOUND',
       notFound
         ? `Cannot find ${specifier} (${purpose}).`
@@ -80,16 +80,20 @@ export async function loadDriverModule(
   const name = typeof driver === 'string' ? driver : 'The configured driver module';
   const candidate =
     typeof driver === 'string'
-      ? (await importUserModule(driver, baseDir, `${platform ?? 'dpad'} driver`)).default
+      ? (await importUserModule(driver, baseDir, `${platform ?? 'toets'} driver`)).default
       : driver;
   if (!isDriverModule(candidate)) {
-    throw new DpadError('INVALID_DRIVER', `${name} does not default-export a dpad DriverModule.`, {
-      hint: 'A driver package must `export default { platform, createDriver }` (see DriverModule in @dpad-tv/core). Point `driver` at a dpad driver package such as `@dpad-tv/driver-web`.',
-      docs: packageDocsLink('test', 'config'),
-    });
+    throw new ToetsError(
+      'INVALID_DRIVER',
+      `${name} does not default-export a toets DriverModule.`,
+      {
+        hint: 'A driver package must `export default { platform, createDriver }` (see DriverModule in @toets/core). Point `driver` at a toets driver package such as `@toets/driver-web`.',
+        docs: packageDocsLink('test', 'config'),
+      },
+    );
   }
   if (platform !== undefined && candidate.platform !== platform) {
-    throw new DpadError(
+    throw new ToetsError(
       'INVALID_DRIVER',
       `${name} drives ${candidate.platform}, but the project is ${platform}.`,
       {

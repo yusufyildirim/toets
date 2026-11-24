@@ -1,9 +1,4 @@
-import {
-  describeElement,
-  resolveLocator,
-  screenshotPng,
-  type ElementSnapshot,
-} from '@dpad-tv/core';
+import { describeElement, resolveLocator, screenshotPng, type ElementSnapshot } from '@toets/core';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { MATCHERS, runAssertion } from '../assertions.js';
@@ -128,7 +123,7 @@ export function registerInspectTools(server: McpServer, { session }: ToolContext
     {
       title: 'Assert like a test',
       description: [
-        'Check a condition with the same matcher code `expect` runs in a dpad test: it retries until the condition holds or the timeout passes (waiting for app idle first when the SDK has it), and fails with the same message a test would.',
+        'Check a condition with the same matcher code `expect` runs in a toets test: it retries until the condition holds or the timeout passes (waiting for app idle first when the SDK has it), and fails with the same message a test would.',
         'Locator matchers (need `target`): toBeVisible, toBeInViewport, toBeFocused, toHaveFocusWithin, toBeEnabled, toBeDisabled, toBeSelected, toBeBusy, toHaveText / toContainText (`expected`), toHaveCount (`count`). Screen: toMatchTextSnapshot (`expected` YAML from `snapshot`; `target` optional). Media (`media.state`): toBePlaying, toBePaused, toHaveMediaState (`expected`), toHavePosition (`seconds`, `tolerance`). Network (`network.mock`): toHaveRequested (`request`, `times`). Any of them with `not`.',
         'Use it to confirm an assertion before writing it; the result includes the test code line. A locator matching several elements fails (strict mode). TV trap: after pressing keys, assert focus with toBeFocused instead of assuming the press moved it.',
       ].join(' '),

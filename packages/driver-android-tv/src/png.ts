@@ -1,4 +1,4 @@
-import type { Rect } from '@dpad-tv/core';
+import type { Rect } from '@toets/core';
 import { PNG } from 'pngjs';
 
 /** Crops a PNG to `rect` (clamped to the image). Returns `null` when nothing is left. */

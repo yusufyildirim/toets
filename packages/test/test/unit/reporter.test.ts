@@ -19,7 +19,7 @@ interface FakeTest {
   annotations?: TestCase['annotations'];
 }
 
-function projectSuite(name: string, tests: FakeTest[], dpad = true): Suite {
+function projectSuite(name: string, tests: FakeTest[], toets = true): Suite {
   const cases = tests.map(
     (t) =>
       ({
@@ -31,7 +31,7 @@ function projectSuite(name: string, tests: FakeTest[], dpad = true): Suite {
   );
   return {
     title: name,
-    project: () => ({ name, use: dpad ? { dpad: {} } : {} }),
+    project: () => ({ name, use: toets ? { toets: {} } : {} }),
     allTests: () => cases,
   } as unknown as Suite;
 }
@@ -39,7 +39,7 @@ function projectSuite(name: string, tests: FakeTest[], dpad = true): Suite {
 const root = (...suites: Suite[]) => ({ suites }) as unknown as Suite;
 
 describe('buildParityMatrix', () => {
-  it('lines up tests across dpad projects with statuses, skip reasons and overrides', () => {
+  it('lines up tests across toets projects with statuses, skip reasons and overrides', () => {
     const matrix = buildParityMatrix(
       root(
         projectSuite('web', [
@@ -59,7 +59,7 @@ describe('buildParityMatrix', () => {
             title: 'fast forward',
             outcome: 'expected',
             annotations: [
-              { type: 'dpad:key-override', description: 'FAST_FORWARD = hold RIGHT 800ms' },
+              { type: 'toets:key-override', description: 'FAST_FORWARD = hold RIGHT 800ms' },
             ],
           },
           { title: 'interrupted', outcome: 'skipped', ran: false },
@@ -96,7 +96,7 @@ describe('buildParityMatrix', () => {
     });
   });
 
-  it('falls back to all projects when none is a dpad project', () => {
+  it('falls back to all projects when none is a toets project', () => {
     const matrix = buildParityMatrix(
       root(projectSuite('a', [{ title: 't', outcome: 'expected' }], false)),
     );
@@ -122,7 +122,7 @@ describe('formatParityMatrix', () => {
   it('renders a Markdown table with escaped pipes', () => {
     expect(formatParityMatrix(matrix)).toBe(
       [
-        '# dpad parity matrix',
+        '# toets parity matrix',
         '',
         '| Test | web | tvos |',
         '| --- | --- | --- |',
@@ -138,7 +138,7 @@ describe('summarizeParity', () => {
   it('counts per project and lists diverging tests', () => {
     expect(summarizeParity(matrix)).toBe(
       [
-        'dpad parity (2 tests): web: 2 passed; tvos: 1 passed, 1 skipped',
+        'toets parity (2 tests): web: 2 passed; tvos: 1 passed, 1 skipped',
         '  differs: a.spec.ts > a | b: web passed, tvos skipped (requires key.color: not available on tvos)',
       ].join('\n'),
     );
@@ -147,7 +147,7 @@ describe('summarizeParity', () => {
 
 describe('ParityReporter', () => {
   it('resolves a relative outputFile against the config directory, like Playwright', () => {
-    const dir = mkdtempSync(join(tmpdir(), 'dpad-parity-'));
+    const dir = mkdtempSync(join(tmpdir(), 'toets-parity-'));
     try {
       const reporter = new ParityReporter({ outputFile: '../report/parity.md', summary: false });
       const config = { configFile: join(dir, 'e2e', 'playwright.config.ts') } as FullConfig;

@@ -1,6 +1,6 @@
 # Assertions
 
-Every dpad matcher retries until it passes or the timeout elapses (`expect.timeout`, default 5000 ms). There are no sleeps in a dpad test.
+Every toets matcher retries until it passes or the timeout elapses (`expect.timeout`, default 5000 ms). There are no sleeps in a toets test.
 
 ```ts nocheck
 await app.remote.press(Key.SELECT);

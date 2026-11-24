@@ -1,4 +1,4 @@
-import { DpadError, packageDocsLink } from '@dpad-tv/core';
+import { ToetsError, packageDocsLink } from '@toets/core';
 
 /** Error codes thrown by the Android TV driver. Stable: agents and users branch on them. */
 export type AndroidTvErrorCode =
@@ -23,7 +23,7 @@ export type AndroidTvErrorCode =
 
 /**
  * Docs pages of this package. Slug `driver-android-tv/<page>` is shipped as
- * `node_modules/@dpad-tv/driver-android-tv/docs/<page>.md`.
+ * `node_modules/@toets/driver-android-tv/docs/<page>.md`.
  */
 export const DOCS = {
   setup: packageDocsLink('driver-android-tv', 'setup'),
@@ -37,6 +37,6 @@ export function androidError(
   code: AndroidTvErrorCode,
   message: string,
   opts: { hint?: string; docs?: string; cause?: unknown } = {},
-): DpadError {
-  return new DpadError(code, message, opts);
+): ToetsError {
+  return new ToetsError(code, message, opts);
 }

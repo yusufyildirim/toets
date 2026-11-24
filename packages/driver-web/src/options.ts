@@ -1,4 +1,4 @@
-import { DpadError, packageDocsLink } from '@dpad-tv/core';
+import { ToetsError, packageDocsLink } from '@toets/core';
 import type {
   Browser,
   BrowserContext,
@@ -42,7 +42,7 @@ export interface WebDriverOptions {
     /** Matches focusable elements. */
     readonly focusable?: string;
   };
-  /** How the launch payload reaches the app. Default `query` (`?__dpad=`). */
+  /** How the launch payload reaches the app. Default `query` (`?__toets=`). */
   readonly launchTransport?: LaunchTransport;
   /** Navigation milestone after which `launch()` returns. Default `load`. */
   readonly waitUntil?: LaunchWaitUntil;
@@ -90,8 +90,8 @@ export const DEFAULT_VIEWPORT = { width: 1920, height: 1080 } as const;
 
 const DOCS = packageDocsLink('driver-web', 'options');
 
-function invalid(message: string, hint: string): DpadError {
-  return new DpadError('WEB_INVALID_CONFIG', message, { hint, docs: DOCS });
+function invalid(message: string, hint: string): ToetsError {
+  return new ToetsError('WEB_INVALID_CONFIG', message, { hint, docs: DOCS });
 }
 
 function optionalString(o: Record<string, unknown>, name: string): string | undefined {
@@ -130,7 +130,7 @@ function positive(v: unknown, name: string, fallback: number): number {
 
 /**
  * Merges the app config and platform options (platform wins) and validates the result.
- * Throws `DpadError` (`WEB_INVALID_CONFIG`) with a hint for anything malformed.
+ * Throws `ToetsError` (`WEB_INVALID_CONFIG`) with a hint for anything malformed.
  */
 export function resolveOptions(
   options: WebDriverOptions,
@@ -143,7 +143,7 @@ export function resolveOptions(
   if (rawUrl === undefined) {
     throw invalid(
       'The web app URL is missing.',
-      "Set `app.web.url` in the dpad config, e.g. `{ web: { url: 'http://localhost:3000' } }`.",
+      "Set `app.web.url` in the toets config, e.g. `{ web: { url: 'http://localhost:3000' } }`.",
     );
   }
   let url: URL;

@@ -52,7 +52,7 @@ export function sdkWarn(message: string): void {
   if (c && typeof c.warn === 'function') {
     sdkLogDepth++;
     try {
-      c.warn(`[dpad] ${message}`);
+      c.warn(`[toets] ${message}`);
     } finally {
       sdkLogDepth--;
     }

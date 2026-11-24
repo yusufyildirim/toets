@@ -1,6 +1,6 @@
 # How the DOM maps to elements
 
-dpad matchers work on platform-neutral element snapshots. The web driver fills them from the DOM, reading the whole page in one script per call (no per-element round trips) and never waiting: the core retries.
+toets matchers work on platform-neutral element snapshots. The web driver fills them from the DOM, reading the whole page in one script per call (no per-element round trips) and never waiting: the core retries.
 
 | Field         | Source                                                                                     |
 | ------------- | ------------------------------------------------------------------------------------------ |

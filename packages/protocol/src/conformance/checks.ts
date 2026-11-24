@@ -169,7 +169,7 @@ const PROBE_PARAMS: Readonly<Record<HostToAppMethod, unknown>> = {
 export const sessionChecks: Check<SessionContext>[] = [
   {
     id: 'handshake.hello',
-    title: 'dpad.hello carries the token, a compatible protocol, sdk, framework and domains',
+    title: 'toets.hello carries the token, a compatible protocol, sdk, framework and domains',
     scenario: 'session',
     async run(ctx) {
       const hello = ctx.session.hello;
@@ -503,7 +503,7 @@ export const sessionChecks: Check<SessionContext>[] = [
     domains: ['logs', 'state'],
     fixture: true,
     async run(ctx) {
-      const marker = `dpad-conformance-${Math.random().toString(36).slice(2)}`;
+      const marker = `toets-conformance-${Math.random().toString(36).slice(2)}`;
       const entry = waitForNotification(
         ctx,
         'logs.entry',
@@ -610,7 +610,7 @@ function rejectChecks(scenario: Scenario, what: string): Check<RejectContext>[] 
 export const rejectionChecks: Check<RejectContext>[] = [
   {
     id: 'handshake.hello-first',
-    title: 'the first frame is a dpad.hello request with the payload token',
+    title: 'the first frame is a toets.hello request with the payload token',
     scenario: 'reject-unauthorized',
     async run(ctx) {
       if (ctx.firstFrame === null) fail('the SDK sent nothing');
@@ -621,7 +621,7 @@ export const rejectionChecks: Check<RejectContext>[] = [
         fail('the first frame is not JSON');
       }
       if (msg.jsonrpc !== '2.0' || msg.method !== HELLO_METHOD || msg.id === undefined)
-        fail(`the first frame is not a dpad.hello request: ${ctx.firstFrame.slice(0, 200)}`);
+        fail(`the first frame is not a toets.hello request: ${ctx.firstFrame.slice(0, 200)}`);
       if ((msg.params as Partial<HelloParams> | undefined)?.token !== ctx.token)
         fail('hello token does not match the payload');
     },

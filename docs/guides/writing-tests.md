@@ -1,10 +1,10 @@
 ---
-description: How to write dpad tests that pass for the right reason on every platform - shape, principles, app-specific fixtures and the fast loop.
+description: How to write toets tests that pass for the right reason on every platform - shape, principles, app-specific fixtures and the fast loop.
 ---
 
 # Writing tests
 
-A good dpad test drives the app the way a user does with a remote, checks what the user would see, and means the same thing on every platform.
+A good toets test drives the app the way a user does with a remote, checks what the user would see, and means the same thing on every platform.
 
 ## Shape
 
@@ -25,10 +25,10 @@ A good dpad test drives the app the way a user does with a remote, checks what t
 
 ## App-specific setup belongs in your fixtures
 
-dpad knows nothing about your splash screen, sign-in or consent dialogs. Put that in a Playwright fixture in your project and build tests on it:
+toets knows nothing about your splash screen, sign-in or consent dialogs. Put that in a Playwright fixture in your project and build tests on it:
 
 ```ts run
-import { test as base, expect, type App } from '@dpad-tv/test';
+import { test as base, expect, type App } from '@toets/test';
 
 /** The app launched and past the splash screen. */
 export const test = base.extend<{ home: App }>({
@@ -46,7 +46,7 @@ test('home shows the featured rail first', async ({ home }) => {
 
 ## The fast loop
 
-Develop against web (`--project=web`): it starts in seconds and records Playwright traces. Then run every project before you finish; a test is done when it passes, or is skipped with a reason, everywhere (check `dpad-report/parity.md`).
+Develop against web (`--project=web`): it starts in seconds and records Playwright traces. Then run every project before you finish; a test is done when it passes, or is skipped with a reason, everywhere (check `toets-report/parity.md`).
 
 ```sh
 npx playwright test e2e/home.spec.ts --project=web

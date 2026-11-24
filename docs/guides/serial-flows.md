@@ -7,7 +7,7 @@ description: Serial flows run tests in order on one shared app instance, with Pl
 By default every test is independent. A **serial flow** groups tests that run in order, in one worker, on **one shared `app`**: each test continues where the previous one left off. The semantics are Playwright's serial mode, identical on every platform.
 
 ```ts run
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test.describe.serial('first run', () => {
   test('accepts the terms', async ({ app }) => {

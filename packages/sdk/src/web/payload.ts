@@ -1,9 +1,9 @@
-import { LAUNCH_GLOBAL, LAUNCH_PARAM } from '@dpad-tv/protocol';
+import { LAUNCH_GLOBAL, LAUNCH_PARAM } from '@toets/protocol';
 import { getGlobal } from '../env.js';
 
 /**
- * Finds the launch payload of a web app: `window.__DPAD__` (set by an init script) or the
- * `__dpad` query parameter (also accepted inside a hash route, e.g. `#/home?__dpad=...`).
+ * Finds the launch payload of a web app: `window.__TOETS__` (set by an init script) or the
+ * `__toets` query parameter (also accepted inside a hash route, e.g. `#/home?__toets=...`).
  * Returns the raw value; `decodeLaunchPayload` validates it.
  */
 export function discoverWebPayload(): unknown {

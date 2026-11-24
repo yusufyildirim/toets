@@ -1,10 +1,10 @@
 # In-app SDK
 
-The SDK is an optional library inside the app. It connects back to the test host when the app is launched by dpad and answers questions only the app can answer quickly: the element tree, the focus graph, idle state, media state, app state and logs.
+The SDK is an optional library inside the app. It connects back to the test host when the app is launched by toets and answers questions only the app can answer quickly: the element tree, the focus graph, idle state, media state, app state and logs.
 
 ```ts nocheck
 // playwright.config.ts
-export default defineConfig({ dpad: { sdk: true } /* ... */ });
+export default defineConfig({ toets: { sdk: true } /* ... */ });
 
 // a test
 await app.launch({ state: 'details:the-matrix' }); // needs app.state
@@ -13,8 +13,8 @@ await expect(app.media).toBePlaying(); // needs media.state
 
 ## How it fits
 
-- **On launch** dpad issues a one-time token and passes a payload (`sdkUrl`, `token`, `mockUrl`, `state`, `flags`) to the app through the driver. The app connects and dpad waits up to `timeouts.sdkConnectMs`; if it never connects, launch fails with `SDK_NOT_CONNECTED`.
-- **Composition:** the SDK answers tree, queries, focus, focus graph, media and idle; the driver still does input, launch and screenshots. If an SDK request fails, dpad falls back to the driver.
+- **On launch** toets issues a one-time token and passes a payload (`sdkUrl`, `token`, `mockUrl`, `state`, `flags`) to the app through the driver. The app connects and toets waits up to `timeouts.sdkConnectMs`; if it never connects, launch fails with `SDK_NOT_CONNECTED`.
+- **Composition:** the SDK answers tree, queries, focus, focus graph, media and idle; the driver still does input, launch and screenshots. If an SDK request fails, toets falls back to the driver.
 - **Without the payload the SDK is inert**, so production builds can ship it.
 
 ## Principles

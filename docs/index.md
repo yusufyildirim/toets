@@ -2,7 +2,7 @@
 layout: home
 description: Cross-platform E2E testing for TV apps - one test for web, Android TV / Fire TV and tvOS, with focus and the remote as first-class primitives.
 hero:
-  name: dpad
+  name: toets
   text: E2E tests for TV apps
   tagline: Write one test. Run it on web, Android TV / Fire TV and tvOS. Trust that it tests the same thing everywhere.
   actions:
@@ -20,7 +20,7 @@ hero:
 <div class="vp-doc" style="max-width: 760px; margin: 0 auto; padding: 0 24px">
 
 ```ts run
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('opens details from the first rail', async ({ app }) => {
   await app.launch();

@@ -1,9 +1,9 @@
 import { mkdir } from 'node:fs/promises';
-import type { SdkHost } from '@dpad-tv/protocol';
-import { createSdkHost } from '@dpad-tv/protocol/host';
+import type { SdkHost } from '@toets/protocol';
+import { createSdkHost } from '@toets/protocol/host';
 import type { DeviceLease } from '../devices.js';
 import type { AppTargetConfig, Driver, DriverModule } from '../driver.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import type { MockServerConfig, MockServerLike } from '../mock.js';
 import type { Platform } from '../platform.js';
 import { AppRuntime } from '../runtime/app.js';
@@ -13,12 +13,12 @@ import { loadDriverModule } from './load.js';
 
 /**
  * Creates the host-side mock server from the `mock` settings; `createMockServer` from
- * `@dpad-tv/mock` fits (runners pass it the MSW handlers the user configured).
+ * `@toets/mock` fits (runners pass it the MSW handlers the user configured).
  */
 export type MockServerFactory = (opts: MockServerConfig) => Promise<MockServerLike>;
 
 /**
- * Runtime options every runner understands: the `dpad` options of the test config, which the
+ * Runtime options every runner understands: the `toets` options of the test config, which the
  * MCP server reads too.
  */
 export interface RuntimeConfig {
@@ -30,17 +30,17 @@ export interface RuntimeConfig {
     | boolean
     | {
         readonly port?: number;
-        /** Custom host factory; default `createSdkHost` from `@dpad-tv/protocol/host`. */
+        /** Custom host factory; default `createSdkHost` from `@toets/protocol/host`. */
         readonly createHost?: (opts: { port?: number }) => Promise<SdkHost>;
       };
   /**
-   * Host-side network mocking with `@dpad-tv/mock` (`network.mock`): `true`, or the server
+   * Host-side network mocking with `@toets/mock` (`network.mock`): `true`, or the server
    * settings (baseline handlers, unhandled request policy, ...). Default off.
    */
   readonly mock?:
     | boolean
     | (MockServerConfig & {
-        /** Custom server factory; default `createMockServer` from `@dpad-tv/mock`. */
+        /** Custom server factory; default `createMockServer` from `@toets/mock`. */
         readonly createServer?: MockServerFactory;
       });
   /**
@@ -113,7 +113,7 @@ export interface TargetContext {
   readonly log: (message: string) => void;
   /**
    * Mock server factory used when `options.mock` is on without its own `createServer`. The core
-   * does not depend on `@dpad-tv/mock`; runners pass its `createMockServer`.
+   * does not depend on `@toets/mock`; runners pass its `createMockServer`.
    */
   readonly createMockServer?: MockServerFactory;
 }
@@ -147,8 +147,8 @@ async function startMockServer(
   );
   const create = createServer ?? fallback;
   if (!create) {
-    throw new DpadError('MOCK_UNAVAILABLE', 'Network mocking is on, but no mock server is set.', {
-      hint: 'Pass `createMockServer` from @dpad-tv/mock to startTarget, or set `mock.createServer`.',
+    throw new ToetsError('MOCK_UNAVAILABLE', 'Network mocking is on, but no mock server is set.', {
+      hint: 'Pass `createMockServer` from @toets/mock to startTarget, or set `mock.createServer`.',
       docs: packageDocsLink('core', 'network'),
     });
   }

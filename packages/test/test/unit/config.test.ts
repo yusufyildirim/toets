@@ -1,12 +1,12 @@
-import { Key } from '@dpad-tv/core';
-import { http, HttpResponse } from '@dpad-tv/mock';
+import { Key } from '@toets/core';
+import { http, HttpResponse } from '@toets/mock';
 import { describe, expect, it } from 'vitest';
-import { defineConfig, platforms, type DpadProjectConfig } from '../../src/config.js';
+import { defineConfig, platforms, type ToetsProjectConfig } from '../../src/config.js';
 import { requiredCapabilities, requires, requiresSkipReason } from '../../src/requires.js';
 import { serialGroupOf } from '../../src/serial.js';
 
-const dpadOf = (project: { use?: unknown } | undefined) =>
-  (project?.use as { dpad: DpadProjectConfig }).dpad;
+const toetsOf = (project: { use?: unknown } | undefined) =>
+  (project?.use as { toets: ToetsProjectConfig }).toets;
 
 describe('platforms', () => {
   it('builds a project named after the platform with the default driver', () => {
@@ -14,9 +14,9 @@ describe('platforms', () => {
     expect(project.name).toBe('android-tv');
     expect(project.retries).toBe(1);
     expect(project.use).toMatchObject({ trace: 'on' });
-    expect(dpadOf(project)).toEqual({
+    expect(toetsOf(project)).toEqual({
       platform: 'android-tv',
-      driver: '@dpad-tv/driver-android-tv',
+      driver: '@toets/driver-android-tv',
       driverOptions: {},
       app: {},
       device: {},
@@ -34,7 +34,7 @@ describe('platforms', () => {
       devices: { mode: 'external', addresses: ['UDID-1'] },
     });
     expect(project.name).toBe('apple-tv-4k');
-    expect(dpadOf(project)).toMatchObject({
+    expect(toetsOf(project)).toMatchObject({
       platform: 'tvos',
       driver: './my-driver.js',
       device: { model: 'Apple TV 4K', osVersion: '18' },
@@ -42,7 +42,7 @@ describe('platforms', () => {
     });
   });
 
-  it('passes every key that is neither Playwright nor dpad to the driver', () => {
+  it('passes every key that is neither Playwright nor toets to the driver', () => {
     const project = platforms.androidTV({
       name: 'fire-tv',
       retries: 2,
@@ -52,17 +52,17 @@ describe('platforms', () => {
       logcat: 'all',
       managed: { headless: false },
       app: { activity: '.Main' },
-      dpad: { sdk: true },
+      toets: { sdk: true },
     });
     expect(project).toMatchObject({ name: 'fire-tv', retries: 2, timeout: 60_000 });
     expect(project).not.toHaveProperty('remote');
-    expect(dpadOf(project)).toMatchObject({
+    expect(toetsOf(project)).toMatchObject({
       driverOptions: { remote: 'fire-tv', logcat: 'all', managed: { headless: false } },
       device: { model: 'tv_1080p' },
       app: { activity: '.Main' },
       options: { sdk: true },
     });
-    expect(Object.keys(dpadOf(project).driverOptions)).toEqual(['remote', 'logcat', 'managed']);
+    expect(Object.keys(toetsOf(project).driverOptions)).toEqual(['remote', 'logcat', 'managed']);
   });
 
   it('types a custom driver through its options type', () => {
@@ -70,7 +70,7 @@ describe('platforms', () => {
       readonly speed: number;
     }
     const project = platforms.web<MyOptions>({ driver: './my-driver.js', speed: 2 });
-    expect(dpadOf(project).driverOptions).toEqual({ speed: 2 });
+    expect(toetsOf(project).driverOptions).toEqual({ speed: 2 });
     // @ts-expect-error unknown driver option
     platforms.web({ notAnOption: true });
   });
@@ -80,22 +80,22 @@ describe('defineConfig', () => {
   it('merges per-platform app entries and shared options into projects', () => {
     const config = defineConfig({
       app: { web: { url: 'http://localhost:3000' }, tvOS: { bundleId: 'com.example.tv' } },
-      dpad: {
+      toets: {
         sdk: true,
         keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } },
         timeouts: { actionMs: 3000 },
       },
       projects: [
         platforms.web({ app: { url: 'http://localhost:4000' } }),
-        platforms.tvOS({ dpad: { timeouts: { sdkConnectMs: 30_000 }, sdk: false } }),
+        platforms.tvOS({ toets: { timeouts: { sdkConnectMs: 30_000 }, sdk: false } }),
         { name: 'plain' },
       ],
     });
     const [web, tvos, plain] = config.projects ?? [];
-    expect(dpadOf(web).app).toEqual({ url: 'http://localhost:4000' });
-    expect(dpadOf(web).options.sdk).toBe(true);
-    expect(dpadOf(tvos).app).toEqual({ bundleId: 'com.example.tv' });
-    expect(dpadOf(tvos).options).toMatchObject({
+    expect(toetsOf(web).app).toEqual({ url: 'http://localhost:4000' });
+    expect(toetsOf(web).options.sdk).toBe(true);
+    expect(toetsOf(tvos).app).toEqual({ bundleId: 'com.example.tv' });
+    expect(toetsOf(tvos).options).toMatchObject({
       sdk: false,
       keyOverrides: { FAST_FORWARD: { as: Key.RIGHT, holdMs: 800 } },
       timeouts: { actionMs: 3000, sdkConnectMs: 30_000 },
@@ -106,18 +106,18 @@ describe('defineConfig', () => {
   it('merges mock settings key by key into projects', () => {
     const handlers = [http.get('https://api.example.com/config', () => HttpResponse.json({}))];
     const [web, tvos] = defineConfig({
-      dpad: { mock: { handlers, onUnhandledRequest: 'reject' } },
-      projects: [platforms.web({ dpad: { mock: { port: 4100 } } }), platforms.tvOS()],
+      toets: { mock: { handlers, onUnhandledRequest: 'reject' } },
+      projects: [platforms.web({ toets: { mock: { port: 4100 } } }), platforms.tvOS()],
     }).projects!;
-    expect(dpadOf(web).options.mock).toEqual({
+    expect(toetsOf(web).options.mock).toEqual({
       handlers,
       onUnhandledRequest: 'reject',
       port: 4100,
     });
-    expect(dpadOf(tvos).options.mock).toEqual({ handlers, onUnhandledRequest: 'reject' });
+    expect(toetsOf(tvos).options.mock).toEqual({ handlers, onUnhandledRequest: 'reject' });
   });
 
-  it('defaults dpad projects to host-independent snapshot paths', () => {
+  it('defaults toets projects to host-independent snapshot paths', () => {
     const template =
       '{snapshotDir}/{testFileDir}/{testFileName}-snapshots/{arg}{-projectName}{ext}';
     const [web, plain] = defineConfig({ projects: [platforms.web(), { name: 'plain' }] }).projects!;
@@ -175,17 +175,17 @@ describe('requires', () => {
     ).toEqual(['key.color', 'media.state']);
   });
 
-  it('names the dpad option a skipped capability needs', () => {
+  it('names the toets option a skipped capability needs', () => {
     const on = { sdk: true, mock: true };
     const off = { sdk: false, mock: false };
     expect(requiresSkipReason(['key.color'], 'tvos', off)).toBe(
       'requires key.color: not available on tvos',
     );
     expect(requiresSkipReason(['media.state'], 'web', off)).toBe(
-      'requires media.state: not available on web (dpad.sdk off)',
+      'requires media.state: not available on web (toets.sdk off)',
     );
     expect(requiresSkipReason(['app.state', 'network.mock'], 'web', off)).toBe(
-      'requires app.state, network.mock: not available on web (dpad.sdk, dpad.mock off)',
+      'requires app.state, network.mock: not available on web (toets.sdk, toets.mock off)',
     );
     expect(requiresSkipReason(['media.state'], 'web', on)).toBe(
       'requires media.state: not available on web',

@@ -1,4 +1,4 @@
-import { expect, test } from '@dpad-tv/test';
+import { expect, test } from '@toets/test';
 
 test('home looks right', async ({ app }) => {
   await app.launch();

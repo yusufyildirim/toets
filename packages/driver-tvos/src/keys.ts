@@ -1,4 +1,4 @@
-import type { Capability, Key } from '@dpad-tv/core';
+import type { Capability, Key } from '@toets/core';
 
 /** Button names of `XCUIRemote` as accepted by XCUITest's `mobile: pressButton`. */
 export type RemoteButton =
@@ -8,7 +8,7 @@ export type RemoteButton =
  * The only keys the tvOS driver presses, each a real Siri Remote button. The Siri Remote has
  * no discrete play/pause, transport, color, numeric or channel buttons, so those keys stay
  * unsupported (VISION decision 17). Apps that map, say, `FAST_FORWARD` to "hold RIGHT"
- * declare it as a key override in their dpad config; the core then presses RIGHT with
+ * declare it as a key override in their toets config; the core then presses RIGHT with
  * `holdMs` and flags the override in reports.
  *
  * `MENU` is not mapped: the remote's Menu/Back button is the platform's back action, so it

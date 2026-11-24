@@ -1,18 +1,18 @@
 ---
-description: Start the SDK in a web TV app with startDpad, and how the web driver delivers the launch payload.
+description: Start the SDK in a web TV app with startToets, and how the web driver delivers the launch payload.
 ---
 
 # Web adapter
 
 ```ts
-import { startDpad } from '@dpad-tv/sdk/web';
+import { startToets } from '@toets/sdk/web';
 
-startDpad(); // first thing in the entry file, before the router rewrites the URL
+startToets(); // first thing in the entry file, before the router rewrites the URL
 ```
 
 The package is ESM with bare imports: bundle it with the app (any bundler), even for a plain HTML/JS app.
 
-The web driver passes the payload as `?__dpad=<base64url>` (also read inside hash routes) or `window.__DPAD__` through an init script.
+The web driver passes the payload as `?__toets=<base64url>` (also read inside hash routes) or `window.__TOETS__` through an init script.
 
 ## What it maps
 
@@ -27,12 +27,12 @@ The web driver passes the payload as `?__dpad=<base64url>` (also read inside has
 Many TV web apps move a "focused" class instead of DOM focus. Tell the adapter:
 
 ```ts nocheck
-startDpad({
+startToets({
   focusedElement: () => document.querySelector('.focused'),
   isFocusable: (el) => el.classList.contains('focusable') || undefined,
   focusNeighbors: (el) => engine.neighbors(el), // { up, down, left, right }: element, null = blocked
 });
-// and call focusChanged() (from @dpad-tv/sdk/web) when the engine moves focus
+// and call focusChanged() (from @toets/sdk/web) when the engine moves focus
 ```
 
 Other options: `testIdAttribute`, `root`, `animations: false`, `ignoreAnimation`, `media: false`, plus the runtime options (`idle`, `logs`, `allowRemoteHost`).

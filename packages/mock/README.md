@@ -1,6 +1,6 @@
-# @dpad-tv/mock
+# @toets/mock
 
-dpad network mocking: MSW handlers served by a host-side mock server with upstream proxying, request recording and HAR export. Works the same on web, Android TV and tvOS without certificates.
+toets network mocking: MSW handlers served by a host-side mock server with upstream proxying, request recording and HAR export. Works the same on web, Android TV and tvOS without certificates.
 
 Docs (shipped in `docs/`):
 
@@ -10,4 +10,4 @@ Docs (shipped in `docs/`):
 - [App integration](./docs/app-integration.md): routing app traffic to `mockUrl` (fetch, axios), platform setup
 - [TV traps](./docs/tv-traps.md): media, images, third-party SDKs, cookies
 
-Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Project overview: [toets](https://github.com/yusufyildirim/toets#readme).

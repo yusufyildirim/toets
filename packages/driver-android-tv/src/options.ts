@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import type { AppTargetConfig } from '@dpad-tv/core';
+import type { AppTargetConfig } from '@toets/core';
 import type { ManagedDeviceOptions } from './devices/managed.js';
 import { DOCS, androidError } from './errors.js';
 import type { RemoteProfile } from './keys.js';
@@ -7,7 +7,7 @@ import type { LogcatScope } from './logcat.js';
 import type { TestIdAttribute } from './page-source.js';
 
 /**
- * The app under test, from the user's dpad config (`app.androidTV`). App specifics live here,
+ * The app under test, from the user's toets config (`app.androidTV`). App specifics live here,
  * never in the driver.
  */
 export interface AndroidTvAppConfig {
@@ -55,7 +55,7 @@ export interface AppiumOptions {
   readonly port?: number;
   /** Extra session capabilities, merged last (e.g. `{ 'appium:adbExecTimeout': 60000 }`). */
   readonly capabilities?: Readonly<Record<string, unknown>>;
-  /** UiAutomator2 settings applied after the session starts, merged over dpad's defaults. */
+  /** UiAutomator2 settings applied after the session starts, merged over toets's defaults. */
   readonly settings?: Readonly<Record<string, unknown>>;
 }
 
@@ -66,7 +66,7 @@ export interface VideoOptions {
   readonly ffmpeg?: string;
 }
 
-/** Validates the app config the user put in their dpad config. */
+/** Validates the app config the user put in their toets config. */
 export function parseAppConfig(
   app: AppTargetConfig,
   configDir: string = process.cwd(),

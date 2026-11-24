@@ -1,9 +1,9 @@
 # SDK host
 
-`createSdkHost()` (from `@dpad-tv/protocol/host`, Node only) is the host side of the [protocol](./spec.md): a loopback WebSocket server that issues one-time tokens and turns each app connection into an `SdkSession`. The dpad core owns one per run; drivers only put its URL and a token into the launch payload.
+`createSdkHost()` (from `@toets/protocol/host`, Node only) is the host side of the [protocol](./spec.md): a loopback WebSocket server that issues one-time tokens and turns each app connection into an `SdkSession`. The toets core owns one per run; drivers only put its URL and a token into the launch payload.
 
 ```ts nocheck
-import { createSdkHost } from '@dpad-tv/protocol/host';
+import { createSdkHost } from '@toets/protocol/host';
 
 const host = await createSdkHost();
 const token = host.issueToken();
@@ -29,7 +29,7 @@ Options (`SdkHostOptions`): `port`, `host`, `handshakeTimeoutMs`, `requestTimeou
 
 ## Errors
 
-Every failure is a `ProtocolError` with `code`, `hint` and `docs` (same shape as the core's `DpadError`): `sdk.listen-failed`, `sdk.unknown-token`, `sdk.session-timeout`, `sdk.host-closed`, `sdk.closed`, `sdk.request-timeout`, `sdk.method-unsupported`, `sdk.remote-error` (`rpcCode` and `data` carry the SDK's JSON-RPC error).
+Every failure is a `ProtocolError` with `code`, `hint` and `docs` (same shape as the core's `ToetsError`): `sdk.listen-failed`, `sdk.unknown-token`, `sdk.session-timeout`, `sdk.host-closed`, `sdk.closed`, `sdk.request-timeout`, `sdk.method-unsupported`, `sdk.remote-error` (`rpcCode` and `data` carry the SDK's JSON-RPC error).
 
 ## TV trap
 

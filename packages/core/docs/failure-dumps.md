@@ -1,9 +1,9 @@
 # Failure dumps
 
-When a test fails, dpad writes a `dpad-failure.md` dump and a `dpad-screenshot.png` to the test's output folder (`test-results/<test>/`) and attaches both to the Playwright report; the console prints their paths. The dump is everything needed to understand the failure without rerunning it:
+When a test fails, toets writes a `toets-failure.md` dump and a `toets-screenshot.png` to the test's output folder (`test-results/<test>/`) and attaches both to the Playwright report; the console prints their paths. The dump is everything needed to understand the failure without rerunning it:
 
 ````md
-# dpad failure dump
+# toets failure dump
 
 - platform: android-tv
 - capabilities: key.back, key.color, key.media.toggle
@@ -26,7 +26,7 @@ It also lists busy resources (when idle sync is on), recent app logs and recorde
 
 - **Text first.** The screen is a [text snapshot](./text-snapshots.md), readable in CI logs and by AI agents. The screenshot is attached separately.
 - **Never masks the real error.** Collecting the dump never throws; missing parts are left out.
-- **Logs and network traffic** are attached for every test (`dpad-logs`, `dpad-network.har`), not only failures.
+- **Logs and network traffic** are attached for every test (`toets-logs`, `toets-network.har`), not only failures.
 - **Failed requests stay.** The dump lists the last 20 requests plus any earlier failed ones (no route, upstream unreachable), with the failure reason.
 
 ## TV trap: the failing key was three presses ago

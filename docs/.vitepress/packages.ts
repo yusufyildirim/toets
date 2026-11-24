@@ -3,7 +3,7 @@
  * `/reference/<pkg>/docs/<page>` (see the rewrites in config.ts) without copying them.
  *
  * The URL keeps the `docs` segment on purpose: a link from one package's docs to another's,
- * written as `../../core/docs/page.md`, then works in the repo, in `node_modules/@dpad-tv/` and
+ * written as `../../core/docs/page.md`, then works in the repo, in `node_modules/@toets/` and
  * on the site alike.
  */
 import { existsSync, globSync, readFileSync } from 'node:fs';

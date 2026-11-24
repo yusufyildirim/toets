@@ -1,7 +1,7 @@
-import type { ElementRef, Rect, UINode, UITree } from '@dpad-tv/core';
+import type { ElementRef, Rect, UINode, UITree } from '@toets/core';
 import { XMLParser } from 'fast-xml-parser';
 
-/** Which page-source attribute holds the dpad test ID. */
+/** Which page-source attribute holds the toets test ID. */
 export type TestIdAttribute = 'resource-id' | 'content-desc';
 
 export interface PageSourceOptions {
@@ -34,7 +34,7 @@ const parser = new XMLParser({
 });
 
 /**
- * Maps a UiAutomator2 page source (or a `uiautomator dump`) to a dpad {@link UITree}.
+ * Maps a UiAutomator2 page source (or a `uiautomator dump`) to a toets {@link UITree}.
  *
  * - `testId`: `resource-id` without the package prefix (or `content-desc`, see options). Window
  *   decor (`android:id/content` and the frames above it) has none: its IDs are the platform's.

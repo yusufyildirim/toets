@@ -2,8 +2,8 @@ import { mkdtemp, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { DeviceLease, DriverCreateContext, DriverModule } from '@dpad-tv/core';
-import { FakeDriver } from '@dpad-tv/core/testing';
+import type { DeviceLease, DriverCreateContext, DriverModule } from '@toets/core';
+import { FakeDriver } from '@toets/core/testing';
 import { describe, expect, it } from 'vitest';
 import { loadMcpConfig, validateMcpConfig } from '../src/config.js';
 import { connect } from './helpers.js';
@@ -24,12 +24,12 @@ describe('config', () => {
       validateMcpConfig({ targets: { tv: { driver: 'x', devices: { mode: 'farm' } } } }),
     ).toThrow(/targets\.tv\.devices/);
     expect(() =>
-      validateMcpConfig({ targets: { tv: { driver: 'x', dpad: { sdk: true, steps: {} } } } }),
-    ).toThrow(/targets\.tv\.dpad: Unrecognized key: "steps"/);
+      validateMcpConfig({ targets: { tv: { driver: 'x', toets: { sdk: true, steps: {} } } } }),
+    ).toThrow(/targets\.tv\.toets: Unrecognized key: "steps"/);
   });
 
   it('loads a JSON config and lazily imports its driver module by path', async () => {
-    const loaded = await loadMcpConfig('json-config/dpad.mcp.config.json', fixtures);
+    const loaded = await loadMcpConfig('json-config/toets.mcp.config.json', fixtures);
     expect(loaded).toMatchObject({ kind: 'mcp', config: { expectTimeoutMs: 1000 } });
     const h = await connect({ config: loaded!.config, baseDir: loaded!.baseDir });
     expect(await h.ok('launch')).toContain('Focus: hello "From JSON"');
@@ -37,7 +37,7 @@ describe('config', () => {
 
   it('discovers a TS config in the working directory and honors defaultTarget', async () => {
     const loaded = await loadMcpConfig(undefined, join(fixtures, 'ts-config'));
-    expect(loaded?.file).toMatch(/dpad\.mcp\.config\.ts$/);
+    expect(loaded?.file).toMatch(/toets\.mcp\.config\.ts$/);
     const h = await connect({ config: loaded!.config, baseDir: loaded!.baseDir });
     expect(await h.ok('launch')).toContain('"Second"');
     // Switching targets stops the previous driver and starts the other one.
@@ -50,13 +50,13 @@ describe('config', () => {
   });
 
   it('returns null without a config and fails clearly for a missing file', async () => {
-    const empty = await mkdtemp(join(tmpdir(), 'dpad-mcp-'));
+    const empty = await mkdtemp(join(tmpdir(), 'toets-mcp-'));
     expect(await loadMcpConfig(undefined, empty)).toBeNull();
     await expect(loadMcpConfig('nope.json', empty)).rejects.toThrow(/not found/);
   });
 });
 
-describe('dpad test config', () => {
+describe('toets test config', () => {
   it('turns platforms.*() projects into targets, like the test runner sees them', async () => {
     const loaded = await loadMcpConfig(undefined, join(fixtures, 'test-config'));
     expect(loaded).toMatchObject({
@@ -70,11 +70,11 @@ describe('dpad test config', () => {
       platform: 'web',
       options: { label: 'From Playwright' },
       expectTimeoutMs: 1500,
-      dpad: { keyOverrides: { FAST_FORWARD: { as: 'RIGHT', holdMs: 800 } } },
+      toets: { keyOverrides: { FAST_FORWARD: { as: 'RIGHT', holdMs: 800 } } },
     });
     expect(targets['web-kids']).toMatchObject({
       expectTimeoutMs: 700,
-      dpad: { timeouts: { actionMs: 900 }, keyOverrides: { FAST_FORWARD: { as: 'RIGHT' } } },
+      toets: { timeouts: { actionMs: 900 }, keyOverrides: { FAST_FORWARD: { as: 'RIGHT' } } },
     });
 
     const h = await connect({ config: loaded!.config, baseDir: loaded!.baseDir });
@@ -83,19 +83,19 @@ describe('dpad test config', () => {
     expect(await h.ok('launch', { target: 'web-kids' })).toContain('"Kids"');
   });
 
-  it('prefers an MCP config and skips test configs without dpad projects', async () => {
-    const dir = await mkdtemp(join(tmpdir(), 'dpad-mcp-'));
+  it('prefers an MCP config and skips test configs without toets projects', async () => {
+    const dir = await mkdtemp(join(tmpdir(), 'toets-mcp-'));
     await writeFile(
       join(dir, 'playwright.config.mjs'),
       'export default { projects: [{ name: "unit" }] };',
     );
     const logs: string[] = [];
     expect(await loadMcpConfig(undefined, dir, (m) => logs.push(m))).toBeNull();
-    expect(logs.join('\n')).toContain('has no dpad projects; skipped');
-    await expect(loadMcpConfig('playwright.config.mjs', dir)).rejects.toThrow(/no dpad projects/);
+    expect(logs.join('\n')).toContain('has no toets projects; skipped');
+    await expect(loadMcpConfig('playwright.config.mjs', dir)).rejects.toThrow(/no toets projects/);
 
     await writeFile(
-      join(dir, 'dpad.mcp.config.json'),
+      join(dir, 'toets.mcp.config.json'),
       JSON.stringify({ targets: { fake: { driver: fakeDriver } } }),
     );
     expect(await loadMcpConfig(undefined, dir)).toMatchObject({ kind: 'mcp' });
@@ -119,12 +119,12 @@ describe('targets come up like test workers', () => {
 
   it('explains how to install a missing driver package', async () => {
     const h = await connect({
-      config: { targets: { tv: { driver: '@dpad-tv/driver-nope' } } },
+      config: { targets: { tv: { driver: '@toets/driver-nope' } } },
       baseDir: fixtures,
     });
     const out = await h.err('capabilities');
     expect(out).toContain('MODULE_NOT_FOUND');
-    expect(out).toContain('npm install -D @dpad-tv/driver-nope');
+    expect(out).toContain('npm install -D @toets/driver-nope');
   });
 
   it('passes managed and external devices to the driver and releases them', async () => {
@@ -165,8 +165,8 @@ describe('targets come up like test workers', () => {
     expect(contexts[1]?.device?.address).toBe('emulator-5556');
   });
 
-  it('starts the @dpad-tv/mock server when mocking is on', async () => {
-    const h = await connect({ target: () => ({ dpad: { mock: { port: 0 } } }) });
+  it('starts the @toets/mock server when mocking is on', async () => {
+    const h = await connect({ target: () => ({ toets: { mock: { port: 0 } } }) });
     const out = await h.ok('capabilities');
     expect(out).toMatch(/Network mocking: on \(http:\/\/[^)]+\)/);
   });

@@ -1,4 +1,4 @@
-import { getDpad, type IdleTracker } from '@dpad-tv/sdk';
+import { getToets, type IdleTracker } from '@toets/sdk';
 
 /** Safety net: an animation whose end callback never fires stops counting after this long. */
 const ANIMATION_MAX_MS = 10_000;
@@ -114,11 +114,11 @@ export function navigationIdleListeners(): NavigationIdleListeners {
   const open: Record<string, () => void> = {};
   return {
     transitionStart(event) {
-      const dpad = getDpad();
-      if (!dpad) return;
+      const toets = getToets();
+      if (!toets) return;
       const key = (event && event.target) || 'screen';
       open[key]?.();
-      open[key] = dpad.idle.begin('navigation', `transition ${key}`, NAVIGATION_MAX_MS);
+      open[key] = toets.idle.begin('navigation', `transition ${key}`, NAVIGATION_MAX_MS);
     },
     transitionEnd(event) {
       const key = (event && event.target) || 'screen';

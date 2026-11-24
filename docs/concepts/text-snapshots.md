@@ -21,7 +21,7 @@ A **text snapshot** is a YAML rendering of the screen or one element: test IDs, 
 One line per visible element: its test ID (else its text), its text in quotes and its state in brackets. Exact rules: [text snapshots reference](../reference/core/docs/text-snapshots.md).
 
 ```ts run
-import { test, expect } from '@dpad-tv/test';
+import { test, expect } from '@toets/test';
 
 test('home rail lists the mocked titles', async ({ app }) => {
   await app.launch();
@@ -42,4 +42,4 @@ With a string, the snapshot is compared inline (indentation ignored). Without on
 - **Snapshot a region, not the screen.** Whole-screen snapshots break on unrelated changes. Pick the element whose structure the test is about.
 - **Nesting follows the tree.** Black-box native trees can flatten containers (a React Native `View` lists its children as its siblings), so a snapshot spanning them only has the same shape where the tree nests: declare `requires('tree.hierarchy')` (the DOM and the SDK tree), or snapshot an element that keeps its children everywhere.
 - **Mock the data first.** A snapshot of live content changes with the content. Use [network mocking](./network-mocking.md).
-- **Inline snapshots serve all platforms** when the app uses the same test IDs everywhere; where platforms legitimately differ, the diff shows it. Baseline files are per project and never carry the host OS (dpad drops Playwright's `-darwin` / `-linux` suffix), so baselines written on a laptop match in CI.
+- **Inline snapshots serve all platforms** when the app uses the same test IDs everywhere; where platforms legitimately differ, the diff shows it. Baseline files are per project and never carry the host OS (toets drops Playwright's `-darwin` / `-linux` suffix), so baselines written on a laptop match in CI.

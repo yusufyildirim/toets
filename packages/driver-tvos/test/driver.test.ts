@@ -1,9 +1,9 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { DeviceLease, DriverCreateContext, ElementRef } from '@dpad-tv/core';
-import { KEY_CAPABILITY, Key } from '@dpad-tv/core';
-import { encodeLaunchPayloadParam } from '@dpad-tv/protocol';
+import type { DeviceLease, DriverCreateContext, ElementRef } from '@toets/core';
+import { KEY_CAPABILITY, Key } from '@toets/core';
+import { encodeLaunchPayloadParam } from '@toets/protocol';
 import { PNG } from 'pngjs';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import tvosDriverModule, { TvosDriver, type TvosDriverDeps } from '../src/index.js';
@@ -90,13 +90,13 @@ describe('TvosDriver', () => {
   const logs: string[] = [];
 
   beforeEach(async () => {
-    dir = await mkdtemp(join(tmpdir(), 'dpad-tvos-driver-'));
+    dir = await mkdtemp(join(tmpdir(), 'toets-tvos-driver-'));
     session = new FakeSession();
     requests = [];
     appiumStops = 0;
     runner = new FakeRunner()
       .on('get_app_container', { stdout: '/apps/Fixture.app\n' })
-      .on('plutil', { stdout: 'DpadFixture\n' });
+      .on('plutil', { stdout: 'ToetsFixture\n' });
     deps = {
       runner,
       createSession: async (req) => {
@@ -136,8 +136,8 @@ describe('TvosDriver', () => {
     };
     return {
       app: {
-        bundleId: 'tv.dpad.fixture',
-        app: '/build/DpadFixture.app',
+        bundleId: 'tv.toets.fixture',
+        app: '/build/ToetsFixture.app',
         launchArguments: ['-AppleLanguages', '(en)'],
       },
       device,
@@ -183,11 +183,11 @@ describe('TvosDriver', () => {
       'appium:newCommandTimeout': 0,
     });
     expect(runner.lines()).toContain(
-      'xcrun simctl --set /simlock/set install UDID-1 /build/DpadFixture.app',
+      'xcrun simctl --set /simlock/set install UDID-1 /build/ToetsFixture.app',
     );
     const logStream = runner.spawned[0]!.args.join(' ');
     expect(logStream).toContain('simctl --set /simlock/set spawn UDID-1 log stream --style ndjson');
-    expect(logStream).toContain('process == "DpadFixture"');
+    expect(logStream).toContain('process == "ToetsFixture"');
     expect(driver.escapeHatch()).toBe(session);
     await driver.stop();
   });
@@ -209,23 +209,23 @@ describe('TvosDriver', () => {
     expect(appiumStops).toBe(0);
   });
 
-  it('launches with the payload as `-__dpad <base64url>` after the app launch arguments', async () => {
+  it('launches with the payload as `-__toets <base64url>` after the app launch arguments', async () => {
     const driver = await started();
     await driver.launch({
       payload: { v: 1, state: 'details', sdkUrl: 'ws://localhost:9323', token: 't' },
       clearData: true,
     });
     expect(session.executed).toEqual([
-      { script: 'mobile: terminateApp', args: { bundleId: 'tv.dpad.fixture' } },
-      { script: 'mobile: clearApp', args: { bundleId: 'tv.dpad.fixture' } },
+      { script: 'mobile: terminateApp', args: { bundleId: 'tv.toets.fixture' } },
+      { script: 'mobile: clearApp', args: { bundleId: 'tv.toets.fixture' } },
       {
         script: 'mobile: launchApp',
         args: {
-          bundleId: 'tv.dpad.fixture',
+          bundleId: 'tv.toets.fixture',
           arguments: [
             '-AppleLanguages',
             '(en)',
-            '-__dpad',
+            '-__toets',
             encodeLaunchPayloadParam({
               v: 1,
               state: 'details',
@@ -338,7 +338,7 @@ describe('TvosDriver', () => {
     await expect(driver.stopRecording()).rejects.toMatchObject({ code: 'TVOS_RECORDING_FAILED' });
   });
 
-  it('wraps command failures in a DpadError pointing at the Appium log', async () => {
+  it('wraps command failures in a ToetsError pointing at the Appium log', async () => {
     const driver = await started();
     session.failNext = new Error('WDA crashed');
     await expect(driver.tree()).rejects.toMatchObject({
@@ -388,7 +388,7 @@ describe('TvosDriver', () => {
     expect(() => new TvosDriver({}, ctx({ app: {} }), deps)).toThrow(/bundleId/);
     runner = new FakeRunner().on('get_app_container', { exitCode: 2 });
     deps.runner = runner;
-    const notInstalled = new TvosDriver({}, ctx({ app: { bundleId: 'tv.dpad.fixture' } }), deps);
+    const notInstalled = new TvosDriver({}, ctx({ app: { bundleId: 'tv.toets.fixture' } }), deps);
     await expect(notInstalled.start()).rejects.toMatchObject({ code: 'TVOS_APP_NOT_INSTALLED' });
     expect(appiumStops).toBe(1);
   });

@@ -132,7 +132,7 @@ function detach(list: Array<FakeInstance | FakeText>, child: FakeInstance | Fake
 let currentPriority = 0;
 
 const hostConfig = {
-  rendererPackageName: 'dpad-fake-fabric',
+  rendererPackageName: 'toets-fake-fabric',
   rendererVersion: '0.0.0',
   supportsMutation: true,
   supportsPersistence: false,

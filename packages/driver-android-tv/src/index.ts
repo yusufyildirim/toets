@@ -1,12 +1,12 @@
 /**
- * dpad driver for Android TV / Fire TV emulators on Appium UiAutomator2.
+ * toets driver for Android TV / Fire TV emulators on Appium UiAutomator2.
  *
- * The default export is the {@link DriverModule} `@dpad-tv/test` loads for `android-tv`
+ * The default export is the {@link DriverModule} `@toets/test` loads for `android-tv`
  * projects. Named exports are building blocks for custom device providers and tools.
  *
  * @packageDocumentation
  */
-import type { DriverModule } from '@dpad-tv/core';
+import type { DriverModule } from '@toets/core';
 import { createAndroidTvDriver } from './driver.js';
 import { ManagedDeviceProvider } from './devices/managed.js';
 import type { AndroidTvDriverOptions } from './options.js';

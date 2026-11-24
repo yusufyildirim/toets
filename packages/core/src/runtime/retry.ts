@@ -1,5 +1,5 @@
-import type { BusyResource } from '@dpad-tv/protocol';
-import { DpadError } from '../errors.js';
+import type { BusyResource } from '@toets/protocol';
+import { ToetsError } from '../errors.js';
 
 /** Result of one wait for app idle (`sync.idle`). */
 export type IdleCheck =
@@ -34,7 +34,7 @@ export interface RetryResult<T> {
   readonly attempts: number;
   readonly elapsedMs: number;
   readonly idle: IdleOutcome;
-  /** Last non-dpad error thrown by an evaluation, if the last attempt threw. */
+  /** Last non-toets error thrown by an evaluation, if the last attempt threw. */
   readonly error: unknown;
 }
 
@@ -52,7 +52,7 @@ export const sleep = (ms: number): Promise<void> =>
  * When the app is not idle within `idleBudgetMs`, it stops waiting for idle and polls until the
  * timeout, remembering which resources kept the app busy so failures can name them.
  *
- * `evaluate` errors: a `DpadError` is a user-fixable problem and propagates at once; any other
+ * `evaluate` errors: a `ToetsError` is a user-fixable problem and propagates at once; any other
  * error (a transient driver hiccup) is retried.
  */
 export async function retry<T>(
@@ -92,7 +92,7 @@ export async function retry<T>(
         return { ok: true, value, attempts, elapsedMs: performance.now() - start, idle, error };
       }
     } catch (e) {
-      if (e instanceof DpadError) throw e;
+      if (e instanceof ToetsError) throw e;
       error = e;
     }
 

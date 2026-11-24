@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { DpadError, Key, type ActionInfo } from '../src/index.js';
+import { ToetsError, Key, type ActionInfo } from '../src/index.js';
 import { setup } from './fixtures.js';
 
 describe('remote', () => {
@@ -35,10 +35,12 @@ describe('remote', () => {
   it('refuses keys the platform lacks, with a hint', async () => {
     const { app, driver } = setup({ capabilities: [] });
     const err = await app.remote.press(Key.RED).catch((e: unknown) => e);
-    expect(err).toBeInstanceOf(DpadError);
+    expect(err).toBeInstanceOf(ToetsError);
     expect(err).toMatchObject({ code: 'KEY_UNSUPPORTED' });
-    expect((err as DpadError).message).toBe("web has no RED key: it needs capability 'key.color'.");
-    expect((err as DpadError).hint).toContain("requires('key.color')");
+    expect((err as ToetsError).message).toBe(
+      "web has no RED key: it needs capability 'key.color'.",
+    );
+    expect((err as ToetsError).hint).toContain("requires('key.color')");
     await expect(app.remote.longPress(Key.SELECT)).rejects.toThrow('key.longpress');
     expect(driver.presses).toEqual([]);
   });

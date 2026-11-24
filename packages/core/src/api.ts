@@ -5,7 +5,7 @@
  * Status: v1 contract draft. The `core`/`test` workstream owns refinements; other workstreams
  * code against these shapes.
  */
-import type { MediaInfo } from '@dpad-tv/protocol';
+import type { MediaInfo } from '@toets/protocol';
 import type { Capability } from './capabilities.js';
 import type { Direction, Key, PressOptions } from './keys.js';
 import type { Platform } from './platform.js';
@@ -30,7 +30,7 @@ export interface Locator {
   snapshot(): Promise<string>;
 }
 
-/** PNG screenshot. Opaque; read the bytes with `screenshotPng()` from `@dpad-tv/core`. */
+/** PNG screenshot. Opaque; read the bytes with `screenshotPng()` from `@toets/core`. */
 export interface Screenshot {
   readonly __screenshot: unique symbol;
 }
@@ -88,7 +88,7 @@ export interface RecordedRequest {
   readonly error?: { readonly code: string; readonly message: string } | null;
 }
 
-/** Network mocking and inspection (`network.mock`). Handlers come from `@dpad-tv/mock`. */
+/** Network mocking and inspection (`network.mock`). Handlers come from `@toets/mock`. */
 export interface Network {
   /** Adds handlers for the current test; most recently added wins. Reset after each test. */
   use(...handlers: readonly unknown[]): void;

@@ -1,5 +1,5 @@
 /**
- * Implementation of the `dpad-conformance` command: runs the conformance suite against any
+ * Implementation of the `toets-conformance` command: runs the conformance suite against any
  * SDK implementation by launching it through shell commands. See `docs/conformance.md`.
  */
 import { spawn, type ChildProcess } from 'node:child_process';
@@ -14,11 +14,11 @@ export interface CliOptions {
   readonly connectTimeoutMs: number | undefined;
 }
 
-const USAGE = `Usage: dpad-conformance --launch "<command>" [options]
+const USAGE = `Usage: toets-conformance --launch "<command>" [options]
 
-Runs the dpad protocol conformance suite against an SDK. The launch command starts the app
+Runs the toets protocol conformance suite against an SDK. The launch command starts the app
 (or a program embedding the SDK) with the launch payload, available as the {payload}
-placeholder (base64url) and the DPAD_PAYLOAD environment variable.
+placeholder (base64url) and the TOETS_PAYLOAD environment variable.
 
 Options:
   --launch <cmd>      Command that starts the app. Required.
@@ -89,7 +89,7 @@ export async function main(): Promise<void> {
       name: opts.name ?? opts.launch,
       fixture: opts.fixture,
       launch(launch) {
-        const env = { ...process.env, DPAD_PAYLOAD: launch.encoded };
+        const env = { ...process.env, TOETS_PAYLOAD: launch.encoded };
         child = run(renderCommand(opts.launch, launch), env);
       },
       async terminate() {

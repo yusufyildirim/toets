@@ -11,15 +11,15 @@ import {
 } from '../src/docs/search.js';
 import { connect } from './helpers.js';
 
-/** A fake project with two installed dpad packages that ship docs. */
+/** A fake project with two installed toets packages that ship docs. */
 async function project(): Promise<string> {
-  const root = await realpath(await mkdtemp(join(tmpdir(), 'dpad-docs-')));
+  const root = await realpath(await mkdtemp(join(tmpdir(), 'toets-docs-')));
   const write = async (rel: string, content: string): Promise<void> => {
     await mkdir(join(root, rel, '..'), { recursive: true });
     await writeFile(join(root, rel), content);
   };
   await write(
-    'node_modules/@dpad-tv/test/docs/concepts/focus.md',
+    'node_modules/@toets/test/docs/concepts/focus.md',
     [
       '# Focus',
       'Focus is the primitive of TV apps.',
@@ -34,11 +34,11 @@ async function project(): Promise<string> {
     ].join('\n'),
   );
   await write(
-    'node_modules/@dpad-tv/test/docs/concepts/keys.md',
+    'node_modules/@toets/test/docs/concepts/keys.md',
     '# Keys\nSemantic keys: PLAY_PAUSE toggles, long press needs key.longpress.',
   );
-  await write('node_modules/@dpad-tv/mock/docs/index.md', '# Mocking\nMSW handlers on the host.');
-  await write('node_modules/@dpad-tv/nodocs/package.json', '{}');
+  await write('node_modules/@toets/mock/docs/index.md', '# Mocking\nMSW handlers on the host.');
+  await write('node_modules/@toets/nodocs/package.json', '{}');
   await mkdir(join(root, 'app'), { recursive: true });
   return root;
 }
@@ -59,17 +59,17 @@ describe('docs search', () => {
 
   it('splits pages at headings, ignoring headings inside code fences', () => {
     const md = '# Focus\nintro\n## navigateTo\n```\n# comment\n```\n## Matchers\nx';
-    const sections = splitSections(md, '@dpad-tv/test', 'focus.md', '/x/focus.md');
+    const sections = splitSections(md, '@toets/test', 'focus.md', '/x/focus.md');
     expect(sections.map((s) => s.heading)).toEqual(['Focus', 'navigateTo', 'Matchers']);
     expect(sections[1]?.text).toContain('# comment');
     expect(sections.every((s) => s.pageTitle === 'Focus')).toBe(true);
   });
 
-  it('finds docs of installed @dpad-tv packages from nested folders', async () => {
+  it('finds docs of installed @toets packages from nested folders', async () => {
     const root = await project();
     const names = findDocsSources([join(root, 'app')]).map((s) => s.packageName);
-    expect(names).toEqual(expect.arrayContaining(['@dpad-tv/mock', '@dpad-tv/test']));
-    expect(names).not.toContain('@dpad-tv/nodocs');
+    expect(names).toEqual(expect.arrayContaining(['@toets/mock', '@toets/test']));
+    expect(names).not.toContain('@toets/nodocs');
   });
 
   it('ranks the most relevant section first', async () => {
@@ -78,12 +78,12 @@ describe('docs search', () => {
     // Only the fake project's pages: the real workspace packages are found too.
     const search = (q: string) => index.search(q).filter((hit) => hit.path.startsWith(root));
     expect(search('navigateTo')[0]).toMatchObject({
-      packageName: '@dpad-tv/test',
+      packageName: '@toets/test',
       page: 'concepts/focus.md',
       heading: 'navigateTo',
     });
     expect(search('long press')[0]?.page).toBe('concepts/keys.md');
-    expect(search('msw handlers')[0]?.packageName).toBe('@dpad-tv/mock');
+    expect(search('msw handlers')[0]?.packageName).toBe('@toets/mock');
     expect(index.search('zebra')).toEqual([]);
   });
 
@@ -99,18 +99,16 @@ describe('docs search', () => {
     const root = await project();
     const h = await connect({ config: null, docsRoots: [root] });
     const out = await h.ok('docs_search', { query: 'navigateTo path', limit: 2 });
-    expect(out).toMatch(/^\[1\] @dpad-tv\/test > concepts\/focus\.md > navigateTo/);
-    expect(out).toContain(
-      `Path: ${join(root, 'node_modules/@dpad-tv/test/docs/concepts/focus.md')}`,
-    );
+    expect(out).toMatch(/^\[1\] @toets\/test > concepts\/focus\.md > navigateTo/);
+    expect(out).toContain(`Path: ${join(root, 'node_modules/@toets/test/docs/concepts/focus.md')}`);
     expect(out).toContain('await app.focus.navigateTo');
     expect(await h.ok('docs_search', { query: 'zebra' })).toContain('No docs match "zebra"');
   });
 
   it('always includes the docs shipped with this package', async () => {
-    const empty = await mkdtemp(join(tmpdir(), 'dpad-empty-'));
+    const empty = await mkdtemp(join(tmpdir(), 'toets-empty-'));
     const h = await connect({ config: null, docsRoots: [empty] });
     const out = await h.ok('docs_search', { query: 'Cursor MCP client setup' });
-    expect(out).toContain('@dpad-tv/mcp > setup.md');
+    expect(out).toContain('@toets/mcp > setup.md');
   });
 });

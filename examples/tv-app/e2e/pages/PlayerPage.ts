@@ -1,4 +1,4 @@
-import { expect, type App, type Locator } from '@dpad-tv/test';
+import { expect, type App, type Locator } from '@toets/test';
 
 /** The full-screen player. */
 export class PlayerPage {

@@ -38,7 +38,7 @@ assert { target: { testId: "play" }, matcher: "toBeFocused" }
 The test:
 
 ```ts
-import { expect, Key, test } from '@dpad-tv/test';
+import { expect, Key, test } from '@toets/test';
 
 test('opens details from the popular rail', async ({ app }) => {
   await app.launch();

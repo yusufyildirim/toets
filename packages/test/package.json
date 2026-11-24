@@ -1,25 +1,40 @@
 {
-  "name": "@dpad-tv/test",
-  "version": "0.0.0",
-  "description": "dpad test runner: Playwright Test fixtures, config and matchers for cross-platform TV E2E tests.",
+  "name": "@toets/test",
+  "version": "0.1.0",
+  "description": "toets test runner: Playwright Test fixtures, config and matchers for cross-platform TV E2E tests.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "playwright",
+    "android-tv",
+    "fire-tv",
+    "tvos",
+    "test-runner"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/test"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/test#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/test#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
     },
     "./reporter": {
-      "@dpad-tv/source": "./src/reporter.ts",
+      "@toets/source": "./src/reporter.ts",
       "typedoc": "./src/reporter.ts",
       "types": "./dist/reporter.d.ts",
       "default": "./dist/reporter.js"
@@ -39,30 +54,30 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^",
-    "@dpad-tv/mock": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^"
+    "@toets/core": "workspace:^",
+    "@toets/mock": "workspace:^",
+    "@toets/protocol": "workspace:^"
   },
   "devDependencies": {
-    "@dpad-tv/driver-android-tv": "workspace:^",
-    "@dpad-tv/driver-tvos": "workspace:^",
-    "@dpad-tv/driver-web": "workspace:^",
+    "@toets/driver-android-tv": "workspace:^",
+    "@toets/driver-tvos": "workspace:^",
+    "@toets/driver-web": "workspace:^",
     "@playwright/test": "^1.65.1"
   },
   "peerDependencies": {
-    "@dpad-tv/driver-android-tv": "workspace:^",
-    "@dpad-tv/driver-tvos": "workspace:^",
-    "@dpad-tv/driver-web": "workspace:^",
+    "@toets/driver-android-tv": "workspace:>=0.1.0 <1",
+    "@toets/driver-tvos": "workspace:>=0.1.0 <1",
+    "@toets/driver-web": "workspace:>=0.1.0 <1",
     "@playwright/test": "^1.65.0"
   },
   "peerDependenciesMeta": {
-    "@dpad-tv/driver-android-tv": {
+    "@toets/driver-android-tv": {
       "optional": true
     },
-    "@dpad-tv/driver-tvos": {
+    "@toets/driver-tvos": {
       "optional": true
     },
-    "@dpad-tv/driver-web": {
+    "@toets/driver-web": {
       "optional": true
     }
   }

@@ -16,7 +16,7 @@ for (const type of ['keydown', 'keypress', 'keyup']) {
   );
 }
 
-// Launch payload: `?__dpad=<base64url(JSON)>` or `window.__DPAD__` (same encoding).
+// Launch payload: `?__toets=<base64url(JSON)>` or `window.__TOETS__` (same encoding).
 function decodeParam(param) {
   const bytes = Uint8Array.from(atob(param.replace(/-/g, '+').replace(/_/g, '/')), (c) =>
     c.charCodeAt(0),
@@ -24,10 +24,10 @@ function decodeParam(param) {
   return new TextDecoder().decode(bytes);
 }
 function readPayload() {
-  const param = new URLSearchParams(location.search).get('__dpad');
+  const param = new URLSearchParams(location.search).get('__toets');
   if (param) return { source: 'query', json: decodeParam(param) };
-  if (typeof window.__DPAD__ === 'string') {
-    return { source: 'global', json: decodeParam(window.__DPAD__) };
+  if (typeof window.__TOETS__ === 'string') {
+    return { source: 'global', json: decodeParam(window.__TOETS__) };
   }
   return { source: 'none', json: '' };
 }
@@ -42,7 +42,7 @@ $('launches').textContent = `launches ${launches}`;
 
 // Shadow DOM component with a slot.
 customElements.define(
-  'dpad-badge',
+  'toets-badge',
   class extends HTMLElement {
     constructor() {
       super();

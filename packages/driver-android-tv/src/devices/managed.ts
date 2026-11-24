@@ -1,4 +1,4 @@
-import type { DeviceAcquireOptions, DeviceLease, DeviceProvider, DeviceSpec } from '@dpad-tv/core';
+import type { DeviceAcquireOptions, DeviceLease, DeviceProvider, DeviceSpec } from '@toets/core';
 import { existsSync, readdirSync } from 'node:fs';
 import { mkdir } from 'node:fs/promises';
 import { createServer } from 'node:net';
@@ -34,7 +34,7 @@ export interface ManagedDeviceOptions {
 }
 
 /** Name of the snapshot every managed emulator boots from and is reset to. */
-export const CLEAN_SNAPSHOT = 'dpad_clean';
+export const CLEAN_SNAPSHOT = 'toets_clean';
 
 const DEFAULT_MODEL = 'tv_1080p';
 const MAX_PORT = 5682;
@@ -61,8 +61,8 @@ interface ManagedDevice {
 /**
  * Creates, boots, snapshots, resets and tears down Android TV emulators, one per worker.
  *
- * - The AVD (`dpad_<model>_api<level>_<tag>`) is created from an installed system image.
- * - On first use it is cold-booted once and saved as the `dpad_clean` snapshot.
+ * - The AVD (`toets_<model>_api<level>_<tag>`) is created from an installed system image.
+ * - On first use it is cold-booted once and saved as the `toets_clean` snapshot.
  * - Workers boot `-read-only` instances from that snapshot (several can run at once and none
  *   can modify it); a reset is a snapshot load, which takes seconds.
  */
@@ -196,7 +196,7 @@ export class ManagedDeviceProvider implements DeviceProvider {
     const snapshotDir = join(avdDir, 'snapshots', CLEAN_SNAPSHOT);
     if (existsSync(snapshotDir)) return;
     await mkdir(this.avdHome, { recursive: true });
-    await withFileLock(join(this.avdHome, `${avd}.dpad-lock`), async () => {
+    await withFileLock(join(this.avdHome, `${avd}.toets-lock`), async () => {
       if (!existsSync(join(this.avdHome, `${avd}.ini`))) await this.createAvd(avd, image);
       if (existsSync(snapshotDir)) return;
       this.deps.log?.(
@@ -318,7 +318,7 @@ export class ManagedDeviceProvider implements DeviceProvider {
     return this.runner.spawn(this.sdk.emulator, args, {
       env: this.env,
       detached: this.options.reuse ?? false,
-      logFile: join(this.avdHome, `${avd}.avd`, `dpad-emulator-${port}.log`),
+      logFile: join(this.avdHome, `${avd}.avd`, `toets-emulator-${port}.log`),
     });
   }
 
@@ -330,7 +330,7 @@ export class ManagedDeviceProvider implements DeviceProvider {
         'ANDROID_EMULATOR_FAILED',
         `Emulator ${avd} exited (code ${code}) while booting.`,
         {
-          hint: `See ${join(this.avdHome, `${avd}.avd`)}/dpad-emulator-*.log. On Linux, check KVM access.`,
+          hint: `See ${join(this.avdHome, `${avd}.avd`)}/toets-emulator-*.log. On Linux, check KVM access.`,
           docs: DOCS.devices,
         },
       );
@@ -343,9 +343,9 @@ export class ManagedDeviceProvider implements DeviceProvider {
   }
 }
 
-/** AVD name for an image: `dpad_tv_1080p_api33_android-tv`. */
+/** AVD name for an image: `toets_tv_1080p_api33_android-tv`. */
 export function avdName(model: string, api: string, tag: string): string {
-  return `dpad_${model}_api${api}_${tag}`.replace(/[^\w.-]/g, '_');
+  return `toets_${model}_api${api}_${tag}`.replace(/[^\w.-]/g, '_');
 }
 
 function isPortFree(port: number): Promise<boolean> {

@@ -1,5 +1,5 @@
 /**
- * End-to-end smoke: runs real Playwright Test with `@dpad-tv/test` against fake driver modules
+ * End-to-end smoke: runs real Playwright Test with `@toets/test` against fake driver modules
  * (test/e2e). Covers config loading, driver module resolution, external devices, the `app`
  * fixture, steps, requires skipping, serial sharing, SDK and mock wiring, matchers, snapshot
  * baselines, failure dumps and the parity matrix.
@@ -18,7 +18,7 @@ const cli = join(
   dirname(createRequire(import.meta.url).resolve('@playwright/test/package.json')),
   'cli.js',
 );
-const root = mkdtempSync(join(tmpdir(), 'dpad-smoke-'));
+const root = mkdtempSync(join(tmpdir(), 'toets-smoke-'));
 
 afterAll(() => rmSync(root, { recursive: true, force: true }));
 
@@ -34,8 +34,8 @@ function playwright(dir: string, args: string[], env: Record<string, string> = {
     encoding: 'utf8',
     env: {
       ...process.env,
-      NODE_OPTIONS: '--conditions=@dpad-tv/source',
-      DPAD_SMOKE_DIR: join(root, dir),
+      NODE_OPTIONS: '--conditions=@toets/source',
+      TOETS_SMOKE_DIR: join(root, dir),
       CI: '',
       ...env,
     },
@@ -107,7 +107,7 @@ function tests(
 const stepTitles = (steps: JsonStep[] = []): string[] =>
   steps.flatMap((s) => [s.title, ...stepTitles(s.steps)]);
 
-describe('@dpad-tv/test end to end', () => {
+describe('@toets/test end to end', () => {
   let first: RunResult;
   beforeAll(() => {
     first = playwright('main', ['--update-snapshots=missing']);
@@ -157,7 +157,7 @@ describe('@dpad-tv/test end to end', () => {
     const web = tests(first.dir).find(
       (t) => t.project === 'web' && t.title === 'loads home through the mock server',
     );
-    const har = web?.result.attachments.find((a) => a.name === 'dpad-network.har');
+    const har = web?.result.attachments.find((a) => a.name === 'toets-network.har');
     expect(har?.contentType).toBe('application/json');
     const body = har?.body ? Buffer.from(har.body, 'base64').toString('utf8') : '';
     expect(JSON.parse(body).log.entries).toHaveLength(1);
@@ -166,7 +166,7 @@ describe('@dpad-tv/test end to end', () => {
   it('flags key overrides on the test', () => {
     const tvos = tests(first.dir).find((t) => t.project === 'tvos' && t.title === 'fast forward');
     expect(tvos?.test.annotations).toContainEqual({
-      type: 'dpad:key-override',
+      type: 'toets:key-override',
       description: 'FAST_FORWARD = hold RIGHT 800ms',
     });
     expect(stepTitles(tvos?.result.steps)).toContain(
@@ -193,22 +193,22 @@ describe('@dpad-tv/test end to end', () => {
   });
 
   it('attaches a failure dump and explains the failure', { timeout: 150_000 }, () => {
-    const failed = playwright('fail', ['--project=web'], { DPAD_SMOKE_MODE: 'fail' });
+    const failed = playwright('fail', ['--project=web'], { TOETS_SMOKE_MODE: 'fail' });
     expect(failed.status).toBe(1);
     const [t, thrown] = tests(failed.dir);
     expect(t?.result.status).toBe('failed');
     expect(t?.result.errors[0]?.message).toContain('expect(locator).toBeFocused() failed');
     expect(t?.result.errors[0]?.message).toContain('Focused:  card_1 "Movie 1"');
-    const dump = t?.result.attachments.find((a) => a.name === 'dpad-failure');
-    expect(dump?.path).toMatch(/dpad-failure[^/]*\.md$/);
+    const dump = t?.result.attachments.find((a) => a.name === 'toets-failure');
+    expect(dump?.path).toMatch(/toets-failure[^/]*\.md$/);
     const text = readFileSync(dump?.path ?? '', 'utf8');
     expect(text).toContain('- last keys: RIGHT');
     expect(text).toContain('- card_1 "Movie 1" [focused]');
-    expect(t?.result.attachments.map((a) => a.name)).toContain('dpad-screenshot');
+    expect(t?.result.attachments.map((a) => a.name)).toContain('toets-screenshot');
 
     const message = thrown?.result.errors[0]?.message ?? '';
     expect(message).toContain(
-      "DpadError: [ELEMENT_NOT_FOUND] getByTestId('no_such_element') matched no element",
+      "ToetsError: [ELEMENT_NOT_FOUND] getByTestId('no_such_element') matched no element",
     );
     expect(message).toContain('\nHint: Check the test ID');
     expect(message).toMatch(

@@ -4,7 +4,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { setTimeout as sleep } from 'node:timers/promises';
 import {
-  DpadError,
+  ToetsError,
   packageDocsLink,
   KEY_CAPABILITY,
   type Capability,
@@ -20,8 +20,8 @@ import {
   type Selector,
   type SelectorChain,
   type UITree,
-} from '@dpad-tv/core';
-import { encodeLaunchPayloadParam } from '@dpad-tv/protocol';
+} from '@toets/core';
+import { encodeLaunchPayloadParam } from '@toets/protocol';
 import {
   chromium,
   type BrowserContext,
@@ -43,7 +43,7 @@ import { launchUrl } from './launch.js';
 import { LogBuffer, consoleLevel } from './logs.js';
 import { resolveOptions, type ResolvedWebOptions, type WebDriverOptions } from './options.js';
 
-/** Context for {@link createWebDriver}; the dpad runner passes a full `DriverCreateContext`. */
+/** Context for {@link createWebDriver}; the toets runner passes a full `DriverCreateContext`. */
 export type WebDriverContext = Partial<Pick<DriverCreateContext, 'app' | 'artifactsDir' | 'log'>>;
 
 interface Session {
@@ -67,9 +67,9 @@ const BASE_CAPABILITIES: readonly Capability[] = [
 ];
 
 /**
- * dpad driver for web apps in Chromium, built on Playwright. Thin by contract: reads report the
+ * toets driver for web apps in Chromium, built on Playwright. Thin by contract: reads report the
  * current DOM state immediately and input is real (trusted) browser input via the Chrome
- * DevTools Protocol. Waiting, retrying and matching live in the dpad core.
+ * DevTools Protocol. Waiting, retrying and matching live in the toets core.
  */
 export class WebDriver implements Driver {
   readonly platform = 'web' as const;
@@ -93,7 +93,7 @@ export class WebDriver implements Driver {
       focusedSelector: options.focusedSelector,
       focusableSelector: options.focusableSelector,
     };
-    this.#artifactsDir = ctx.artifactsDir ?? join(tmpdir(), 'dpad-driver-web');
+    this.#artifactsDir = ctx.artifactsDir ?? join(tmpdir(), 'toets-driver-web');
     this.#log = ctx.log ?? (() => {});
     this.capabilities = new Set([...keyCapabilities(options.keys), ...BASE_CAPABILITIES]);
   }
@@ -148,7 +148,7 @@ export class WebDriver implements Driver {
     try {
       response = await page.goto(target, { waitUntil: this.#opts.waitUntil });
     } catch (error) {
-      throw new DpadError(
+      throw new ToetsError(
         'WEB_LAUNCH_FAILED',
         `Could not load the app at ${this.#opts.url.href}: ${firstLine(error)}`,
         {
@@ -159,7 +159,7 @@ export class WebDriver implements Driver {
       );
     }
     if (response && /^https?:$/.test(this.#opts.url.protocol) && !response.ok()) {
-      throw new DpadError(
+      throw new ToetsError(
         'WEB_LAUNCH_FAILED',
         `The app URL ${this.#opts.url.href} answered HTTP ${response.status()}.`,
         {
@@ -208,7 +208,7 @@ export class WebDriver implements Driver {
   async tree(): Promise<UITree> {
     const result = await this.#evaluate({ op: 'tree', config: this.#agentConfig });
     if (result.root === null) {
-      throw new DpadError('WEB_NO_DOCUMENT', 'The page has no document element to read.', {
+      throw new ToetsError('WEB_NO_DOCUMENT', 'The page has no document element to read.', {
         hint: 'Launch the app before reading the UI.',
       });
     }
@@ -224,7 +224,7 @@ export class WebDriver implements Driver {
     const spec = this.#opts.keys[key];
     if (spec === undefined) {
       const capability = KEY_CAPABILITY[key];
-      throw new DpadError('WEB_KEY_UNMAPPED', `Key ${key} has no web key mapping.`, {
+      throw new ToetsError('WEB_KEY_UNMAPPED', `Key ${key} has no web key mapping.`, {
         hint: `Map it in the web config, e.g. \`keys: { ${key}: { key: '...', keyCode: 0 } }\`.${
           capability ? ` Tests pressing it should declare \`requires('${capability}')\`.` : ''
         }`,
@@ -259,13 +259,13 @@ export class WebDriver implements Driver {
     if (opts?.element === undefined) return page.screenshot({ type: 'png' });
     const found = await this.#evaluate({ op: 'bounds', ref: opts.element });
     if (found === null) {
-      throw new DpadError('WEB_STALE_ELEMENT', 'The element is no longer in the document.', {
+      throw new ToetsError('WEB_STALE_ELEMENT', 'The element is no longer in the document.', {
         hint: 'Element refs are valid only while the element is attached. Locate it again.',
       });
     }
     const clip = intersect(found.bounds, { x: 0, y: 0, ...found.viewport });
     if (clip.width < 1 || clip.height < 1) {
-      throw new DpadError('WEB_ELEMENT_OFFSCREEN', 'The element is outside the viewport.', {
+      throw new ToetsError('WEB_ELEMENT_OFFSCREEN', 'The element is outside the viewport.', {
         hint: 'Bring it into view first, e.g. by navigating focus to it.',
       });
     }
@@ -281,7 +281,7 @@ export class WebDriver implements Driver {
    *   `offline`/`online` events, failing requests) and back.
    * - `suspend` / `resume`: the Page Lifecycle a backgrounded tab goes through. The page reports
    *   `document.visibilityState === 'hidden'` and receives `visibilitychange` then `freeze`;
-   *   resuming fires `resume` then `visibilitychange`. Scripts keep running, so dpad can still read
+   *   resuming fires `resume` then `visibilitychange`. Scripts keep running, so toets can still read
    *   the page.
    */
   async emit(event: PlatformEvent): Promise<void> {
@@ -305,7 +305,7 @@ export class WebDriver implements Driver {
   async startRecording(): Promise<void> {
     const { page } = this.#require();
     if (this.#recording !== null) {
-      throw new DpadError('WEB_RECORDING_ACTIVE', 'A recording is already running.', {
+      throw new ToetsError('WEB_RECORDING_ACTIVE', 'A recording is already running.', {
         hint: 'Call stopRecording() before starting a new recording.',
       });
     }
@@ -321,7 +321,7 @@ export class WebDriver implements Driver {
     const { page } = this.#require();
     const path = this.#recording;
     if (path === null) {
-      throw new DpadError('WEB_NOT_RECORDING', 'No recording is running.', {
+      throw new ToetsError('WEB_NOT_RECORDING', 'No recording is running.', {
         hint: 'Call startRecording() first.',
       });
     }
@@ -370,7 +370,7 @@ export class WebDriver implements Driver {
       }
     } catch (error) {
       const missingBrowser = /Executable doesn't exist|playwright install/i.test(String(error));
-      throw new DpadError(
+      throw new ToetsError(
         'WEB_START_FAILED',
         `Could not open a browser page: ${firstLine(error)}`,
         {
@@ -383,7 +383,7 @@ export class WebDriver implements Driver {
       );
     }
     if (page.isClosed()) {
-      throw new DpadError('WEB_PAGE_CLOSED', 'The page passed to the web driver is closed.', {
+      throw new ToetsError('WEB_PAGE_CLOSED', 'The page passed to the web driver is closed.', {
         hint: 'Pass an open page, or let the driver create one.',
         docs: packageDocsLink('driver-web', 'setup'),
       });
@@ -394,7 +394,7 @@ export class WebDriver implements Driver {
       cdp = await page.context().newCDPSession(page);
     } catch (error) {
       await close().catch(() => {});
-      throw new DpadError('WEB_NOT_CHROMIUM', 'The web driver needs a Chromium page.', {
+      throw new ToetsError('WEB_NOT_CHROMIUM', 'The web driver needs a Chromium page.', {
         hint: 'Use Chromium (Playwright `chromium`, or `channel: "chrome"`); Firefox and WebKit are not supported.',
         docs: packageDocsLink('driver-web', 'setup'),
         cause: error,
@@ -428,8 +428,8 @@ export class WebDriver implements Driver {
 
   #require(): Session {
     if (this.#session === null) {
-      throw new DpadError('WEB_NOT_STARTED', 'The web driver is not started.', {
-        hint: 'Call `start()` first (the dpad runner does this once per worker).',
+      throw new ToetsError('WEB_NOT_STARTED', 'The web driver is not started.', {
+        hint: 'Call `start()` first (the toets runner does this once per worker).',
       });
     }
     return this.#session;
@@ -449,16 +449,16 @@ export class WebDriver implements Driver {
     }
   }
 
-  #evaluateError(error: unknown, page: Page): DpadError {
+  #evaluateError(error: unknown, page: Page): ToetsError {
     const message = firstLine(error);
     if (page.isClosed()) {
-      return new DpadError('WEB_PAGE_CLOSED', 'The browser page was closed.', {
-        hint: 'Something outside dpad closed the page or browser. Do not close it in a test.',
+      return new ToetsError('WEB_PAGE_CLOSED', 'The browser page was closed.', {
+        hint: 'Something outside toets closed the page or browser. Do not close it in a test.',
         cause: error,
       });
     }
     if (/is not a valid selector/.test(message)) {
-      return new DpadError(
+      return new ToetsError(
         'WEB_INVALID_CONFIG',
         `A \`focus\` selector is not valid CSS: ${message}`,
         {
@@ -468,7 +468,7 @@ export class WebDriver implements Driver {
         },
       );
     }
-    return new DpadError('WEB_EVALUATE_FAILED', `Reading the page failed: ${message}`, {
+    return new ToetsError('WEB_EVALUATE_FAILED', `Reading the page failed: ${message}`, {
       hint: 'The page may have navigated or crashed; check the app logs.',
       cause: error,
     });
@@ -476,7 +476,7 @@ export class WebDriver implements Driver {
 }
 
 /**
- * Creates a web driver directly (scripts, tools, tests). The dpad runner uses the package's
+ * Creates a web driver directly (scripts, tools, tests). The toets runner uses the package's
  * default export instead. `options` win over `ctx.app`.
  */
 export function createWebDriver(options: WebDriverOptions, ctx: WebDriverContext = {}): WebDriver {
@@ -504,7 +504,7 @@ function setLifecycle(state: LifecycleState): void {
 
 /** Runs in the page (init script transport): exposes the encoded payload to the top frame. */
 function setLaunchGlobal(encoded: string): void {
-  if (window.top === window) (window as unknown as { __DPAD__?: string }).__DPAD__ = encoded;
+  if (window.top === window) (window as unknown as { __TOETS__?: string }).__TOETS__ = encoded;
 }
 
 async function newPageOrClose(context: BrowserContext, close: () => Promise<void>): Promise<Page> {

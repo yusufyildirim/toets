@@ -40,7 +40,7 @@ jobs:
           path: |
             playwright-report
             test-results
-            dpad-report
+            toets-report
 ```
 
 ## Adapting it

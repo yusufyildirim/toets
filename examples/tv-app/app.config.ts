@@ -17,26 +17,26 @@ const withEmbeddedDebugBundle: ConfigPlugin = (config) =>
   });
 
 /**
- * dpad SDK glue for Android: hands the `__dpad` launch intent extra to JS as the root
- * component's `__dpad` initial prop, where `@dpad-tv/sdk-react-native` reads it. Only in e2e
- * builds (`DPAD_E2E=1`), the same switch that keeps the SDK out of other bundles (metro.config.ts).
+ * toets SDK glue for Android: hands the `__toets` launch intent extra to JS as the root
+ * component's `__toets` initial prop, where `@toets/sdk-react-native` reads it. Only in e2e
+ * builds (`TOETS_E2E=1`), the same switch that keeps the SDK out of other bundles (metro.config.ts).
  */
-const withDpadLaunchOptions: ConfigPlugin = (config) =>
+const withToetsLaunchOptions: ConfigPlugin = (config) =>
   withMainActivity(config, (mod) => {
-    if (process.env.DPAD_E2E !== '1') return mod;
+    if (process.env.TOETS_E2E !== '1') return mod;
     const delegate = /(object\s*:\s*DefaultReactActivityDelegate\([^)]*\)\s*)\{\s*\}/;
     if (mod.modResults.language !== 'kt' || !delegate.test(mod.modResults.contents)) {
       throw new Error(
-        'withDpadLaunchOptions: DefaultReactActivityDelegate not found in MainActivity',
+        'withToetsLaunchOptions: DefaultReactActivityDelegate not found in MainActivity',
       );
     }
     const contents = mod.modResults.contents.replace(
       delegate,
       `$1{
-              // dpad: pass the launch payload (intent extra) to JS. E2E builds only.
+              // toets: pass the launch payload (intent extra) to JS. E2E builds only.
               override fun getLaunchOptions(): Bundle? =
-                this@MainActivity.intent?.getStringExtra("__dpad")
-                  ?.let { Bundle().apply { putString("__dpad", it) } }
+                this@MainActivity.intent?.getStringExtra("__toets")
+                  ?.let { Bundle().apply { putString("__toets", it) } }
           }`,
     );
     mod.modResults.contents = contents.includes('import android.os.Bundle\n')
@@ -46,13 +46,13 @@ const withDpadLaunchOptions: ConfigPlugin = (config) =>
   });
 
 const config: ExpoConfig = {
-  name: 'dpad TV',
-  slug: 'dpad-tv-example',
+  name: 'toets TV',
+  slug: 'toets-tv-example',
   version: '1.0.0',
   orientation: 'landscape',
-  ios: { bundleIdentifier: 'dev.dpad.example' },
-  android: { package: 'dev.dpad.example' },
-  web: { bundler: 'metro', output: 'single', name: 'dpad TV example' },
+  ios: { bundleIdentifier: 'dev.toets.example' },
+  android: { package: 'dev.toets.example' },
+  web: { bundler: 'metro', output: 'single', name: 'toets TV example' },
   plugins: [
     [
       '@react-native-tvos/config-tv',
@@ -62,4 +62,4 @@ const config: ExpoConfig = {
   ],
 };
 
-export default withDpadLaunchOptions(withEmbeddedDebugBundle(config));
+export default withToetsLaunchOptions(withEmbeddedDebugBundle(config));

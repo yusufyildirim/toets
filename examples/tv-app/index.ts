@@ -1,5 +1,5 @@
-// First: the dpad SDK must be in place before any app module runs.
-import './src/dpad/start';
+// First: the toets SDK must be in place before any app module runs.
+import './src/toets/start';
 
 import { registerRootComponent } from 'expo';
 

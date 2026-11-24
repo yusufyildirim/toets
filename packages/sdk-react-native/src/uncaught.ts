@@ -1,4 +1,4 @@
-import { getGlobal, type Dpad } from '@dpad-tv/sdk';
+import { getGlobal, type Toets } from '@toets/sdk';
 
 type GlobalHandler = (error: unknown, isFatal?: boolean) => void;
 
@@ -12,7 +12,7 @@ interface ErrorUtilsLike {
  * log entries, then calls the previous handler (red box, crash reporter). Returns a
  * function that restores the previous handler.
  */
-export function trackUncaughtErrors(dpad: Dpad): () => void {
+export function trackUncaughtErrors(toets: Toets): () => void {
   const errorUtils = getGlobal().ErrorUtils as ErrorUtilsLike | undefined;
   if (
     !errorUtils ||
@@ -25,7 +25,7 @@ export function trackUncaughtErrors(dpad: Dpad): () => void {
     try {
       const message = error instanceof Error ? `${error.name}: ${error.message}` : String(error);
       const stack = error instanceof Error ? error.stack : undefined;
-      dpad.log(
+      toets.log(
         'error',
         `${isFatal ? 'Fatal' : 'Uncaught'} ${message}`,
         stack ? { kind: 'uncaught', stack } : { kind: 'uncaught' },

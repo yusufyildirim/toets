@@ -1,6 +1,6 @@
-# E2E tests (dpad)
+# E2E tests (toets)
 
-TV end-to-end tests live in `e2e/` and run with dpad on Playwright Test.
+TV end-to-end tests live in `e2e/` and run with toets on Playwright Test.
 
 - Fast loop: `npx playwright test --project=web`
 - All platforms: `npx playwright test`
@@ -16,8 +16,8 @@ TV end-to-end tests live in `e2e/` and run with dpad on Playwright Test.
 - Platform gaps are capabilities: `test(name, requires('key.color'), fn)`, never `if (platform === ...)`.
 - Page objects live in `e2e/pages/`, take `app`, expose locators and actions, and do not assert beyond waiting until loaded.
 - Data-dependent tests mock the network with `app.network.use(...)` before `app.launch()`.
-- When a test fails, read the error's `Hint:`, its `Docs:` page and the failure dump before changing the test. Skipped platforms and their reasons are in `dpad-report/parity.md`.
+- When a test fails, read the error's `Hint:`, its `Docs:` page and the failure dump before changing the test. Skipped platforms and their reasons are in `toets-report/parity.md`.
 
 ## Docs
 
-Installed dpad packages ship version-matched docs in `node_modules/@dpad-tv/*/docs/`; every error code is in `node_modules/@dpad-tv/core/docs/errors.md`. The docs site has the same pages plus `llms.txt` and `llms-full.txt`. The dpad agent skills cover setup, writing tests, debugging failures and migrating.
+Installed toets packages ship version-matched docs in `node_modules/@toets/*/docs/`; every error code is in `node_modules/@toets/core/docs/errors.md`. The docs site has the same pages plus `llms.txt` and `llms-full.txt`. The toets agent skills cover setup, writing tests, debugging failures and migrating.

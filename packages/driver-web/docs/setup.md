@@ -1,11 +1,11 @@
 # Web driver setup
 
-`@dpad-tv/driver-web` runs web TV apps in Chromium through Playwright. It is the `web` platform of dpad: the runner loads it for `platforms.web()` projects.
+`@toets/driver-web` runs web TV apps in Chromium through Playwright. It is the `web` platform of toets: the runner loads it for `platforms.web()` projects.
 
 ## Install
 
 ```sh
-npm i -D @dpad-tv/test @dpad-tv/driver-web
+npm i -D @toets/test @toets/driver-web
 npx playwright install chromium
 ```
 
@@ -16,7 +16,7 @@ Chromium only. Firefox and WebKit are not TV engines and are rejected (`WEB_NOT_
 The driver needs the URL the app is served at. Everything else has TV defaults (1920x1080 viewport, `data-testid`, standard key values).
 
 ```ts
-import { defineConfig, platforms } from '@dpad-tv/test';
+import { defineConfig, platforms } from '@toets/test';
 
 export default defineConfig({
   app: { web: { url: 'http://localhost:3000' } },
@@ -37,10 +37,10 @@ The driver works on exactly one Playwright `Page`, chosen by which handle you pa
 | `browser` | creates a context (`contextOptions`) and a page | its context        |
 | none      | launches Chromium (`launchOptions`)             | the browser        |
 
-Inside `@dpad-tv/test` the driver launches its own Chromium (set `launchOptions`, e.g. `{ headless: false }`, in `platforms.web({...})`). Playwright Test's `--trace` records it only when both load the same `playwright-core` copy: keep `@playwright/test` and `@dpad-tv/driver-web` on the same Playwright version so the package manager dedupes it. Standalone (scripts, tools), the same:
+Inside `@toets/test` the driver launches its own Chromium (set `launchOptions`, e.g. `{ headless: false }`, in `platforms.web({...})`). Playwright Test's `--trace` records it only when both load the same `playwright-core` copy: keep `@playwright/test` and `@toets/driver-web` on the same Playwright version so the package manager dedupes it. Standalone (scripts, tools), the same:
 
 ```ts
-import { createWebDriver } from '@dpad-tv/driver-web';
+import { createWebDriver } from '@toets/driver-web';
 
 const driver = createWebDriver({ url: 'http://localhost:3000' });
 await driver.start();

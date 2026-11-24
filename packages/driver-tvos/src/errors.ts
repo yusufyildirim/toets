@@ -1,4 +1,4 @@
-import { DpadError, packageDocsLink } from '@dpad-tv/core';
+import { ToetsError, packageDocsLink } from '@toets/core';
 
 /** Error codes thrown by the tvOS driver. Branch on these, not on messages. */
 export const TvosErrorCode = {
@@ -37,8 +37,8 @@ export function tvosError(
   code: TvosErrorCode,
   message: string,
   opts: { hint?: string; docs?: string; cause?: unknown } = {},
-): DpadError {
-  return new DpadError(code, message, {
+): ToetsError {
+  return new ToetsError(code, message, {
     ...(opts.hint === undefined ? {} : { hint: opts.hint }),
     ...(opts.docs === undefined ? {} : { docs: opts.docs }),
     ...(opts.cause === undefined ? {} : { cause: opts.cause }),

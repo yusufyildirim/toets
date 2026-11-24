@@ -1,12 +1,12 @@
 /**
- * Every dpad assertion, implemented once over platform-neutral state. Runners adapt these to
- * their `expect` (`@dpad-tv/test` wires them into Playwright's `expect.extend`); the MCP server
+ * Every toets assertion, implemented once over platform-neutral state. Runners adapt these to
+ * their `expect` (`@toets/test` wires them into Playwright's `expect.extend`); the MCP server
  * calls them directly. Results follow Playwright's custom matcher contract: `pass` is whether
  * the positive condition held, and the runner inverts it for `.not`.
  */
-import type { MediaInfo, MediaState } from '@dpad-tv/protocol';
+import type { MediaInfo, MediaState } from '@toets/protocol';
 import type { App, Locator, Media, Network, RecordedRequest } from '../api.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import type { RequestFilter } from '../mock.js';
 import type { ElementSnapshot } from '../snapshot.js';
 import { appRuntime } from './app.js';
@@ -110,9 +110,9 @@ async function runMatcher(ctx: MatchContext, spec: MatcherSpec): Promise<MatchRe
   };
 }
 
-function invalidSubject(name: string, wanted: string, got: unknown): DpadError {
-  const kind = got === null ? 'null' : typeof got === 'object' ? 'a non-dpad object' : typeof got;
-  return new DpadError('INVALID_SUBJECT', `${name}() expects ${wanted}, got ${kind}.`, {
+function invalidSubject(name: string, wanted: string, got: unknown): ToetsError {
+  const kind = got === null ? 'null' : typeof got === 'object' ? 'a non-toets object' : typeof got;
+  return new ToetsError('INVALID_SUBJECT', `${name}() expects ${wanted}, got ${kind}.`, {
     hint: `Assert on ${wanted}, e.g. expect(app.getByTestId('id')).${name}().`,
     docs: packageDocsLink('core', 'assertions'),
   });
@@ -120,7 +120,7 @@ function invalidSubject(name: string, wanted: string, got: unknown): DpadError {
 
 function asLocator(name: string, subject: unknown): LocatorImpl {
   const impl = locatorImpl(subject);
-  if (!impl) throw invalidSubject(name, 'a dpad Locator', subject);
+  if (!impl) throw invalidSubject(name, 'a toets Locator', subject);
   return impl;
 }
 
@@ -178,7 +178,7 @@ function textMatcher(name: 'toHaveText' | 'toContainText') {
   ): Promise<MatchResult> => {
     const locator = asLocator(name, subject);
     if (typeof expected !== 'string' && !(expected instanceof RegExp)) {
-      throw new DpadError('INVALID_ARGUMENT', `${name}() expects a string or RegExp.`, {
+      throw new ToetsError('INVALID_ARGUMENT', `${name}() expects a string or RegExp.`, {
         docs: packageDocsLink('core', 'assertions'),
       });
     }
@@ -271,7 +271,7 @@ export const locatorMatchers = {
   async toHaveCount(ctx: MatchContext, subject: Locator, count: number): Promise<MatchResult> {
     const locator = asLocator('toHaveCount', subject);
     if (!Number.isInteger(count) || count < 0) {
-      throw new DpadError(
+      throw new ToetsError(
         'INVALID_ARGUMENT',
         `toHaveCount() needs a non-negative integer, got ${count}.`,
         {
@@ -311,7 +311,7 @@ function snapshotSubject(subject: unknown): {
   }
   const runtime = appRuntime(subject);
   if (runtime) return { runtime, label: 'app', header: [], take: () => runtime.snapshot() };
-  throw invalidSubject('toMatchTextSnapshot', 'the app or a dpad Locator', subject);
+  throw invalidSubject('toMatchTextSnapshot', 'the app or a toets Locator', subject);
 }
 
 /**

@@ -33,7 +33,7 @@ interface RememberedRejection {
 }
 
 /**
- * Starts the host side of the dpad protocol: a WebSocket server apps connect to.
+ * Starts the host side of the toets protocol: a WebSocket server apps connect to.
  * See `docs/host.md`.
  *
  * @example
@@ -185,7 +185,7 @@ class Host implements SdkHost {
       socket.off('message', onFirstMessage);
       this.reject(socket, null, CloseCode.HandshakeFailed, RpcErrorCode.InvalidRequest, {
         reason: 'handshake-timeout',
-        message: `No dpad.hello within ${this.opts.handshakeTimeoutMs}ms`,
+        message: `No toets.hello within ${this.opts.handshakeTimeoutMs}ms`,
       });
     }, this.opts.handshakeTimeoutMs);
 
@@ -212,7 +212,7 @@ class Host implements SdkHost {
     if (!msg || msg.jsonrpc !== '2.0' || msg.method !== HELLO_METHOD || id === null) {
       this.reject(socket, id, CloseCode.HandshakeFailed, RpcErrorCode.InvalidRequest, {
         reason: 'invalid-hello',
-        message: 'The first message must be a dpad.hello request',
+        message: 'The first message must be a toets.hello request',
       });
       return;
     }
@@ -224,7 +224,7 @@ class Host implements SdkHost {
     if (problems.length > 0) {
       this.reject(socket, id, CloseCode.HandshakeFailed, RpcErrorCode.InvalidParams, {
         reason: 'invalid-hello',
-        message: `Invalid dpad.hello: ${problems.join('; ')}`,
+        message: `Invalid toets.hello: ${problems.join('; ')}`,
         hello,
       });
       return;
@@ -320,18 +320,18 @@ class Host implements SdkHost {
       : ' No connection attempt reached the host.';
     return new ProtocolError(
       'sdk.session-timeout',
-      `The app did not connect to the dpad SDK host within ${timeoutMs}ms.${seen}`,
+      `The app did not connect to the toets SDK host within ${timeoutMs}ms.${seen}`,
       {
         hint: rejections.length
           ? 'Fix the rejection reason above (token or protocol version).'
-          : 'Check that the app starts the dpad SDK, receives the launch payload (driver transport), can reach the host (adb reverse on Android, cleartext/ATS policy for ws://localhost) and is not a production build without the SDK.',
+          : 'Check that the app starts the toets SDK, receives the launch payload (driver transport), can reach the host (adb reverse on Android, cleartext/ATS policy for ws://localhost) and is not a production build without the SDK.',
         docs: DOCS,
       },
     );
   }
 
   private hostClosedError(): ProtocolError {
-    return new ProtocolError('sdk.host-closed', 'The dpad SDK host was closed.', { docs: DOCS });
+    return new ProtocolError('sdk.host-closed', 'The toets SDK host was closed.', { docs: DOCS });
   }
 }
 

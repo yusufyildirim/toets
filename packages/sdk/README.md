@@ -1,10 +1,10 @@
-# @dpad-tv/sdk
+# @toets/sdk
 
-dpad in-app SDK: the framework-neutral runtime (`@dpad-tv/sdk`), the web adapter (`@dpad-tv/sdk/web`) and an inert stand-in for production builds (`@dpad-tv/sdk/noop`). Inert unless the app is launched by dpad.
+toets in-app SDK: the framework-neutral runtime (`@toets/sdk`), the web adapter (`@toets/sdk/web`) and an inert stand-in for production builds (`@toets/sdk/noop`). Inert unless the app is launched by toets.
 
 ```ts
-import { startDpad } from '@dpad-tv/sdk/web';
-startDpad();
+import { startToets } from '@toets/sdk/web';
+startToets();
 ```
 
-Docs (shipped in `docs/`): [overview](./docs/overview.md), [web adapter](./docs/web.md), [idle](./docs/idle.md), [app state](./docs/state.md), [media](./docs/media.md), [production builds](./docs/production.md), [writing an adapter](./docs/adapters.md), [traps](./docs/traps.md). Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Docs (shipped in `docs/`): [overview](./docs/overview.md), [web adapter](./docs/web.md), [idle](./docs/idle.md), [app state](./docs/state.md), [media](./docs/media.md), [production builds](./docs/production.md), [writing an adapter](./docs/adapters.md), [traps](./docs/traps.md). Project overview: [toets](https://github.com/yusufyildirim/toets#readme).

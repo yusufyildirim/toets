@@ -31,10 +31,10 @@ describe('plugin', () => {
     ].join('\n');
     const [result] = await eslint.lintText(code, { filePath: '/project/e2e/pages/home.ts' });
     expect(result?.messages.map((m) => [m.ruleId, m.severity])).toEqual([
-      ['@dpad-tv/no-sleep', 2],
-      ['@dpad-tv/no-platform-only', 1],
-      ['@dpad-tv/prefer-semantic-keys', 2],
-      ['@dpad-tv/page-object-assertions', 2],
+      ['@toets/no-sleep', 2],
+      ['@toets/no-platform-only', 1],
+      ['@toets/prefer-semantic-keys', 2],
+      ['@toets/page-object-assertions', 2],
     ]);
   });
 });

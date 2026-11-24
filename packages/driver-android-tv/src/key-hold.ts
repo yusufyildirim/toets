@@ -2,9 +2,9 @@ import { fileURLToPath } from 'node:url';
 import type { Adb } from './adb.js';
 import { androidError } from './errors.js';
 
-/** The dex jar built from `helper/src/tv/dpad/helper/KeyHold.java`. */
-export const KEY_HOLD_JAR = fileURLToPath(new URL('../assets/dpad-key-hold.jar', import.meta.url));
-const REMOTE_JAR = '/data/local/tmp/dpad-key-hold.jar';
+/** The dex jar built from `helper/src/tv/toets/helper/KeyHold.java`. */
+export const KEY_HOLD_JAR = fileURLToPath(new URL('../assets/toets-key-hold.jar', import.meta.url));
+const REMOTE_JAR = '/data/local/tmp/toets-key-hold.jar';
 
 /**
  * Holds a key for an exact duration with real auto-repeat (see `KeyHold.java`). UiAutomator2
@@ -23,7 +23,7 @@ export class KeyHolder {
     await this.pushed;
     const ms = Math.max(0, Math.round(holdMs));
     const res = await this.adb.run(
-      ['shell', `CLASSPATH=${REMOTE_JAR} app_process / tv.dpad.helper.KeyHold ${keycode} ${ms}`],
+      ['shell', `CLASSPATH=${REMOTE_JAR} app_process / tv.toets.helper.KeyHold ${keycode} ${ms}`],
       { timeoutMs: ms + 30_000 },
     );
     if (res.exitCode !== 0 || !/repeats=\d+/.test(res.stdout)) {

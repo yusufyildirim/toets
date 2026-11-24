@@ -1,4 +1,4 @@
-import { DpadError, KEY_CAPABILITY, Key } from '@dpad-tv/core';
+import { ToetsError, KEY_CAPABILITY, Key } from '@toets/core';
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_KEY_MAP, keyCapabilities, resolveKeyMap, type WebKeyMap } from './keys.js';
 
@@ -44,6 +44,6 @@ describe('key map', () => {
     ['non-string code', { BACK: { key: 'GoBack', code: 1 } }],
     ['non-object map', 'Escape'],
   ])('rejects %s', (_, overrides) => {
-    expect(() => resolveKeyMap(overrides as WebKeyMap)).toThrow(DpadError);
+    expect(() => resolveKeyMap(overrides as WebKeyMap)).toThrow(ToetsError);
   });
 });

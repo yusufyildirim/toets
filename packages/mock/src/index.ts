@@ -1,9 +1,9 @@
 /**
- * dpad network mocking: MSW handlers served by a host-side HTTP server. The app sends API
+ * toets network mocking: MSW handlers served by a host-side HTTP server. The app sends API
  * traffic to `mockUrl` (from the launch payload) with the real origin in a header; matched
  * requests get mocked responses, the rest is proxied upstream, and everything is recorded.
  *
- * Docs: `node_modules/@dpad-tv/mock/docs` (start with `concepts.md`).
+ * Docs: `node_modules/@toets/mock/docs` (start with `concepts.md`).
  *
  * @packageDocumentation
  */
@@ -38,7 +38,7 @@ export type {
 } from './har.js';
 export { MockErrorCode } from './errors.js';
 export { ERROR_HEADER, REQUEST_ID_HEADER } from './headers.js';
-export { ORIGINAL_ORIGIN_HEADER } from '@dpad-tv/protocol';
+export { ORIGINAL_ORIGIN_HEADER } from '@toets/protocol';
 
 /**
  * MSW building blocks, re-exported so handlers and the server share one MSW copy.

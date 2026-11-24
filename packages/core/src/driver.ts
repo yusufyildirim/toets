@@ -1,4 +1,4 @@
-import type { LaunchPayload } from '@dpad-tv/protocol';
+import type { LaunchPayload } from '@toets/protocol';
 import type { PlatformEvent } from './api.js';
 import type { Capability } from './capabilities.js';
 import type { DeviceLease, DeviceProvider } from './devices.js';
@@ -8,7 +8,7 @@ import type { SelectorChain } from './selectors.js';
 import type { ElementRef, ElementSnapshot, LogEntry, UITree } from './snapshot.js';
 
 export interface DriverLaunchOptions {
-  /** Encoded by the driver using the platform's transport (see `@dpad-tv/protocol` launch). */
+  /** Encoded by the driver using the platform's transport (see `@toets/protocol` launch). */
   readonly payload: LaunchPayload;
   /** Clear app data before launching. */
   readonly clearData?: boolean;
@@ -25,7 +25,7 @@ export interface DriverLaunchOptions {
  *   and stay stable while the element is attached: the core compares refs to detect focus
  *   movement and to find a located element in the tree.
  * - `press` sends real platform input (no synthetic in-app events).
- * - Throw `DpadError` with a precise `hint` for anything the user can fix.
+ * - Throw `ToetsError` with a precise `hint` for anything the user can fix.
  */
 export interface Driver {
   readonly platform: Platform;
@@ -70,7 +70,7 @@ export interface Driver {
   escapeHatch(): unknown;
 }
 
-/** Per-platform app config from the user's dpad config. */
+/** Per-platform app config from the user's toets config. */
 export interface AppTargetConfig {
   readonly [key: string]: unknown;
 }
@@ -88,7 +88,7 @@ export interface DriverCreateContext {
 }
 
 /**
- * What a driver package exports as `default`. `@dpad-tv/test` loads driver packages lazily so
+ * What a driver package exports as `default`. `@toets/test` loads driver packages lazily so
  * users install only the platforms they target.
  */
 export interface DriverModule<Options = Record<string, unknown>> {

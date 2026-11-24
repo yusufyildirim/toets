@@ -12,7 +12,7 @@
 
     <application
         android:banner="@drawable/banner"
-        android:label="dpad fixture"
+        android:label="toets fixture"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar"
         android:usesCleartextTraffic="true">
         <activity

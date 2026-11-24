@@ -1,6 +1,6 @@
 # ESLint plugin
 
-`@dpad-tv/eslint-plugin` catches the habits that make TV tests flaky or platform-specific: fixed waits, behavior assertions hidden in page objects, raw platform escape hatches and raw keycodes. Flat config only.
+`@toets/eslint-plugin` catches the habits that make TV tests flaky or platform-specific: fixed waits, behavior assertions hidden in page objects, raw platform escape hatches and raw keycodes. Flat config only.
 
 ## Setup
 
@@ -8,11 +8,11 @@ Scope the plugin to your E2E folder so app code is never linted with test rules:
 
 ```js
 // eslint.config.js
-import dpad from '@dpad-tv/eslint-plugin';
+import toets from '@toets/eslint-plugin';
 
 export default [
   // ...your other configs
-  { files: ['e2e/**/*.{ts,tsx,js}'], ...dpad.configs.recommended },
+  { files: ['e2e/**/*.{ts,tsx,js}'], ...toets.configs.recommended },
 ];
 ```
 
@@ -32,10 +32,10 @@ Override levels or options per rule as with any plugin:
 ```js nocheck
 {
   files: ['e2e/**'],
-  ...dpad.configs.recommended,
+  ...toets.configs.recommended,
   rules: {
-    ...dpad.configs.recommended.rules,
-    '@dpad-tv/page-object-assertions': ['error', { files: ['e2e/screens/**'] }],
+    ...toets.configs.recommended.rules,
+    '@toets/page-object-assertions': ['error', { files: ['e2e/screens/**'] }],
   },
 }
 ```

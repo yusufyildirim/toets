@@ -8,7 +8,7 @@ import {
   type LlmsPage,
 } from './llms.ts';
 
-const opts = { title: 'dpad', summary: 'TV E2E.', intro: 'Intro.', origin: 'https://x.dev' };
+const opts = { title: 'toets', summary: 'TV E2E.', intro: 'Intro.', origin: 'https://x.dev' };
 
 describe('cleanMarkdown', () => {
   const clean = (source: string, url = '/concepts/focus') =>
@@ -74,7 +74,7 @@ describe('rendering', () => {
 
   it('renders an llms.txt index with an Optional section', () => {
     const index = renderIndex([{ text: 'Concepts', pages: [page] }], opts);
-    expect(index).toContain('# dpad\n\n> TV E2E.\n\nIntro.\n\n## Concepts\n');
+    expect(index).toContain('# toets\n\n> TV E2E.\n\nIntro.\n\n## Concepts\n');
     expect(index).toContain('- [Focus](https://x.dev/concepts/focus.md): About focus.');
     expect(index).toContain('## Optional\n\n- [Full documentation](https://x.dev/llms-full.txt)');
   });

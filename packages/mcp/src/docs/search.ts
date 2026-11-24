@@ -1,5 +1,5 @@
 /**
- * Search over the `docs/` folders shipped inside installed `@dpad-tv/*` packages (decision 12:
+ * Search over the `docs/` folders shipped inside installed `@toets/*` packages (decision 12:
  * docs ship with the packages, version-matched). Pages are split into heading sections and
  * ranked with BM25, so results are small excerpts an agent can read in place.
  */
@@ -31,10 +31,10 @@ export interface DocsHit extends DocsSection {
   readonly score: number;
 }
 
-const SCOPE = '@dpad-tv';
+const SCOPE = '@toets';
 
 /**
- * Finds docs folders of `@dpad-tv/*` packages in every `node_modules` above each root, plus the
+ * Finds docs folders of `@toets/*` packages in every `node_modules` above each root, plus the
  * docs of this package and its dependencies, plus `extraDirs`. Deduplicated by real path.
  */
 export function findDocsSources(

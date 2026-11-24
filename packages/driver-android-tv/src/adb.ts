@@ -21,7 +21,7 @@ const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
  * `adb` bound to one device serial. Thin and explicit: one method per device operation the
- * driver needs, each failing with a `DpadError` that names the command and its output.
+ * driver needs, each failing with a `ToetsError` that names the command and its output.
  */
 export class Adb {
   constructor(

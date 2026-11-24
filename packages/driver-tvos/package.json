@@ -1,19 +1,34 @@
 {
-  "name": "@dpad-tv/driver-tvos",
-  "version": "0.0.0",
-  "description": "dpad driver for tvOS simulators, built on Appium XCUITest.",
+  "name": "@toets/driver-tvos",
+  "version": "0.1.0",
+  "description": "toets driver for tvOS simulators, built on Appium XCUITest.",
+  "keywords": [
+    "toets",
+    "tv",
+    "e2e",
+    "testing",
+    "tvos",
+    "apple-tv",
+    "appium",
+    "xcuitest",
+    "simulator"
+  ],
   "license": "MIT",
+  "author": "Yusuf YILDIRIM",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git",
+    "url": "git+https://github.com/yusufyildirim/toets.git",
     "directory": "packages/driver-tvos"
   },
-  "homepage": "https://github.com/yusufyildirim/dpad/tree/main/packages/driver-tvos#readme",
-  "bugs": "https://github.com/yusufyildirim/dpad/issues",
+  "homepage": "https://github.com/yusufyildirim/toets/tree/main/packages/driver-tvos#readme",
+  "bugs": "https://github.com/yusufyildirim/toets/issues",
+  "publishConfig": {
+    "access": "public"
+  },
   "type": "module",
   "exports": {
     ".": {
-      "@dpad-tv/source": "./src/index.ts",
+      "@toets/source": "./src/index.ts",
       "typedoc": "./src/index.ts",
       "types": "./dist/index.d.ts",
       "default": "./dist/index.js"
@@ -34,8 +49,8 @@
     "node": ">=24"
   },
   "dependencies": {
-    "@dpad-tv/core": "workspace:^",
-    "@dpad-tv/protocol": "workspace:^",
+    "@toets/core": "workspace:^",
+    "@toets/protocol": "workspace:^",
     "appium": "4.0.0",
     "appium-xcuitest-driver": "13.6.1",
     "pngjs": "7.0.0",

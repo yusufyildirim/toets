@@ -1,4 +1,4 @@
-import type { RecordedRequest } from '@dpad-tv/core';
+import type { RecordedRequest } from '@toets/core';
 import { matchRequestUrl } from 'msw';
 import {
   BodyCapture,
@@ -44,7 +44,7 @@ export interface RecordedMockResponse {
  * - `status` is `null` while in flight and when no response was sent (dropped connection).
  */
 export interface RecordedMockRequest extends RecordedRequest {
-  /** Unique per server and sent to the app as the `x-dpad-request-id` response header. */
+  /** Unique per server and sent to the app as the `x-toets-request-id` response header. */
   readonly id: string;
   readonly bodyEncoding: BodyEncoding;
   /** Request body size in bytes. */

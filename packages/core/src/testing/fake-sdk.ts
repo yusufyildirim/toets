@@ -14,7 +14,7 @@ import {
   type MediaInfo,
   type SdkHost,
   type SdkSession,
-} from '@dpad-tv/protocol';
+} from '@toets/protocol';
 import type { FakeDriver } from './fake-driver.js';
 
 const ALL_DOMAINS: readonly Domain[] = ['tree', 'focus', 'sync', 'media', 'state', 'logs'];
@@ -64,7 +64,7 @@ export class FakeSdkSession implements SdkSession {
     this.hello = {
       protocol: '1.0.0',
       token: opts.token ?? 'fake-token',
-      sdk: '@dpad-tv/fake-sdk@0.0.0',
+      sdk: '@toets/fake-sdk@0.0.0',
       framework: 'fake',
       domains,
     };

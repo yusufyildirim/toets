@@ -1,6 +1,6 @@
-# dpad SDK protocol, version 1.0
+# toets SDK protocol, version 1.0
 
-Normative description of the wire protocol between the dpad test host and an in-app SDK. Types live in `src/messages.ts`; this page defines behavior. "MUST", "SHOULD" and "MAY" are used as in RFC 2119.
+Normative description of the wire protocol between the toets test host and an in-app SDK. Types live in `src/messages.ts`; this page defines behavior. "MUST", "SHOULD" and "MAY" are used as in RFC 2119.
 
 The SDK is optional (black-box tests work without it) and is an accelerator: richer trees, focus graph, idle sync, media and app state.
 
@@ -8,7 +8,7 @@ The SDK is optional (black-box tests work without it) and is an accelerator: ric
 
 - JSON-RPC 2.0 over one WebSocket. One JSON message per text frame. No batches.
 - The **app connects to the host**. The host listens on loopback; URLs always use `localhost` (Android drivers `adb reverse` the port, the tvOS simulator and web share the host network).
-- The first frame MUST be the `dpad.hello` request. After a successful handshake the host sends requests to the app, the app answers and sends notifications. The app never sends requests after the hello.
+- The first frame MUST be the `toets.hello` request. After a successful handshake the host sends requests to the app, the app answers and sends notifications. The app never sends requests after the hello.
 - Heartbeat: the host sends WebSocket pings; an app that misses two pongs is closed with code 4003. SDKs MUST let the WebSocket implementation answer pings (all browsers, React Native, OkHttp and URLSession do).
 - Coordinates are logical pixels (CSS px, dp, pt) in the app's root coordinate space, origin top-left. `viewport.pixelRatio` maps them to physical pixels (screenshots).
 
@@ -38,22 +38,22 @@ The single channel through which the host configures an app at launch (`LaunchPa
 
 Encoding: drivers SHOULD send `base64url(UTF-8 JSON)` without padding (`encodeLaunchPayloadParam`); it survives URLs, shells and `NSUserDefaults` unchanged. SDKs MUST accept base64url (padded or standard base64 too) and plain JSON (`decodeLaunchPayload`). Unknown fields MUST be ignored.
 
-| Platform   | Transport                                                             | SDK reads it from                                      |
-| ---------- | --------------------------------------------------------------------- | ------------------------------------------------------ |
-| Web        | `?__dpad=<value>` query parameter, or `window.__DPAD__` (init script) | `location.search` / the global                         |
-| Android    | Intent string extra `__dpad`                                          | The activity intent (React Native: root initial props) |
-| tvOS / iOS | Launch arguments `-__dpad <value>`                                    | `NSUserDefaults` argument domain                       |
+| Platform   | Transport                                                               | SDK reads it from                                      |
+| ---------- | ----------------------------------------------------------------------- | ------------------------------------------------------ |
+| Web        | `?__toets=<value>` query parameter, or `window.__TOETS__` (init script) | `location.search` / the global                         |
+| Android    | Intent string extra `__toets`                                           | The activity intent (React Native: root initial props) |
+| tvOS / iOS | Launch arguments `-__toets <value>`                                     | `NSUserDefaults` argument domain                       |
 
 Security: an SDK MUST stay inert (install no hooks, open no connection) without a valid payload, and SHOULD refuse an `sdkUrl` whose host is not loopback (`localhost`, `127.0.0.1`, `::1`, Android emulator `10.0.2.2`) unless explicitly configured. Production builds SHOULD exclude the SDK entirely: on Android any app can start an exported activity with extras.
 
 ## Handshake
 
 ```json nocheck
-→ {"jsonrpc":"2.0","id":1,"method":"dpad.hello","params":{"protocol":"1.0.0","token":"9f2c...","sdk":"@dpad-tv/sdk@0.1.0","framework":"web","domains":["tree","focus","sync","media","state","logs"]}}
+→ {"jsonrpc":"2.0","id":1,"method":"toets.hello","params":{"protocol":"1.0.0","token":"9f2c...","sdk":"@toets/sdk@0.1.0","framework":"web","domains":["tree","focus","sync","media","state","logs"]}}
 ← {"jsonrpc":"2.0","id":1,"result":{"protocol":"1.0.0","sessionId":"5b0e..."}}
 ```
 
-The host validates, in order: message shape (first frame is a `dpad.hello` request, else close 4000), params (else InvalidParams + close 4000), token (else Unauthorized + close 4001), protocol (else IncompatibleProtocol with `data.protocol` = host version + close 4002). On rejection the host answers the hello with the error, then closes. The app has 10 s (host default) to send the hello.
+The host validates, in order: message shape (first frame is a `toets.hello` request, else close 4000), params (else InvalidParams + close 4000), token (else Unauthorized + close 4001), protocol (else IncompatibleProtocol with `data.protocol` = host version + close 4002). On rejection the host answers the hello with the error, then closes. The app has 10 s (host default) to send the hello.
 
 Tokens are one-time: a used, unknown or expired token is rejected. A reloaded app (dev reload, crash restart) therefore cannot reconnect; the host relaunches it. SDKs MUST NOT reconnect after a rejection or after the session closes. They MAY retry connecting before the handshake (the host may still be starting); the JS SDKs retry 5 times with backoff.
 

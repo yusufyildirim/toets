@@ -1,10 +1,10 @@
-import { defineConfig, platforms } from '@dpad-tv/test';
+import { defineConfig, platforms } from '@toets/test';
 
-/** A dpad test config: its `platforms.*()` projects become MCP targets. */
+/** A toets test config: its `platforms.*()` projects become MCP targets. */
 export default defineConfig({
   expect: { timeout: 1500 },
   parityReport: false,
-  dpad: { keyOverrides: { FAST_FORWARD: { as: 'RIGHT', holdMs: 800 } } },
+  toets: { keyOverrides: { FAST_FORWARD: { as: 'RIGHT', holdMs: 800 } } },
   projects: [
     { name: 'unit', testMatch: /unit/ },
     platforms.web<{ label?: string }>({
@@ -16,7 +16,7 @@ export default defineConfig({
       driver: '../fake-driver-module.ts',
       label: 'Kids',
       expect: { timeout: 700 },
-      dpad: { timeouts: { actionMs: 900 } },
+      toets: { timeouts: { actionMs: 900 } },
     }),
   ],
 });

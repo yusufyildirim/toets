@@ -1,15 +1,15 @@
 import type { DeviceProvider } from '../devices.js';
 import type { DriverModule } from '../driver.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import { createCommandDeviceProvider, type CommandDevicesOptions } from '../providers/command.js';
 import { createExternalDeviceProvider } from '../providers/external.js';
 
 /** How a target gets its device. Web needs none. */
 export type DeviceSelection =
-  /** dpad boots, snapshots and resets emulators/simulators through the driver package. */
+  /** toets boots, snapshots and resets emulators/simulators through the driver package. */
   | 'managed'
   | { readonly mode: 'managed' }
-  /** Already running devices: listed here or in `DPAD_DEVICES` (comma separated). */
+  /** Already running devices: listed here or in `TOETS_DEVICES` (comma separated). */
   | { readonly mode: 'external'; readonly addresses?: readonly string[] }
   /** Shell commands lease and release devices (device farms, lease brokers). */
   | ({ readonly mode: 'command' } & CommandDevicesOptions);
@@ -29,7 +29,7 @@ export function selectDeviceProvider(
     case 'managed': {
       const provider = module.createDeviceProvider?.(driverOptions);
       if (!provider) {
-        throw new DpadError(
+        throw new ToetsError(
           'NO_MANAGED_DEVICES',
           `The ${module.platform} driver cannot manage devices.`,
           {

@@ -4,7 +4,7 @@ import { defineConfig } from 'vitepress';
 import { generateLlms } from './llms.ts';
 import { nav, sidebar } from './sidebar.ts';
 
-const title = 'dpad';
+const title = 'toets';
 const description =
   'Cross-platform E2E testing for TV apps: one test for web, Android TV / Fire TV and tvOS, with focus and the remote as first-class primitives.';
 
@@ -55,7 +55,7 @@ export default defineConfig({
       title,
       summary: description,
       intro: `
-Pre-alpha: APIs may change. dpad runs on Playwright Test; platforms are Playwright projects and tests receive one \`app\` fixture.
+Pre-alpha: APIs may change. toets runs on Playwright Test; platforms are Playwright projects and tests receive one \`app\` fixture.
 
 Rules that differ from web and mobile testing:
 - There is no click. Move focus with the remote (\`app.focus.navigateTo\`, \`app.remote.press\`), then press \`Key.SELECT\`.
@@ -64,7 +64,7 @@ Rules that differ from web and mobile testing:
 - Platform gaps are capabilities: declare \`requires\` instead of branching on the platform.
 - Negative assertions need a positive anchor first (or the SDK idle signal).
 
-Errors print \`DpadError: [CODE] message\` with a \`Hint:\` and a \`Docs:\` page; every code is listed in [Error codes](/reference/core/docs/errors.md). Installed packages ship their reference pages offline in \`node_modules/@dpad-tv/*/docs/\`.
+Errors print \`ToetsError: [CODE] message\` with a \`Hint:\` and a \`Docs:\` page; every code is listed in [Error codes](/reference/core/docs/errors.md). Installed packages ship their reference pages offline in \`node_modules/@toets/*/docs/\`.
 `,
     });
   },

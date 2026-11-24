@@ -1,9 +1,9 @@
 /**
- * dpad in-app SDK protocol: message types, launch payload codec, versioning rules and a
+ * toets in-app SDK protocol: message types, launch payload codec, versioning rules and a
  * transport-agnostic JSON-RPC peer. Browser, Hermes and Node safe.
  *
- * Node-only parts live in subpaths: `@dpad-tv/protocol/host` (the WebSocket host) and
- * `@dpad-tv/protocol/conformance` (the SDK conformance suite).
+ * Node-only parts live in subpaths: `@toets/protocol/host` (the WebSocket host) and
+ * `@toets/protocol/conformance` (the SDK conformance suite).
  */
 export * from './launch.js';
 export * from './jsonrpc.js';

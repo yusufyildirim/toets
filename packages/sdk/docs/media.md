@@ -5,7 +5,7 @@ The `media` domain reports players (state, position, duration, rate, error) with
 Pull (the SDK reads the player when asked):
 
 ```ts nocheck
-import { registerMedia } from '@dpad-tv/sdk';
+import { registerMedia } from '@toets/sdk';
 
 const unregister = registerMedia('main', {
   getSnapshot: () => ({
@@ -20,7 +20,7 @@ const unregister = registerMedia('main', {
 Push (from player events; emits `media.changed`):
 
 ```ts nocheck
-import { createMediaReporter } from '@dpad-tv/sdk';
+import { createMediaReporter } from '@toets/sdk';
 
 const media = createMediaReporter('main');
 player.on('waiting', () => media.update({ state: 'buffering' }));
@@ -28,8 +28,8 @@ player.on('timeupdate', () => media.update({ position: player.currentTime }));
 // media.dispose() when the player goes away
 ```
 
-States: `idle`, `loading`, `buffering`, `playing`, `paused`, `ended`, `error`. Position and duration are seconds; `duration: null` for live or unknown. Adapters cover common players: the web adapter maps `<video>`/`<audio>`, the React Native adapter provides `useDpadMedia()` for react-native-video.
+States: `idle`, `loading`, `buffering`, `playing`, `paused`, `ended`, `error`. Position and duration are seconds; `duration: null` for live or unknown. Adapters cover common players: the web adapter maps `<video>`/`<audio>`, the React Native adapter provides `useToetsMedia()` for react-native-video.
 
 ## TV trap
 
-`media.changed` fires on state, rate, duration and error changes, not on every position tick. Assert on position by polling `media.get` (dpad's media matchers do).
+`media.changed` fires on state, rate, duration and error changes, not on every position tick. Assert on position by polling `media.get` (toets's media matchers do).

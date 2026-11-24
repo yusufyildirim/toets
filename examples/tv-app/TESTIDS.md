@@ -57,7 +57,7 @@ Stable `testID`s of the example app. They map to `data-testid` on web, the resou
 | `settings_autoplay`       | Autoplay switch (`checked` when on)                 |
 | `settings_autoplay_value` | `On` / `Off`                                        |
 | `settings_api_url`        | API base URL in use (the mock server's when mocked) |
-| `settings_mock`           | `On` when API traffic goes to the dpad mock server  |
+| `settings_mock`           | `On` when API traffic goes to the toets mock server |
 | `settings_platform`       | `web`, `android-tv` or `tvos`                       |
 
 ## Focus behavior

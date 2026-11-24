@@ -1,20 +1,20 @@
 #!/usr/bin/env node
 import { parseArgs } from 'node:util';
-import { DpadError } from '@dpad-tv/core';
+import { ToetsError } from '@toets/core';
 import pkg from '../package.json' with { type: 'json' };
 import { runStdio } from './stdio.js';
 
-const USAGE = `dpad-mcp ${pkg.version} - dpad MCP server (stdio)
+const USAGE = `toets-mcp ${pkg.version} - toets MCP server (stdio)
 
-Usage: dpad-mcp [--config <file>]
+Usage: toets-mcp [--config <file>]
 
 Options:
-  -c, --config <file>  dpad MCP config or dpad test (Playwright) config. Default: $DPAD_MCP_CONFIG,
-                       else dpad.mcp.config.{ts,mts,js,mjs,json}, else playwright.config.{ts,mts,js,mjs}
+  -c, --config <file>  toets MCP config or toets test (Playwright) config. Default: $TOETS_MCP_CONFIG,
+                       else toets.mcp.config.{ts,mts,js,mjs,json}, else playwright.config.{ts,mts,js,mjs}
   -h, --help           Show this help
   -v, --version        Show the version
 
-Docs: node_modules/@dpad-tv/mcp/docs/setup.md`;
+Docs: node_modules/@toets/mcp/docs/setup.md`;
 
 async function main(): Promise<void> {
   const { values } = parseArgs({
@@ -30,6 +30,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error: unknown) => {
-  process.stderr.write(`${error instanceof DpadError ? error.toString() : String(error)}\n`);
+  process.stderr.write(`${error instanceof ToetsError ? error.toString() : String(error)}\n`);
   process.exit(1);
 });

@@ -1,9 +1,9 @@
-# @dpad-tv/test
+# @toets/test
 
-dpad test runner: Playwright Test fixtures, config and matchers for cross-platform TV E2E tests.
+toets test runner: Playwright Test fixtures, config and matchers for cross-platform TV E2E tests.
 
 ```ts
-import { test, expect, Key } from '@dpad-tv/test';
+import { test, expect, Key } from '@toets/test';
 
 test('opens details', async ({ app }) => {
   await app.launch();
@@ -21,6 +21,6 @@ test('opens details', async ({ app }) => {
 - [Devices](./docs/devices.md)
 - [Reporting](./docs/reporting.md)
 
-Concepts shared by every platform (locators, assertions, focus, remote, snapshots, SDK, mocking) are in the [`@dpad-tv/core` docs](https://github.com/yusufyildirim/dpad/tree/main/packages/core/docs) (offline: `node_modules/@dpad-tv/core/docs`).
+Concepts shared by every platform (locators, assertions, focus, remote, snapshots, SDK, mocking) are in the [`@toets/core` docs](https://github.com/yusufyildirim/toets/tree/main/packages/core/docs) (offline: `node_modules/@toets/core/docs`).
 
-Project overview: [dpad](https://github.com/yusufyildirim/dpad#readme).
+Project overview: [toets](https://github.com/yusufyildirim/toets#readme).

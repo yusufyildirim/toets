@@ -1,4 +1,4 @@
-import { Key, type App, type Locator } from '@dpad-tv/test';
+import { Key, type App, type Locator } from '@toets/test';
 
 /** The side menu shown next to Home and Settings. */
 export class SideMenu {

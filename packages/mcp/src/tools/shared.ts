@@ -1,4 +1,4 @@
-import { describeElement, DpadError, Key, type ElementSnapshot } from '@dpad-tv/core';
+import { describeElement, ToetsError, Key, type ElementSnapshot } from '@toets/core';
 import type { CallToolResult } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import type { DocsIndex } from '../docs/search.js';
@@ -50,12 +50,12 @@ export async function guarded(fn: () => Promise<CallToolResult>): Promise<CallTo
   try {
     return await fn();
   } catch (error) {
-    if (error instanceof DpadError) return failure(error.toString());
+    if (error instanceof ToetsError) return failure(error.toString());
     return failure(`Error: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
 
-/** `Focus: card_1 "Movie 1"`, in the vocabulary of dpad failure messages. */
+/** `Focus: card_1 "Movie 1"`, in the vocabulary of toets failure messages. */
 export function focusLine(el: ElementSnapshot | null): string {
   return el
     ? `Focus: ${describeElement(el)}`

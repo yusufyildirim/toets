@@ -20,9 +20,9 @@ Host-side wall time per driver call, measured by the integration test (`test/int
 
 The first `start` on a fresh emulator also installs the UiAutomator2 server APKs (tens of seconds). A hold costs about 1 s on top of `holdMs` because the helper JVM starts per hold.
 
-## What dpad changes in UiAutomator2
+## What toets changes in UiAutomator2
 
-`waitForIdleTimeout: 0`: UiAutomator otherwise waits up to 10 s for the UI to settle before every command, and TV screens with video or focus animations may never settle. dpad retries assertions in the core instead. `allowInvisibleElements: true` keeps not-displayed elements in the tree so they report `visible: false`. Override with `appium.settings`.
+`waitForIdleTimeout: 0`: UiAutomator otherwise waits up to 10 s for the UI to settle before every command, and TV screens with video or focus animations may never settle. toets retries assertions in the core instead. `allowInvisibleElements: true` keeps not-displayed elements in the tree so they report `visible: false`. Override with `appium.settings`.
 
 ## Trap
 

@@ -5,15 +5,15 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-	<string>dpad fixture</string>
+	<string>toets fixture</string>
 	<key>CFBundleExecutable</key>
-	<string>DpadFixture</string>
+	<string>ToetsFixture</string>
 	<key>CFBundleIdentifier</key>
-	<string>tv.dpad.fixture</string>
+	<string>tv.toets.fixture</string>
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>DpadFixture</string>
+	<string>ToetsFixture</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>

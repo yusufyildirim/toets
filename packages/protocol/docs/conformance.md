@@ -5,13 +5,13 @@ Proves that an SDK speaks the [protocol](./spec.md) correctly, over the wire onl
 ## From code
 
 ```ts nocheck
-import { formatConformanceReport, runConformance } from '@dpad-tv/protocol/conformance';
+import { formatConformanceReport, runConformance } from '@toets/protocol/conformance';
 
 const report = await runConformance({
   name: 'my-sdk on Android TV',
   fixture: true,
   launch: ({ encoded }) =>
-    exec(`adb shell am start -S -n com.example/.Main --es __dpad ${encoded}`),
+    exec(`adb shell am start -S -n com.example/.Main --es __toets ${encoded}`),
   terminate: () => exec('adb shell am force-stop com.example'),
 });
 console.log(formatConformanceReport(report));
@@ -22,10 +22,10 @@ console.log(formatConformanceReport(report));
 ## From the command line
 
 ```sh
-dpad-conformance --fixture --launch "node my-app.js --payload {payload}"
+toets-conformance --fixture --launch "node my-app.js --payload {payload}"
 ```
 
-The payload is substituted for `{payload}` (base64url) and set as `DPAD_PAYLOAD`. Without `--terminate` the launch process is killed. `--only <id-prefix>` narrows the run (e.g. `--only fixture.`). Exit code 1 when a check fails, 2 on usage errors.
+The payload is substituted for `{payload}` (base64url) and set as `TOETS_PAYLOAD`. Without `--terminate` the launch process is killed. `--only <id-prefix>` narrows the run (e.g. `--only fixture.`). Exit code 1 when a check fails, 2 on usage errors.
 
 ## The fixture
 

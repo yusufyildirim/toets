@@ -1,4 +1,4 @@
-import { evaluateChain, focusedIn, walkTree, type ElementRef, type UINode } from '@dpad-tv/core';
+import { evaluateChain, focusedIn, walkTree, type ElementRef, type UINode } from '@toets/core';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -35,7 +35,7 @@ describe('parsePageSource', () => {
       inViewport: true,
     });
     expect(card?.bounds).toEqual({ x: 424, y: 172, width: 400, height: 224 });
-    expect(byTestId(tree.root, 'root')?.testId).toBe('root'); // tv.dpad.fixture:id/root
+    expect(byTestId(tree.root, 'root')?.testId).toBe('root'); // tv.toets.fixture:id/root
   });
 
   it('gives window decor no test ID', () => {
@@ -120,7 +120,7 @@ describe('refs', () => {
     const tree = parsePageSource(homeXml);
     const card = byTestId(tree.root, 'card_2')!;
     expect(findByRef(parsePageSource(homeXml).root, card.ref)?.testId).toBe('card_2');
-    const changed = homeXml.replace('tv.dpad.fixture:id/card_2', 'tv.dpad.fixture:id/other');
+    const changed = homeXml.replace('tv.toets.fixture:id/card_2', 'tv.toets.fixture:id/other');
     expect(findByRef(parsePageSource(changed).root, card.ref)).toBeNull();
     expect(findByRef(tree.root, 'r.9.9.9|x|y' as ElementRef)).toBeNull();
   });

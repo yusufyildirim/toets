@@ -1,6 +1,6 @@
-import type { FocusGraphNode } from '@dpad-tv/protocol';
+import type { FocusGraphNode } from '@toets/protocol';
 import type { Focus, Locator, NavigateOptions } from '../api.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import { DIRECTION_KEY, type Direction } from '../keys.js';
 import type { ElementRef, ElementSnapshot, Rect } from '../snapshot.js';
 import type { RuntimeContext } from './context.js';
@@ -146,7 +146,7 @@ export class FocusImpl implements Focus {
   async navigateTo(target: Locator, opts?: NavigateOptions): Promise<readonly Direction[]> {
     const goal = locatorImpl(target);
     if (!goal) {
-      throw new DpadError('INVALID_ARGUMENT', 'navigateTo() needs a dpad Locator.', {
+      throw new ToetsError('INVALID_ARGUMENT', 'navigateTo() needs a toets Locator.', {
         docs: packageDocsLink('core', 'focus-navigation'),
       });
     }
@@ -203,7 +203,7 @@ export class FocusImpl implements Focus {
     if (!node) return new Set([el.ref]);
     const refs = [...walkTree(node)].filter((n) => n.focusable && n.visible).map((n) => n.ref);
     if (!refs.length) {
-      throw new DpadError(
+      throw new ToetsError(
         'TARGET_NOT_FOCUSABLE',
         `${goal.description} is not focusable and contains nothing focusable.`,
         {
@@ -221,7 +221,7 @@ export class FocusImpl implements Focus {
       return { ok: f !== null, value: f };
     }, this.ctx.timeouts.actionMs);
     if (result.value) return result.value;
-    throw new DpadError('NO_FOCUS', 'Nothing is focused, so focus cannot be navigated.', {
+    throw new ToetsError('NO_FOCUS', 'Nothing is focused, so focus cannot be navigated.', {
       hint: 'Launch the app and wait until it is ready (e.g. expect(app.focus.current()).toBeVisible()) before navigating.',
       docs: packageDocsLink('core', 'focus-navigation'),
     });
@@ -267,8 +267,8 @@ export class FocusImpl implements Focus {
     focused: ElementSnapshot,
     path: readonly Direction[],
     reason: string,
-  ): DpadError {
-    return new DpadError(
+  ): ToetsError {
+    return new ToetsError(
       'FOCUS_UNREACHABLE',
       `Could not move focus to ${goal.description}: ${reason}. Focus is on ${describeElement(focused)}. Path: ${path.length ? path.join(', ') : '(none)'}.`,
       {
@@ -288,7 +288,7 @@ export class FocusImpl implements Focus {
         return { ok: (now?.ref ?? null) !== (before?.ref ?? null), value: now };
       }, timeoutMs);
       if (!result.ok) {
-        throw new DpadError(
+        throw new ToetsError(
           'FOCUS_UNCHANGED',
           `Focus stayed on ${describeElement(before)} for ${timeoutMs}ms after the action.`,
           {

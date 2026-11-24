@@ -1,8 +1,8 @@
 import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
-import { DpadError, packageDocsLink, type AppRuntime, type LaunchOptions } from '@dpad-tv/core';
-import { mergeRuntimeConfig, RunningTarget, type TargetConfig } from '@dpad-tv/core/runner';
-import { mockServerFactory } from '@dpad-tv/mock';
+import { ToetsError, packageDocsLink, type AppRuntime, type LaunchOptions } from '@toets/core';
+import { mergeRuntimeConfig, RunningTarget, type TargetConfig } from '@toets/core/runner';
+import { mockServerFactory } from '@toets/mock';
 import type { McpConfig, McpTargetConfig } from './config.js';
 
 const DEFAULT_EXPECT_TIMEOUT_MS = 5000;
@@ -26,7 +26,7 @@ export interface SessionOptions {
 /**
  * One agent session: at most one active target at a time, started lazily on first use and
  * switched by `launch({ target })`. A target comes up exactly like in a test worker
- * (`RunningTarget` from `@dpad-tv/core/runner`: device, driver, mock server, SDK host and the
+ * (`RunningTarget` from `@toets/core/runner`: device, driver, mock server, SDK host and the
  * core `AppRuntime`). All device work runs one call at a time so parallel tool calls can not
  * interleave key presses.
  */
@@ -83,7 +83,7 @@ export class Session {
   /** The launched app's runtime and assert timeout; throws a guiding error before `launch`. */
   launched(): { runtime: AppRuntime; expectTimeoutMs: number } {
     if (!this.active?.launched) {
-      throw new DpadError('MCP_NOT_LAUNCHED', 'The app is not running yet.', {
+      throw new ToetsError('MCP_NOT_LAUNCHED', 'The app is not running yet.', {
         hint: 'Call `launch` first. It starts the target and the app; every device tool needs it.',
         docs: packageDocsLink('mcp', 'tools'),
       });
@@ -105,15 +105,15 @@ export class Session {
   private async ensure(name: string | undefined): Promise<ActiveTarget> {
     const config = this.opts.config;
     if (!config) {
-      throw new DpadError('MCP_NO_CONFIG', 'No dpad config, so there is no target to drive.', {
-        hint: 'Start the server where your dpad test config (playwright.config.ts with platforms.*() projects) lives, create `dpad.mcp.config.ts` with `targets`, or pass `--config <file>`; then restart the MCP server. `docs_search` works without it.',
+      throw new ToetsError('MCP_NO_CONFIG', 'No toets config, so there is no target to drive.', {
+        hint: 'Start the server where your toets test config (playwright.config.ts with platforms.*() projects) lives, create `toets.mcp.config.ts` with `targets`, or pass `--config <file>`; then restart the MCP server. `docs_search` works without it.',
         docs: packageDocsLink('mcp', 'setup'),
       });
     }
     const wanted = name ?? this.active?.name ?? this.defaultTargetName();
     const spec = wanted === null ? undefined : config.targets[wanted];
     if (wanted === null || !spec) {
-      throw new DpadError('MCP_UNKNOWN_TARGET', `Unknown target "${String(wanted)}".`, {
+      throw new ToetsError('MCP_UNKNOWN_TARGET', `Unknown target "${String(wanted)}".`, {
         hint: `Configured targets: ${this.targetNames.join(', ')}.`,
         docs: packageDocsLink('mcp', 'setup'),
       });
@@ -124,11 +124,11 @@ export class Session {
       workerIndex: 0,
       parallelIndex: 0,
       configDir: this.opts.baseDir,
-      artifactsDir: resolve(this.opts.baseDir, config.artifactsDir ?? join(tmpdir(), 'dpad-mcp')),
+      artifactsDir: resolve(this.opts.baseDir, config.artifactsDir ?? join(tmpdir(), 'toets-mcp')),
       log: this.opts.log,
       createMockServer: mockServerFactory,
     });
-    this.opts.log(`dpad mcp: target "${wanted}" (${target.driver.platform}) ready`);
+    this.opts.log(`toets mcp: target "${wanted}" (${target.driver.platform}) ready`);
     this.active = {
       name: wanted,
       target,
@@ -151,6 +151,6 @@ function targetConfig(config: McpConfig, spec: McpTargetConfig): TargetConfig {
       ...(osVersion === undefined ? {} : { osVersion }),
     },
     ...(spec.devices === undefined ? {} : { devices: spec.devices }),
-    options: mergeRuntimeConfig(config.dpad ?? {}, spec.dpad ?? {}),
+    options: mergeRuntimeConfig(config.toets ?? {}, spec.toets ?? {}),
   };
 }

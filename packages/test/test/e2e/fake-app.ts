@@ -3,9 +3,9 @@
  * a rail of cards; SELECT on a card opens its details; BACK returns home; PLAY_PAUSE toggles
  * media in the fake SDK. Each launch records `GET <mockUrl>/api/home` on the fake mock server.
  */
-import type { Capability, DriverCreateContext, DriverLaunchOptions, Platform } from '@dpad-tv/core';
-import type { FakeMockServer, FakeSdkHost } from '@dpad-tv/core/testing';
-import { FakeDriver, type FakeScreen } from '@dpad-tv/core/testing';
+import type { Capability, DriverCreateContext, DriverLaunchOptions, Platform } from '@toets/core';
+import type { FakeMockServer, FakeSdkHost } from '@toets/core/testing';
+import { FakeDriver, type FakeScreen } from '@toets/core/testing';
 
 /** Shared per worker process: the config's factories and the driver find each other here. */
 export const registry: {

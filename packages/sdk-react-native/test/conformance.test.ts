@@ -1,5 +1,5 @@
-import { CONFORMANCE_FIXTURE } from '@dpad-tv/protocol';
-import { formatConformanceReport, runConformance } from '@dpad-tv/protocol/conformance';
+import { CONFORMANCE_FIXTURE } from '@toets/protocol';
+import { formatConformanceReport, runConformance } from '@toets/protocol/conformance';
 import { createElement as h, type ReactNode } from 'react';
 import { describe, expect, it } from 'vitest';
 import { load, type Adapter } from './helpers.js';
@@ -38,7 +38,7 @@ function fixtureApp() {
   };
 
   return {
-    name: '@dpad-tv/sdk-react-native (fake Fabric renderer, Android payload path)',
+    name: '@toets/sdk-react-native (fake Fabric renderer, Android payload path)',
     fixture: true,
     async launch({ encoded }: { encoded: string }) {
       ({ sdk } = await load('android'));
@@ -52,11 +52,11 @@ function fixtureApp() {
           setTimeout(done, Number(flags.ms));
         } else if (state === states.fail) throw new Error('conformance failure');
       });
-      sdk.startDpad();
-      rendered = render(h(sdk.DpadRoot, { initialProps: { __dpad: encoded } }, h(Fixture)));
+      sdk.startToets();
+      rendered = render(h(sdk.ToetsRoot, { initialProps: { __toets: encoded } }, h(Fixture)));
     },
     terminate() {
-      sdk?.getDpad()?.stop();
+      sdk?.getToets()?.stop();
       rendered?.unmount();
       rendered = null;
     },

@@ -1,9 +1,9 @@
-import { DpadError, packageDocsLink } from '@dpad-tv/core';
-import { ORIGINAL_ORIGIN_HEADER } from '@dpad-tv/protocol';
+import { ToetsError, packageDocsLink } from '@toets/core';
+import { ORIGINAL_ORIGIN_HEADER } from '@toets/protocol';
 
 /**
  * Error codes raised or served by the mock server. Served errors reach the app as a JSON body
- * `{ "dpadError": { code, message, hint, docs } }` with an `x-dpad-error: <code>` header and are
+ * `{ "toetsError": { code, message, hint, docs } }` with an `x-toets-error: <code>` header and are
  * recorded on the request (`RecordedMockRequest.error`).
  */
 export const MockErrorCode = {
@@ -19,7 +19,7 @@ export const MockErrorCode = {
   UPSTREAM_UNREACHABLE: 'MOCK_UPSTREAM_UNREACHABLE',
   /** A handler threw. */
   HANDLER_ERROR: 'MOCK_HANDLER_ERROR',
-  /** An unexpected failure inside the mock server (a dpad bug: please report it). */
+  /** An unexpected failure inside the mock server (a toets bug: please report it). */
   INTERNAL_ERROR: 'MOCK_INTERNAL_ERROR',
   /** A handler returned `HttpResponse.error()`: the connection is dropped on purpose. */
   NETWORK_ERROR: 'MOCK_NETWORK_ERROR',
@@ -45,8 +45,8 @@ const DOCS = {
   integration: packageDocsLink('mock', 'app-integration'),
 };
 
-export function noOriginError(method: string, path: string): DpadError {
-  return new DpadError(
+export function noOriginError(method: string, path: string): ToetsError {
+  return new ToetsError(
     MockErrorCode.NO_ORIGIN,
     `${method} ${path} matched no mock handler and has no "${ORIGINAL_ORIGIN_HEADER}" header, so it can not be proxied upstream.`,
     {
@@ -56,8 +56,8 @@ export function noOriginError(method: string, path: string): DpadError {
   );
 }
 
-export function badOriginError(value: string): DpadError {
-  return new DpadError(
+export function badOriginError(value: string): ToetsError {
+  return new ToetsError(
     MockErrorCode.BAD_ORIGIN,
     `Invalid "${ORIGINAL_ORIGIN_HEADER}" header "${value}": expected an http(s) origin such as https://api.example.com.`,
     {
@@ -67,8 +67,8 @@ export function badOriginError(value: string): DpadError {
   );
 }
 
-export function badRequestError(method: string, path: string, cause: unknown): DpadError {
-  return new DpadError(
+export function badRequestError(method: string, path: string, cause: unknown): ToetsError {
+  return new ToetsError(
     MockErrorCode.BAD_REQUEST,
     `${method} ${path} can not be handled by the mock server: ${messageOf(cause)}`,
     {
@@ -79,8 +79,8 @@ export function badRequestError(method: string, path: string, cause: unknown): D
   );
 }
 
-export function unhandledError(method: string, url: string): DpadError {
-  return new DpadError(
+export function unhandledError(method: string, url: string): ToetsError {
+  return new ToetsError(
     MockErrorCode.UNHANDLED,
     `${method} ${url} matched no mock handler and unhandled requests are rejected (onUnhandledRequest: 'reject').`,
     {
@@ -90,8 +90,8 @@ export function unhandledError(method: string, url: string): DpadError {
   );
 }
 
-export function upstreamError(method: string, url: string, cause: unknown): DpadError {
-  return new DpadError(
+export function upstreamError(method: string, url: string, cause: unknown): ToetsError {
+  return new ToetsError(
     MockErrorCode.UPSTREAM_UNREACHABLE,
     `Proxying ${method} ${url} upstream failed: ${messageOf(cause)}`,
     {
@@ -102,8 +102,8 @@ export function upstreamError(method: string, url: string, cause: unknown): Dpad
   );
 }
 
-export function handlerError(method: string, url: string, cause: unknown): DpadError {
-  return new DpadError(
+export function handlerError(method: string, url: string, cause: unknown): ToetsError {
+  return new ToetsError(
     MockErrorCode.HANDLER_ERROR,
     `The mock handler for ${method} ${url} threw: ${messageOf(cause)}`,
     {
@@ -114,47 +114,47 @@ export function handlerError(method: string, url: string, cause: unknown): DpadE
   );
 }
 
-export function internalError(method: string, url: string, cause: unknown): DpadError {
-  return new DpadError(
+export function internalError(method: string, url: string, cause: unknown): ToetsError {
+  return new ToetsError(
     MockErrorCode.INTERNAL_ERROR,
     `The mock server failed while handling ${method} ${url}: ${messageOf(cause)}`,
     {
-      hint: 'This is likely a dpad bug. Please report it with the request details; mocking this request with app.network.use(...) may work around it.',
+      hint: 'This is likely a toets bug. Please report it with the request details; mocking this request with app.network.use(...) may work around it.',
       docs: DOCS.concepts,
       cause,
     },
   );
 }
 
-export function invalidHandlerError(value: unknown): DpadError {
-  return new DpadError(
+export function invalidHandlerError(value: unknown): ToetsError {
+  return new ToetsError(
     MockErrorCode.INVALID_HANDLER,
     `Expected an MSW request handler, got ${describe(value)}.`,
     {
-      hint: "Pass handlers created with http.get(...), http.post(...), latency(...) or failure(...) from '@dpad-tv/mock'. WebSocket handlers (ws.link) are not supported.",
+      hint: "Pass handlers created with http.get(...), http.post(...), latency(...) or failure(...) from '@toets/mock'. WebSocket handlers (ws.link) are not supported.",
       docs: DOCS.handlers,
     },
   );
 }
 
-export function invalidOptionError(name: string, value: unknown, expected: string): DpadError {
-  return new DpadError(
+export function invalidOptionError(name: string, value: unknown, expected: string): ToetsError {
+  return new ToetsError(
     MockErrorCode.INVALID_OPTION,
     `Invalid ${name}: ${JSON.stringify(value) ?? String(value)}. Expected ${expected}.`,
-    { hint: `Fix the "${name}" value passed to @dpad-tv/mock.`, docs: DOCS.handlers },
+    { hint: `Fix the "${name}" value passed to @toets/mock.`, docs: DOCS.handlers },
   );
 }
 
-export function portInUseError(port: number, cause: unknown): DpadError {
-  return new DpadError(MockErrorCode.PORT_IN_USE, `Mock server port ${port} is already in use.`, {
+export function portInUseError(port: number, cause: unknown): ToetsError {
+  return new ToetsError(MockErrorCode.PORT_IN_USE, `Mock server port ${port} is already in use.`, {
     hint: 'Omit the port to let the OS pick a free one (recommended: one mock server per worker), or free the port.',
     docs: DOCS.concepts,
     cause,
   });
 }
 
-export function listenError(cause: unknown): DpadError {
-  return new DpadError(
+export function listenError(cause: unknown): ToetsError {
+  return new ToetsError(
     MockErrorCode.LISTEN_FAILED,
     `Mock server failed to start: ${messageOf(cause)}`,
     {

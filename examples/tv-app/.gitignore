@@ -13,5 +13,5 @@
 # E2E output
 /test-results
 /playwright-report
-/dpad-report
+/toets-report
 /e2e/.out

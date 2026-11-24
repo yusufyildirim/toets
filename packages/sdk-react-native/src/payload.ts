@@ -1,10 +1,10 @@
-import { LAUNCH_GLOBAL, LAUNCH_PARAM } from '@dpad-tv/protocol';
-import { getGlobal } from '@dpad-tv/sdk';
+import { LAUNCH_GLOBAL, LAUNCH_PARAM } from '@toets/protocol';
+import { getGlobal } from '@toets/sdk';
 import { Platform, Settings } from 'react-native';
 
 /**
- * The launch payload available before the first render: `global.__DPAD__`, then (iOS and
- * tvOS) the `-__dpad <value>` launch argument, which `NSUserDefaults` exposes through
+ * The launch payload available before the first render: `global.__TOETS__`, then (iOS and
+ * tvOS) the `-__toets <value>` launch argument, which `NSUserDefaults` exposes through
  * `Settings` without native code. `undefined` when not found.
  *
  * Android passes intent extras to JS only through the root component's initial props; see
@@ -24,7 +24,7 @@ export function discoverNativePayload(): unknown {
   return undefined;
 }
 
-/** The `__dpad` initial prop (Android `getLaunchOptions()` glue), or `undefined`. */
+/** The `__toets` initial prop (Android `getLaunchOptions()` glue), or `undefined`. */
 export function payloadFromInitialProps(initialProps: unknown): unknown {
   if (typeof initialProps !== 'object' || initialProps === null) return undefined;
   const value = (initialProps as Record<string, unknown>)[LAUNCH_PARAM];

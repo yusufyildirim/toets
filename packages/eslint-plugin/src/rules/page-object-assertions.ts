@@ -3,7 +3,7 @@ import type { Rule } from 'eslint';
 import type { CallExpression, Node } from 'estree';
 import { ruleDocsUrl, staticName, unwrap } from '../utils.js';
 
-/** Options of `@dpad-tv/page-object-assertions`. */
+/** Options of `@toets/page-object-assertions`. */
 export interface PageObjectAssertionsOptions {
   /**
    * Globs (relative to the ESLint working directory) identifying page object files.

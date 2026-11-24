@@ -28,8 +28,8 @@ export interface HarEntry {
   readonly response: HarResponse;
   readonly cache: Record<string, never>;
   readonly timings: HarTimings;
-  /** dpad extension: record id, whether a handler answered, failure reason. */
-  readonly _dpad: {
+  /** toets extension: record id, whether a handler answered, failure reason. */
+  readonly _toets: {
     readonly id: string;
     readonly mocked: boolean;
     readonly inFlight: boolean;
@@ -117,7 +117,7 @@ function toEntry(e: Exchange): HarEntry {
       wait,
       receive: Math.max(0, time - wait),
     },
-    _dpad: { id: e.id, mocked: e.mocked, inFlight: !e.done, error: e.error },
+    _toets: { id: e.id, mocked: e.mocked, inFlight: !e.done, error: e.error },
   };
 }
 

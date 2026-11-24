@@ -1,5 +1,5 @@
 /**
- * Host-side SDK connection contract (implemented in `@dpad-tv/protocol/host`, consumed by
+ * Host-side SDK connection contract (implemented in `@toets/protocol/host`, consumed by
  * the core). The host listens; apps connect using the launch payload's `sdkUrl` + `token`.
  */
 import type {
@@ -78,7 +78,7 @@ export interface SdkHostOptions {
    * same port, so `localhost` works whichever address family the app resolves first).
    */
   readonly host?: string;
-  /** Time an app has to send a valid `dpad.hello` after connecting. Default 10000. */
+  /** Time an app has to send a valid `toets.hello` after connecting. Default 10000. */
   readonly handshakeTimeoutMs?: number;
   /** Default per-request timeout. Default 10000. */
   readonly requestTimeoutMs?: number;

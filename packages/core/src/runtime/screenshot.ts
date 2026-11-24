@@ -1,9 +1,9 @@
 import { PNG } from 'pngjs';
 import type { Screenshot } from '../api.js';
-import { DpadError, packageDocsLink } from '../errors.js';
+import { ToetsError, packageDocsLink } from '../errors.js';
 import type { Rect } from '../snapshot.js';
 
-const PNG_BYTES = Symbol('dpad.png');
+const PNG_BYTES = Symbol('toets.png');
 
 interface ScreenshotData {
   readonly [PNG_BYTES]: Uint8Array;
@@ -18,7 +18,7 @@ export function createScreenshot(png: Uint8Array): Screenshot {
 export function screenshotPng(shot: Screenshot): Uint8Array {
   const bytes = (shot as unknown as Partial<ScreenshotData>)[PNG_BYTES];
   if (!bytes) {
-    throw new DpadError('INVALID_SCREENSHOT', 'Not a dpad screenshot.', {
+    throw new ToetsError('INVALID_SCREENSHOT', 'Not a toets screenshot.', {
       hint: 'Pass the value returned by app.screenshot() or locator.screenshot().',
       docs: packageDocsLink('core', 'screenshots'),
     });
@@ -30,7 +30,7 @@ function decode(png: Uint8Array): PNG {
   try {
     return PNG.sync.read(Buffer.from(png.buffer, png.byteOffset, png.byteLength));
   } catch (cause) {
-    throw new DpadError('INVALID_SCREENSHOT', 'The driver returned bytes that are not a PNG.', {
+    throw new ToetsError('INVALID_SCREENSHOT', 'The driver returned bytes that are not a PNG.', {
       hint: 'This is a driver bug: Driver.screenshot() must return PNG bytes.',
       docs: packageDocsLink('core', 'screenshots'),
       cause,
@@ -86,10 +86,14 @@ export function cropPng(png: Uint8Array, rect: Rect, viewportWidth: number): Uin
   const scale = viewportWidth > 0 ? image.width / viewportWidth : 1;
   const p = toPixels(rect, scale, image);
   if (p.w === 0 || p.h === 0) {
-    throw new DpadError('ELEMENT_OFFSCREEN', 'Cannot screenshot an element outside the viewport.', {
-      hint: 'Bring it on screen first (navigate focus to it), then take the screenshot.',
-      docs: packageDocsLink('core', 'screenshots'),
-    });
+    throw new ToetsError(
+      'ELEMENT_OFFSCREEN',
+      'Cannot screenshot an element outside the viewport.',
+      {
+        hint: 'Bring it on screen first (navigate focus to it), then take the screenshot.',
+        docs: packageDocsLink('core', 'screenshots'),
+      },
+    );
   }
   const out = new PNG({ width: p.w, height: p.h });
   PNG.bitblt(image, out, p.x, p.y, p.w, p.h, 0, 0);

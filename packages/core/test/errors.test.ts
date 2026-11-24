@@ -2,12 +2,12 @@ import { existsSync } from 'node:fs';
 import { dirname, join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
-import { DpadError } from '../src/errors.js';
+import { ToetsError } from '../src/errors.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 
-describe('DpadError', () => {
-  const error = new DpadError('ELEMENT_NOT_FOUND', 'Nothing matched.', {
+describe('ToetsError', () => {
+  const error = new ToetsError('ELEMENT_NOT_FOUND', 'Nothing matched.', {
     hint: 'Check the test ID.',
     docs: 'reference/core/docs/locators',
   });
@@ -16,7 +16,7 @@ describe('DpadError', () => {
     const offline = relative(process.cwd(), join(here, '../docs/locators.md'));
     expect(error.toString()).toBe(
       [
-        'DpadError [ELEMENT_NOT_FOUND]: Nothing matched.',
+        'ToetsError [ELEMENT_NOT_FOUND]: Nothing matched.',
         'Hint: Check the test ID.',
         `Docs: reference/core/docs/locators (offline: ${offline})`,
       ].join('\n'),
@@ -30,8 +30,8 @@ describe('DpadError', () => {
   });
 
   it('keeps guide paths as they are', () => {
-    expect(new DpadError('X', 'm', { docs: 'concepts/focus' }).toString()).toBe(
-      'DpadError [X]: m\nDocs: concepts/focus',
+    expect(new ToetsError('X', 'm', { docs: 'concepts/focus' }).toString()).toBe(
+      'ToetsError [X]: m\nDocs: concepts/focus',
     );
   });
 });

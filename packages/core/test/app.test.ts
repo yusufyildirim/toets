@@ -68,7 +68,7 @@ describe('launch', () => {
     const err = await app.launch().catch((e: unknown) => e);
     expect(err).toMatchObject({ code: 'SDK_NOT_CONNECTED' });
     expect((err as Error).message).toBe(
-      'The app did not connect to the dpad SDK host at ws://localhost:9323 within 200ms.',
+      'The app did not connect to the toets SDK host at ws://localhost:9323 within 200ms.',
     );
   });
 
@@ -115,12 +115,12 @@ describe('SDK composition', () => {
     expect(methods.indexOf('sync.waitForIdle')).toBeLessThan(methods.indexOf('tree.get', 1));
   });
 
-  it('surfaces SDK protocol errors as DpadError', async () => {
+  it('surfaces SDK protocol errors as ToetsError', async () => {
     const { app, host } = setup({ sdk: true });
     await app.launch();
     host!.session!.failing.add('media.get');
     await expect(app.media.get()).rejects.toMatchObject({
-      name: 'DpadError',
+      name: 'ToetsError',
       code: 'sdk.remote-error',
       message: 'fake media.get failure',
     });
@@ -153,7 +153,7 @@ describe('screenshots', () => {
   });
 
   it('rejects foreign screenshot values', () => {
-    expect(() => screenshotPng({} as never)).toThrow('Not a dpad screenshot.');
+    expect(() => screenshotPng({} as never)).toThrow('Not a toets screenshot.');
   });
 });
 
@@ -220,7 +220,7 @@ describe('isolation and failure dumps', () => {
     });
     expect(text).toBe(
       [
-        '# dpad failure dump',
+        '# toets failure dump',
         '',
         '- platform: web',
         '- capabilities: key.longpress, network.mock',

@@ -43,7 +43,7 @@ const time = (ms: number): string => new Date(ms).toISOString().slice(11, 23);
 
 /** Renders a dump as Markdown with a YAML screen section; deterministic apart from timestamps. */
 export function formatFailureDump(dump: FailureDump): string {
-  const out: string[] = ['# dpad failure dump', ''];
+  const out: string[] = ['# toets failure dump', ''];
   out.push(`- platform: ${dump.platform}`);
   out.push(`- capabilities: ${dump.capabilities.join(', ') || '(none)'}`);
   out.push(

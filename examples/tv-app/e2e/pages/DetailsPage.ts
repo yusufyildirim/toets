@@ -1,4 +1,4 @@
-import { expect, Key, type App, type Locator } from '@dpad-tv/test';
+import { expect, Key, type App, type Locator } from '@toets/test';
 
 /** Details of one title, opened from a card. */
 export class DetailsPage {

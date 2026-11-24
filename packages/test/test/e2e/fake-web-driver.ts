@@ -1,4 +1,4 @@
-import type { DriverModule } from '@dpad-tv/core';
+import type { DriverModule } from '@toets/core';
 import { FakeTvApp, registry, WEB_CAPABILITIES } from './fake-app.js';
 
 const module: DriverModule = {

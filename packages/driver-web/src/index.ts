@@ -1,12 +1,12 @@
 /**
- * `@dpad-tv/driver-web`: the dpad driver for web TV apps in Chromium, built on Playwright.
+ * `@toets/driver-web`: the toets driver for web TV apps in Chromium, built on Playwright.
  *
- * The default export is the {@link DriverModule} the dpad runner loads for `platforms.web()`.
+ * The default export is the {@link DriverModule} the toets runner loads for `platforms.web()`.
  * Use {@link createWebDriver} to drive a page directly (scripts, tools).
  *
  * @packageDocumentation
  */
-import type { DriverModule } from '@dpad-tv/core';
+import type { DriverModule } from '@toets/core';
 import { createWebDriver } from './driver.js';
 import type { WebDriverOptions } from './options.js';
 
@@ -21,7 +21,7 @@ export {
   type WebDriverOptions,
 } from './options.js';
 
-/** The web platform's driver module (default export), loaded lazily by `@dpad-tv/test`. */
+/** The web platform's driver module (default export), loaded lazily by `@toets/test`. */
 const webDriverModule: DriverModule<WebDriverOptions> = {
   platform: 'web',
   async createDriver(options, ctx) {

@@ -10,4 +10,4 @@ Where desktop-web intuition misleads when testing TV apps in Chromium.
 - **The viewport is the TV screen.** Driver-created contexts are 1920x1080. A borrowed page keeps its own viewport; set it to the TV resolution your layouts target.
 - **Autoplay needs a gesture.** TV browsers autoplay; desktop Chromium blocks `play()` that no user gesture started (launch states, autoplaying heroes). Launch Chromium with `--autoplay-policy=no-user-gesture-required` (`platforms.web({ use: { launchOptions: { args: [...] } } })`).
 - **Codecs differ by build.** Check `video.canPlayType()` for your stream format in the Chromium you run; switch `launchOptions.channel` (e.g. `chrome`) if a proprietary codec is missing.
-- **Traces show dpad steps, not keyboard actions.** Keys go through CDP, so the Playwright trace shows them inside dpad's steps rather than as `keyboard.press` actions.
+- **Traces show toets steps, not keyboard actions.** Keys go through CDP, so the Playwright trace shows them inside toets's steps rather than as `keyboard.press` actions.

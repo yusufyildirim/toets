@@ -11,9 +11,9 @@ The driver declares only what a browser really delivers. Tests `requires` the re
 | `screenshot.element`                                                             | yes (visible part of the element)                                                                                                                                                          |
 | `logs`                                                                           | yes (console messages, uncaught errors, crashes)                                                                                                                                           |
 | `video`                                                                          | yes (WebM via Playwright screencast)                                                                                                                                                       |
-| `focus.graph`, `sync.idle`, `media.state`, `app.state`                           | no: granted by the dpad SDK when the app runs it                                                                                                                                           |
+| `focus.graph`, `sync.idle`, `media.state`, `app.state`                           | no: granted by the toets SDK when the app runs it                                                                                                                                          |
 | `platform.events`                                                                | yes: `network-lost`/`network-restored` take the browser context offline; `suspend`/`resume` emulate a backgrounded tab (`visibilitychange` + `freeze`, then `resume` + `visibilitychange`) |
 
 A key capability is declared only when every key behind it is mapped: unmapping `BLUE` removes `key.color`.
 
-**Trap:** offline means offline for everything the page loads, the dpad mock server and the SDK connection included. SDK reads fall back to the DOM until `network-restored`; dpad restores the network after each test.
+**Trap:** offline means offline for everything the page loads, the toets mock server and the SDK connection included. SDK reads fall back to the DOM until `network-restored`; toets restores the network after each test.

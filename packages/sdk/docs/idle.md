@@ -1,6 +1,6 @@
 # Idle tracking
 
-`sync.waitForIdle` answers as soon as the app has done no tracked work for a quiet window (100 ms by default). Assertions use it to settle instantly instead of polling, and negative assertions ("X is not shown") become fast. Idle is an accelerator, never a gate: when the app never settles, dpad falls back to polling and reports what kept it busy.
+`sync.waitForIdle` answers as soon as the app has done no tracked work for a quiet window (100 ms by default). Assertions use it to settle instantly instead of polling, and negative assertions ("X is not shown") become fast. Idle is an accelerator, never a gate: when the app never settles, toets falls back to polling and reports what kept it busy.
 
 ## What counts as busy
 
@@ -16,7 +16,7 @@
 ## Tuning
 
 ```ts nocheck
-startDpad({
+startToets({
   idle: {
     quietMs: 150,
     ignore: [
@@ -30,7 +30,7 @@ startDpad({
 
 - **Never idle?** The report names the busy resources. Polling, analytics beacons, autoplaying carousels and long-poll sockets are the usual causes: add them to `ignore`.
 - **Idle too early?** Work the SDK cannot see: native image decoding, WebGL, player startup, work scheduled with `requestAnimationFrame`. Wrap it in `markBusy()`.
-- **SDK code is invisible:** `untracked()` scopes (adapters, `dpad.idle.untracked(fn)`) keep library internals out of idle.
+- **SDK code is invisible:** `untracked()` scopes (adapters, `toets.idle.untracked(fn)`) keep library internals out of idle.
 
 ## TV trap
 

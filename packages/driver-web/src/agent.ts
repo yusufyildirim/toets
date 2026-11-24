@@ -6,7 +6,7 @@
  * One evaluation walks the DOM once (flat tree: open shadow roots and slots are followed) and
  * computes snapshots only for the elements the call returns.
  */
-import type { Rect } from '@dpad-tv/core';
+import type { Rect } from '@toets/core';
 
 export interface AgentConfig {
   readonly testIdAttribute: string;
@@ -78,7 +78,7 @@ export function pageAgent(req: AgentRequest): string {
     readonly byRef: Map<string, WeakRef<Element>>;
     pruneAt: number;
   }
-  const STATE_KEY = Symbol.for('dpad.driver-web.refs');
+  const STATE_KEY = Symbol.for('toets.driver-web.refs');
   const holder = window as unknown as Record<symbol, RefState | undefined>;
   let state = holder[STATE_KEY];
   if (state === undefined) {

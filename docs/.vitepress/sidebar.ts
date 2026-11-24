@@ -1,6 +1,6 @@
 /**
  * Site structure. One source for the sidebar, the nav and the order of llms.txt.
- * Page slugs are stable: errors (`DpadError.docs`) and skills reference them.
+ * Page slugs are stable: errors (`ToetsError.docs`) and skills reference them.
  */
 import type { DefaultTheme } from 'vitepress';
 import { listPackages } from './packages.ts';
@@ -82,10 +82,10 @@ export function sections(): Section[] {
       text: 'Agent skills',
       collapsed: true,
       items: [
-        { text: 'dpad-setup', link: '/skills/dpad-setup' },
-        { text: 'dpad-write-tests', link: '/skills/dpad-write-tests' },
-        { text: 'dpad-debug-failures', link: '/skills/dpad-debug-failures' },
-        { text: 'dpad-migrate', link: '/skills/dpad-migrate' },
+        { text: 'toets-setup', link: '/skills/toets-setup' },
+        { text: 'toets-write-tests', link: '/skills/toets-write-tests' },
+        { text: 'toets-debug-failures', link: '/skills/toets-debug-failures' },
+        { text: 'toets-migrate', link: '/skills/toets-migrate' },
       ],
     },
   ];

@@ -1,10 +1,10 @@
 {
-  "name": "dpad-monorepo",
+  "name": "toets-monorepo",
   "private": true,
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/yusufyildirim/dpad.git"
+    "url": "git+https://github.com/yusufyildirim/toets.git"
   },
   "packageManager": "pnpm@10.30.3",
   "engines": {
@@ -20,10 +20,11 @@
     "format:check": "prettier --check .",
     "check": "pnpm format:check && pnpm lint && pnpm typecheck && pnpm docs:api && pnpm test && pnpm docs:check",
     "docs:api": "typedoc",
-    "docs:dev": "pnpm --filter @dpad-tv/docs dev",
-    "docs:build": "pnpm --filter @dpad-tv/docs build",
-    "docs:check": "pnpm --filter @dpad-tv/docs check",
-    "changeset": "changeset"
+    "docs:dev": "pnpm --filter @toets/docs dev",
+    "docs:build": "pnpm --filter @toets/docs build",
+    "docs:check": "pnpm --filter @toets/docs check",
+    "changeset": "changeset",
+    "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
     "@changesets/cli": "^2.29.0",

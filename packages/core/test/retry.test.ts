@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { DpadError } from '../src/index.js';
+import { ToetsError } from '../src/index.js';
 import { describeIdle, retry, type IdleCheck } from '../src/runtime/retry.js';
 
 const noSync = { waitForIdle: async (): Promise<IdleCheck> => ({ supported: false }) };
@@ -50,12 +50,12 @@ describe('retry', () => {
     );
   });
 
-  it('propagates DpadErrors at once and retries other errors', async () => {
+  it('propagates ToetsErrors at once and retries other errors', async () => {
     await expect(
       retry(
         noSync,
         async () => {
-          throw new DpadError('X', 'boom');
+          throw new ToetsError('X', 'boom');
         },
         { timeoutMs: 1000, idleBudgetMs: 0 },
       ),

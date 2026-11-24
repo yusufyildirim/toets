@@ -1,4 +1,4 @@
-import { evaluateChain, findNode, focusedIn, type ElementRef } from '@dpad-tv/core';
+import { evaluateChain, findNode, focusedIn, type ElementRef } from '@toets/core';
 import { describe, expect, it } from 'vitest';
 import { parseSource, type WdaSourceNode } from '../src/source.js';
 
@@ -7,8 +7,8 @@ const rect = (x: number, y: number, width: number, height: number) => ({ x, y, w
 /** Shaped like WebDriverAgent's JSON source of the fixture home screen. */
 const HOME: WdaSourceNode = {
   type: 'Application',
-  name: 'DpadFixture',
-  label: 'DpadFixture',
+  name: 'ToetsFixture',
+  label: 'ToetsFixture',
   rawIdentifier: null,
   rect: rect(0, 0, 1920, 1080),
   isEnabled: '1',
@@ -25,8 +25,8 @@ const HOME: WdaSourceNode = {
           type: 'StaticText',
           rawIdentifier: 'title',
           name: 'title',
-          label: 'dpad   fixture',
-          value: 'dpad fixture',
+          label: 'toets   fixture',
+          value: 'toets fixture',
           rect: rect(80, 60, 400, 50),
           isVisible: '1',
           isAccessible: '1',
@@ -126,7 +126,7 @@ const HOME: WdaSourceNode = {
  */
 const REACT_NATIVE: WdaSourceNode = {
   type: 'Application',
-  label: 'dpad TV',
+  label: 'toets TV',
   rect: rect(0, 0, 1920, 1080),
   isVisible: '1',
   children: [
@@ -194,11 +194,11 @@ describe('parseSource', () => {
   });
 
   it('lets an accessible element speak for its subtree and joins text of containers', () => {
-    expect(byId('title').text).toBe('dpad fixture');
+    expect(byId('title').text).toBe('toets fixture');
     expect(byId('rail_item_1').text).toBe('Item 1');
     expect(byId('rail').text).toBe('Item 1 Item 2 Item 9');
     expect(byId('toggle').text).toBe('Autoplay');
-    expect(tree.root.text).not.toContain('DpadFixture');
+    expect(tree.root.text).not.toContain('ToetsFixture');
   });
 
   it('marks focus on the deepest focused element and focusWithin on its ancestors', () => {

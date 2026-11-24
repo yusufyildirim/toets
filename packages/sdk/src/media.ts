@@ -1,4 +1,4 @@
-import type { MediaInfo, MediaState } from '@dpad-tv/protocol';
+import type { MediaInfo, MediaState } from '@toets/protocol';
 
 /** Player state without the id. */
 export type MediaSnapshot = Omit<MediaInfo, 'id'>;

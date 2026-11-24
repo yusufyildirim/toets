@@ -21,7 +21,7 @@ describe('CORS', () => {
       headers: {
         origin: 'https://tv.example.test',
         'access-control-request-method': 'PATCH',
-        'access-control-request-headers': 'x-dpad-original-origin, authorization',
+        'access-control-request-headers': 'x-toets-original-origin, authorization',
         'access-control-request-private-network': 'true',
       },
     });
@@ -30,7 +30,7 @@ describe('CORS', () => {
     expect(res.headers.get('access-control-allow-credentials')).toBe('true');
     expect(res.headers.get('access-control-allow-methods')).toContain('PATCH');
     expect(res.headers.get('access-control-allow-headers')).toBe(
-      'x-dpad-original-origin, authorization',
+      'x-toets-original-origin, authorization',
     );
     expect(res.headers.get('access-control-allow-private-network')).toBe('true');
     expect(server.requests()).toHaveLength(0);
@@ -56,7 +56,7 @@ describe('CORS', () => {
     expect(res.headers.get('vary')).toContain('Origin');
     const exposed = res.headers.get('access-control-expose-headers') ?? '';
     expect(exposed).toContain('x-total-count');
-    expect(exposed).toContain('x-dpad-request-id');
+    expect(exposed).toContain('x-toets-request-id');
   });
 
   it('uses a wildcard origin when the request has none', async () => {

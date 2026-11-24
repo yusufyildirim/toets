@@ -2,7 +2,7 @@
 
 The tvOS driver presses real Siri Remote buttons through `XCUIRemote`. It maps only what the remote has:
 
-| dpad key                   | Siri Remote button      | Capability         |
+| toets key                  | Siri Remote button      | Capability         |
 | -------------------------- | ----------------------- | ------------------ |
 | `UP` `DOWN` `LEFT` `RIGHT` | D-pad / clickpad        | always             |
 | `SELECT`                   | Select (clickpad press) | always             |
@@ -18,8 +18,8 @@ The tvOS driver presses real Siri Remote buttons through `XCUIRemote`. It maps o
 
 ## Key overrides
 
-When your app gives a missing key a meaning (say, `FAST_FORWARD` = hold `RIGHT` for 800ms in the player), declare it as a key override in your dpad config instead of pressing `RIGHT` in tests. The core performs the override, so the test still reads `remote.press(Key.FAST_FORWARD)`, and reports flag every overridden press. The override format belongs to `@dpad-tv/test`; see its config docs. Overrides are app behavior: they live in your config, never in dpad.
+When your app gives a missing key a meaning (say, `FAST_FORWARD` = hold `RIGHT` for 800ms in the player), declare it as a key override in your toets config instead of pressing `RIGHT` in tests. The core performs the override, so the test still reads `remote.press(Key.FAST_FORWARD)`, and reports flag every overridden press. The override format belongs to `@toets/test`; see its config docs. Overrides are app behavior: they live in your config, never in toets.
 
 ## Not mapped yet
 
-Newer `XCUIRemote` versions expose buttons of third-party and IR remotes (`pageUp`/`pageDown`, `guide`, and on tvOS 18.1+ `fourColors`, `oneTwoThree`, `tvProvider`). They are not on the Siri Remote and do not map one-to-one to dpad keys (one button for all four colors), so v1 leaves them unmapped.
+Newer `XCUIRemote` versions expose buttons of third-party and IR remotes (`pageUp`/`pageDown`, `guide`, and on tvOS 18.1+ `fourColors`, `oneTwoThree`, `tvProvider`). They are not on the Siri Remote and do not map one-to-one to toets keys (one button for all four colors), so v1 leaves them unmapped.

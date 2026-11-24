@@ -9,7 +9,7 @@ import type { FullConfig, Reporter, Suite, TestCase } from '@playwright/test/rep
 export interface ParityReporterOptions {
   /**
    * Markdown matrix path, relative to the config file's directory like Playwright's own reporter
-   * paths; a `.json` twin is written next to it. Default `dpad-report/parity.md`.
+   * paths; a `.json` twin is written next to it. Default `toets-report/parity.md`.
    */
   readonly outputFile?: string;
   /** Print the one-line summary and diverging tests to stdout. Default true. */
@@ -57,7 +57,7 @@ function cellOf(test: TestCase): ParityCell {
   const overrides = [
     ...new Set(
       annotations
-        .filter((a) => a.type === 'dpad:key-override' && a.description)
+        .filter((a) => a.type === 'toets:key-override' && a.description)
         .map((a) => a.description as string),
     ),
   ];
@@ -68,11 +68,11 @@ function cellOf(test: TestCase): ParityCell {
   };
 }
 
-/** Builds the matrix from a finished run. dpad projects only, when any exist. */
+/** Builds the matrix from a finished run. toets projects only, when any exist. */
 export function buildParityMatrix(root: Suite): ParityMatrix {
-  const isDpad = (s: Suite) => !!(s.project()?.use as { dpad?: unknown } | undefined)?.dpad;
+  const isToets = (s: Suite) => !!(s.project()?.use as { toets?: unknown } | undefined)?.toets;
   const projectSuites = root.suites.filter((s) => s.project());
-  const chosen = projectSuites.some(isDpad) ? projectSuites.filter(isDpad) : projectSuites;
+  const chosen = projectSuites.some(isToets) ? projectSuites.filter(isToets) : projectSuites;
   const projects = chosen.map((s) => s.title);
   const rows = new Map<string, Record<string, ParityCell>>();
   for (const suite of chosen) {
@@ -106,7 +106,7 @@ function describeCell(cell: ParityCell): string {
 /** The matrix as a Markdown table, deterministic. */
 export function formatParityMatrix(matrix: ParityMatrix): string {
   const lines = [
-    '# dpad parity matrix',
+    '# toets parity matrix',
     '',
     `| Test | ${matrix.projects.map(escapeCell).join(' | ')} |`,
     `| --- | ${matrix.projects.map(() => '---').join(' | ')} |`,
@@ -129,7 +129,7 @@ export function summarizeParity(matrix: ParityMatrix): string {
     return `${p}: ${[...tally].map(([s, n]) => `${n} ${s}`).join(', ')}`;
   });
   const lines = [
-    `dpad parity (${matrix.rows.length} tests): ${counts.join('; ') || 'no projects'}`,
+    `toets parity (${matrix.rows.length} tests): ${counts.join('; ') || 'no projects'}`,
   ];
   for (const row of matrix.rows) {
     const cells = matrix.projects.map((p) => describeCell(row.cells[p] as ParityCell));
@@ -161,7 +161,7 @@ export default class ParityReporter implements Reporter {
     if (!this.root) return;
     const matrix = buildParityMatrix(this.root);
     if (!matrix.projects.length) return;
-    const out = resolve(this.baseDir, this.options.outputFile ?? join('dpad-report', 'parity.md'));
+    const out = resolve(this.baseDir, this.options.outputFile ?? join('toets-report', 'parity.md'));
     mkdirSync(dirname(out), { recursive: true });
     writeFileSync(out, formatParityMatrix(matrix));
     writeFileSync(out.replace(/\.md$/, '') + '.json', JSON.stringify(matrix, null, 2) + '\n');

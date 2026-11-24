@@ -1,6 +1,6 @@
-# @dpad-tv/driver-tvos
+# @toets/driver-tvos
 
-Runs dpad tests on tvOS simulators through WebdriverIO and Appium XCUITest. You do not call it directly: `@dpad-tv/test` loads it for `platforms.tvOS()` projects.
+Runs toets tests on tvOS simulators through WebdriverIO and Appium XCUITest. You do not call it directly: `@toets/test` loads it for `platforms.tvOS()` projects.
 
 | Page                              | What it covers                                                  |
 | --------------------------------- | --------------------------------------------------------------- |

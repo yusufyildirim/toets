@@ -2,7 +2,7 @@
  * Pure helpers over UI trees. Exported so drivers that fetch a whole page source per snapshot
  * (Appium) and the SDK path evaluate selectors with exactly the same semantics.
  */
-import type { ProtocolNode, Viewport } from '@dpad-tv/protocol';
+import type { ProtocolNode, Viewport } from '@toets/protocol';
 import type { Selector, SelectorChain } from '../selectors.js';
 import type { ElementRef, ElementSnapshot, Rect, UINode, UITree } from '../snapshot.js';
 
@@ -16,7 +16,7 @@ export function normalizeText(text: string | null | undefined): string | null {
 const statelessCopies = new WeakMap<RegExp, RegExp>();
 
 /**
- * Tests `re` against `text` statelessly, the way dpad applies every user RegExp (`getByText`,
+ * Tests `re` against `text` statelessly, the way toets applies every user RegExp (`getByText`,
  * `toHaveText`, request filters): `lastIndex` is ignored and left untouched, so the `g` and `y`
  * flags have no effect and repeated tests never skip matches.
  */

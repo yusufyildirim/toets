@@ -4,10 +4,10 @@ description: Platforms declare what they can do as capabilities. Tests declare w
 
 # Capabilities and parity
 
-dpad's promise is that a test means the same thing on every platform. Where a platform can not do something, it says so through a **capability** instead of approximating it. Tests declare the capabilities they need; on platforms without them the test is **skipped with a reason**, never silently changed.
+toets's promise is that a test means the same thing on every platform. Where a platform can not do something, it says so through a **capability** instead of approximating it. Tests declare the capabilities they need; on platforms without them the test is **skipped with a reason**, never silently changed.
 
 ```ts run
-import { test, expect, Key, requires } from '@dpad-tv/test';
+import { test, expect, Key, requires } from '@toets/test';
 
 test('the red key opens the guide', requires('key.color'), async ({ app }) => {
   await app.launch();
@@ -34,13 +34,13 @@ A target's capabilities are the union of its **driver's** (what the platform and
 | `platform.events`    | `app.platform.emit('suspend' \| 'resume' \| 'network-lost' \| 'network-restored')`; a lost network is restored after each test |
 | `logs`, `video`      | device logs and screen recording are attached to results                                                                       |
 
-Each platform's set: [web](../reference/driver-web/docs/capabilities.md), [Android TV](../reference/driver-android-tv/docs/capabilities.md), [tvOS](../reference/driver-tvos/docs/capabilities.md). For `requires`, SDK capabilities count as present when `dpad.sdk` is on (the app only connects at launch), and `network.mock` when `dpad.mock` is on.
+Each platform's set: [web](../reference/driver-web/docs/capabilities.md), [Android TV](../reference/driver-android-tv/docs/capabilities.md), [tvOS](../reference/driver-tvos/docs/capabilities.md). For `requires`, SDK capabilities count as present when `toets.sdk` is on (the app only connects at launch), and `network.mock` when `toets.mock` is on.
 
 `requires(...)` also works on a `test.describe` (`test.describe('guide', requires('key.color'), () => ...)`) and merges with other details: `{ ...requires('media.state'), tag: '@smoke' }`. Reference: [`requires`](../reference/test/docs/requires.md).
 
 ## Parity matrix
 
-Every run writes `dpad-report/parity.md`: which test ran on which platform, and why each skip happened. A gap is visible, not a silent difference. See [reporting](../reference/test/docs/reporting.md).
+Every run writes `toets-report/parity.md`: which test ran on which platform, and why each skip happened. A gap is visible, not a silent difference. See [reporting](../reference/test/docs/reporting.md).
 
 ## Traps
 

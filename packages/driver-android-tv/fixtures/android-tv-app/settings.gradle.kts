@@ -14,5 +14,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "dpad-android-tv-fixture"
+rootProject.name = "toets-android-tv-fixture"
 include(":app")

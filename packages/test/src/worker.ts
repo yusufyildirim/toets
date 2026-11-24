@@ -1,8 +1,8 @@
 import { join } from 'node:path';
-import type { AppRuntime, Driver } from '@dpad-tv/core';
-import { RunningTarget } from '@dpad-tv/core/runner';
-import { mockServerFactory } from '@dpad-tv/mock';
-import type { DpadProjectConfig } from './config.js';
+import type { AppRuntime, Driver } from '@toets/core';
+import { RunningTarget } from '@toets/core/runner';
+import { mockServerFactory } from '@toets/mock';
+import type { ToetsProjectConfig } from './config.js';
 
 export interface WorkerContext {
   readonly workerIndex: number;
@@ -16,15 +16,15 @@ export interface WorkerContext {
 
 /**
  * Everything one Playwright worker owns: the running target (device lease, driver session, mock
- * server, SDK host, app runtime; see `RunningTarget` in `@dpad-tv/core/runner`) plus the serial
+ * server, SDK host, app runtime; see `RunningTarget` in `@toets/core/runner`) plus the serial
  * group bookkeeping. Created on first use, torn down when the worker exits.
  */
-export class DpadWorker {
+export class ToetsWorker {
   /** Identity of the serial group the last test belonged to (see `serialGroupOf`). */
   lastGroup: string | null = null;
 
   private constructor(
-    readonly config: DpadProjectConfig,
+    readonly config: ToetsProjectConfig,
     private readonly target: RunningTarget,
   ) {}
 
@@ -36,7 +36,7 @@ export class DpadWorker {
     return this.target.driver;
   }
 
-  static async start(config: DpadProjectConfig, ctx: WorkerContext): Promise<DpadWorker> {
+  static async start(config: ToetsProjectConfig, ctx: WorkerContext): Promise<ToetsWorker> {
     const target = await RunningTarget.start(
       {
         platform: config.platform,
@@ -49,7 +49,7 @@ export class DpadWorker {
       },
       { ...ctx, createMockServer: mockServerFactory },
     );
-    return new DpadWorker(config, target);
+    return new ToetsWorker(config, target);
   }
 
   async stop(log: (message: string) => void): Promise<void> {
@@ -58,5 +58,5 @@ export class DpadWorker {
 }
 
 export function workerArtifactsDir(outputDir: string, workerIndex: number): string {
-  return join(outputDir, '.dpad', `worker-${workerIndex}`);
+  return join(outputDir, '.toets', `worker-${workerIndex}`);
 }

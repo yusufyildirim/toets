@@ -91,7 +91,7 @@ export function externalAppiumServer(url: string): AppiumServer {
 }
 
 /**
- * A private Appium home: `<tmp>/dpad-appium/<hash>/node_modules/appium-uiautomator2-driver`
+ * A private Appium home: `<tmp>/toets-appium/<hash>/node_modules/appium-uiautomator2-driver`
  * linking to the driver resolved from this package. Keyed by the driver's real path, so
  * different installs never share (or fight over) one manifest.
  */
@@ -100,7 +100,7 @@ export function ensureAppiumHome(): string {
     dirname(require.resolve('appium-uiautomator2-driver/package.json')),
   );
   const hash = createHash('sha256').update(driverDir).digest('hex').slice(0, 12);
-  const home = join(tmpdir(), 'dpad-appium', hash);
+  const home = join(tmpdir(), 'toets-appium', hash);
   const modules = join(home, 'node_modules');
   const link = join(modules, 'appium-uiautomator2-driver');
   mkdirSync(modules, { recursive: true });

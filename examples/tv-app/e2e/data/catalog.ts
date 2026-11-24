@@ -1,4 +1,4 @@
-import { http, HttpResponse } from '@dpad-tv/test';
+import { http, HttpResponse } from '@toets/test';
 
 import type { Catalog, ItemDetails } from '../../src/api/types.js';
 

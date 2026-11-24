@@ -1,18 +1,18 @@
 import { resolve } from 'node:path';
-import type { AppTargetConfig } from '@dpad-tv/core';
+import type { AppTargetConfig } from '@toets/core';
 import type { TvosManagedDeviceOptions } from './devices.js';
 import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
 /**
- * The app under test, from the user's dpad config (`app.tvOS`). App-specific, so it lives in
- * user config, never in dpad.
+ * The app under test, from the user's toets config (`app.tvOS`). App-specific, so it lives in
+ * user config, never in toets.
  */
 export interface TvosAppConfig {
   /** `CFBundleIdentifier` of the app, e.g. `com.example.tv`. */
   readonly bundleId: string;
   /** Simulator `.app` build, relative to the config file. Installed on start; omit to test an installed app. */
   readonly app?: string;
-  /** Extra launch arguments, passed before dpad's `-__dpad <payload>`. */
+  /** Extra launch arguments, passed before toets's `-__toets <payload>`. */
   readonly launchArguments?: readonly string[];
   /** Environment variables for the app process. */
   readonly launchEnvironment?: Readonly<Record<string, string>>;
@@ -28,7 +28,7 @@ export interface TvosDriverOptions {
    */
   readonly deviceSet?: string;
   readonly appium?: {
-    /** URL of an Appium server you run yourself. Default: dpad starts its pinned Appium. */
+    /** URL of an Appium server you run yourself. Default: toets starts its pinned Appium. */
     readonly url?: string;
     /** `APPIUM_HOME` for the started server. Default: this package (pinned XCUITest driver). */
     readonly home?: string;
@@ -41,14 +41,14 @@ export interface TvosDriverOptions {
   };
   readonly wda?: {
     /**
-     * `prebuilt` (default): dpad builds WebDriverAgent once per WDA/Xcode version and installs
+     * `prebuilt` (default): toets builds WebDriverAgent once per WDA/Xcode version and installs
      * it, works with custom device sets. `xcodebuild`: XCUITest's per-session build and launch,
      * default device set only.
      */
     readonly mode?: 'prebuilt' | 'xcodebuild';
     /** A ready WebDriverAgent runner `.app` to install instead of building one. */
     readonly path?: string;
-    /** Default `~/Library/Caches/dpad/tvos-wda`. */
+    /** Default `~/Library/Caches/toets/tvos-wda`. */
     readonly cacheDir?: string;
     /** Default 900000. */
     readonly buildTimeoutMs?: number;
@@ -80,7 +80,7 @@ export function resolveAppConfig(
   const { bundleId, app: appPath, launchArguments, launchEnvironment } = app;
   const fail = (what: string) =>
     tvosError(TvosErrorCode.CONFIG, `Invalid tvOS app config: ${what}.`, {
-      hint: "Set `app: { tvOS: { bundleId: 'com.example.tv', app: './build/App.app' } }` in your dpad config.",
+      hint: "Set `app: { tvOS: { bundleId: 'com.example.tv', app: './build/App.app' } }` in your toets config.",
       docs: DOCS.setup,
     });
   if (typeof bundleId !== 'string' || bundleId === '') throw fail('`bundleId` is required');

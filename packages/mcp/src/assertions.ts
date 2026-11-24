@@ -1,10 +1,10 @@
 /**
- * The `assert` tool: dpad's matchers, run through the very functions `expect` uses
+ * The `assert` tool: toets's matchers, run through the very functions `expect` uses
  * (`locatorMatchers`, `toMatchTextSnapshot`, `mediaMatchers`, `networkMatchers` from the core),
  * so an assertion passes or fails here exactly as it would in a test.
  */
 import {
-  DpadError,
+  ToetsError,
   locatorMatchers,
   mediaMatchers,
   networkMatchers,
@@ -15,9 +15,9 @@ import {
   type MatchContext,
   type MatchResult,
   type RequestFilter,
-} from '@dpad-tv/core';
-import { jsString } from '@dpad-tv/core/runner';
-import { MEDIA_STATES, type MediaState } from '@dpad-tv/protocol';
+} from '@toets/core';
+import { jsString } from '@toets/core/runner';
+import { MEDIA_STATES, type MediaState } from '@toets/protocol';
 import { locate, locatorCode, type Target } from './locate.js';
 
 const STATE_MATCHERS = [
@@ -33,7 +33,7 @@ const STATE_MATCHERS = [
 const TEXT_MATCHERS = ['toHaveText', 'toContainText'] as const;
 const MEDIA_MATCHERS = ['toBePlaying', 'toBePaused', 'toHaveMediaState', 'toHavePosition'] as const;
 
-/** Every matcher `assert` offers: all dpad matchers except the screenshot baseline one. */
+/** Every matcher `assert` offers: all toets matchers except the screenshot baseline one. */
 export const MATCHERS = [
   ...STATE_MATCHERS,
   ...TEXT_MATCHERS,
@@ -96,8 +96,8 @@ function fieldsOf(matcher: MatcherName): {
   }
 }
 
-function badInput(message: string, hint: string): DpadError {
-  return new DpadError('MCP_BAD_INPUT', message, { hint, docs: packageDocsLink('mcp', 'tools') });
+function badInput(message: string, hint: string): ToetsError {
+  return new ToetsError('MCP_BAD_INPUT', message, { hint, docs: packageDocsLink('mcp', 'tools') });
 }
 
 function validate(a: Assertion): void {

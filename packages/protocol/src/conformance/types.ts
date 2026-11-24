@@ -14,7 +14,7 @@ export interface ConformanceLaunch {
  * embedding the SDK) with the given payload, `terminate` stops it.
  */
 export interface ConformanceTarget {
-  /** Shown in the report, e.g. `@dpad-tv/sdk/web in Chromium`. */
+  /** Shown in the report, e.g. `@toets/sdk/web in Chromium`. */
   readonly name?: string;
   launch(launch: ConformanceLaunch): Promise<void> | void;
   terminate(): Promise<void> | void;

@@ -2,7 +2,7 @@ import { useEffect } from 'react';
 import { LogBox, StyleSheet, View } from 'react-native';
 
 import { SideMenu } from './components/SideMenu';
-import { isLaunchedByDpad, useLaunchState } from './dpad';
+import { isLaunchedByToets, useLaunchState } from './toets';
 import { installSpatialNavigation } from './focus/spatialNavigation';
 import { canGoBack, launchStateActions, routeScope } from './navigation/navigation';
 import { NavigationProvider, useNavigation } from './navigation/NavigationContext';
@@ -18,7 +18,7 @@ export function App() {
   useEffect(() => installSpatialNavigation(), []);
   // Under test, dev-mode warning toasts would cover the UI being asserted on.
   useEffect(() => {
-    if (isLaunchedByDpad()) LogBox.ignoreAllLogs();
+    if (isLaunchedByToets()) LogBox.ignoreAllLogs();
   }, []);
   return (
     <SettingsProvider>

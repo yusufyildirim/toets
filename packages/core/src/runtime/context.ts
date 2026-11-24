@@ -41,7 +41,7 @@ export interface RuntimeContext {
     evaluate: () => Promise<{ readonly ok: boolean; readonly value: T }>,
     timeoutMs: number,
   ): Promise<RetryResult<T>>;
-  /** Throws a `DpadError` naming `feature` when the capability is missing. */
+  /** Throws a `ToetsError` naming `feature` when the capability is missing. */
   requireCapability(capability: Capability, feature: string): void;
   recordKey(entry: KeyLogEntry): void;
   /** Records an emitted platform event, so state like a lost network is restored between tests. */
