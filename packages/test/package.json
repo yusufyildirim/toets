@@ -1,6 +1,6 @@
 {
   "name": "@toets/test",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Cross-platform E2E testing for TV apps on Playwright Test: one test for web, Android TV / Fire TV and tvOS, with focus and the remote as primitives.",
   "keywords": [
     "toets",

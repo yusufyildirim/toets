@@ -1,6 +1,6 @@
 {
   "name": "@toets/mcp",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "toets MCP server: let AI agents drive TV apps (web, Android TV, tvOS) and search the toets docs with the same primitives tests use.",
   "keywords": [
     "toets",
