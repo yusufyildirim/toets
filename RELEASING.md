@@ -4,7 +4,7 @@ All `@toets/*` packages are versioned and published together ([Changesets](https
 
 1. Every user-facing change adds a changeset: `pnpm changeset`.
 2. On `main`, the [Release workflow](./.github/workflows/release.yml) opens or updates a "Version Packages" PR that bumps versions and writes the changelogs.
-3. Merging that PR runs `pnpm release` (build, then `changeset publish`) in the `npm` environment, which publishes every package whose version is not on npm yet and pushes the git tags.
+3. Merging that PR builds and packs every package whose version is not on npm yet, then publishes the tarballs from a separate job in the `npm` environment and pushes a git tag per package. Only the publish job gets `id-token: write`; build and pack run without it.
 4. When anything was published, the [Docs workflow](./.github/workflows/docs.yml) builds the docs site and deploys it to GitHub Pages, so the site matches the released packages. To redeploy without a release, run the Docs workflow by hand from `main`.
 
 CI holds no npm token. It authenticates with [npm trusted publishing](https://docs.npmjs.com/trusted-publishers) (OIDC), which also adds provenance when the repository is public.
