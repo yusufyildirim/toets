@@ -192,9 +192,7 @@ function activate(payload: unknown): void {
     testIdProp: opts.testIdProp,
     isFocusable: opts.isFocusable,
     // react-native-tvos only; plain React Native has no focus guides.
-    focusGuides: [(ReactNative as unknown as Record<string, unknown>).TVFocusGuideView].filter(
-      Boolean,
-    ),
+    focusGuides: [optionalExport('TVFocusGuideView')].filter(Boolean),
   });
   toets.handle('tree.get', (p) => {
     requireRoot();
@@ -263,5 +261,14 @@ function viewport(): Viewport {
 
 // Removed in recent React Native versions, where the export throws in development builds.
 function interactionManager(): unknown {
-  return (ReactNative as unknown as Record<string, unknown>).InteractionManager;
+  return optionalExport('InteractionManager');
+}
+
+/**
+ * An export that some `react-native` implementations lack (react-native-web has no
+ * `TVFocusGuideView`). Read by computed name: bundlers that fail on missing imports
+ * (webpack's `strictExportPresence`, set by Create React App) check static `ReactNative.X`.
+ */
+function optionalExport(name: string): unknown {
+  return (ReactNative as unknown as Record<string, unknown>)[name];
 }

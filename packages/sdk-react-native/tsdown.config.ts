@@ -8,7 +8,8 @@ export default defineConfig({
   target: 'es2015',
   platform: 'neutral',
   dts: true,
-  deps: { onlyImport: allowedImports(import.meta.dirname) },
+  // `react-native` is an optional peer: web apps alias it to react-native-web.
+  deps: { onlyImport: allowedImports(import.meta.dirname, ['react-native']) },
   clean: true,
   fixedExtension: false,
 });

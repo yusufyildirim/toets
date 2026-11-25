@@ -221,7 +221,7 @@ export class FiberMapper {
     const guides = this.opts.focusGuides;
     if (!guides?.length) return false;
     for (let p = fiber.return; p && !isHost(p) && p.tag !== HOST_ROOT; p = p.return) {
-      if (guides.includes(componentOf(p.type))) return true;
+      if (guides.indexOf(componentOf(p.type)) >= 0) return true;
     }
     return false;
   }
