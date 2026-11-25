@@ -4,72 +4,117 @@ on:
   push:
     branches: [main]
 
-permissions:
-  contents: read
+permissions: {}
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
 
+# No dependency cache, so a poisoned cache cannot reach a release. Checkouts persist no git
+# credentials: the changesets actions commit and push tags through the GitHub API.
 jobs:
-  # With pending changesets: opens or updates the "Version Packages" PR.
+  # "version" with pending changesets, "publish" when a package version is not on npm yet,
+  # otherwise "none".
+  select-mode:
+    name: Select mode
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    outputs:
+      mode: ${{ steps.select-mode.outputs.mode }}
+      publish-plan-artifact-id: ${{ steps.select-mode.outputs.publish-plan-artifact-id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .tool-versions
+      - run: pnpm install --frozen-lockfile
+      - id: select-mode
+        uses: changesets/action/select-mode@v2
+
+  # Opens or updates the "Version Packages" PR.
   version:
     name: Version
+    needs: select-mode
+    if: needs.select-mode.outputs.mode == 'version'
     runs-on: ubuntu-24.04
     timeout-minutes: 15
     permissions:
       contents: write
       pull-requests: write
-    outputs:
-      pending: ${{ steps.changesets.outputs.hasChangesets }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version-file: .tool-versions
-          cache: pnpm
       - run: pnpm install --frozen-lockfile
-      - id: changesets
-        uses: changesets/action@v1
+      - uses: changesets/action/version@v2
         with:
-          version: pnpm changeset version
-          title: 'chore: version packages'
-          commit: 'chore: version packages'
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          script: pnpm changeset version
+          pr-title: 'chore: version packages'
+          commit-message: 'chore: version packages'
 
-  # No pending changesets (the version PR was merged): publishes every package whose version is
-  # not on npm yet. Authenticates with npm trusted publishing (OIDC), no token. Needs npm CLI
-  # 11.5.1+ (bundled with the Node in .tool-versions) and a GitHub-hosted runner.
+  # Builds and packs the unpublished packages without publish rights.
+  pack:
+    name: Pack
+    needs: select-mode
+    if: needs.select-mode.outputs.mode == 'publish'
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    permissions:
+      contents: read
+    outputs:
+      pack-dir-artifact-id: ${{ steps.pack.outputs.pack-dir-artifact-id }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+      - uses: pnpm/action-setup@v6
+      - uses: actions/setup-node@v7
+        with:
+          node-version-file: .tool-versions
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm build
+      - id: pack
+        uses: changesets/action/pack@v2
+        with:
+          publish-plan-artifact-id: ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
+
+  # Publishes the packed tarballs and pushes a git tag per package. Authenticates with npm trusted
+  # publishing (OIDC), no token. Needs npm CLI 11.5.1+ (bundled with the Node in .tool-versions)
+  # and a GitHub-hosted runner.
   publish:
     name: Publish
-    needs: version
-    if: needs.version.outputs.pending == 'false'
+    needs: pack
     runs-on: ubuntu-24.04
-    timeout-minutes: 30
+    timeout-minutes: 15
     environment: npm
-    outputs:
-      published: ${{ steps.release.outputs.published }}
     permissions:
       contents: write # push release tags
       id-token: write # npm trusted publishing and provenance
+    outputs:
+      published: ${{ steps.publish.outputs.published }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: pnpm/action-setup@v6
       - uses: actions/setup-node@v7
         with:
           node-version-file: .tool-versions
-          cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      # `changeset publish` tags HEAD for every package it publishes; no new tag means nothing
-      # was released. The checkout fetches no tags, so only this run's tags point at HEAD.
-      - id: release
-        run: |
-          pnpm release
-          if [ -n "$(git tag --points-at HEAD)" ]; then published=true; else published=false; fi
-          echo "published=$published" >> "$GITHUB_OUTPUT"
-      - run: git push origin --tags
+      - id: publish
+        uses: changesets/action/publish@v2
+        with:
+          pack-dir-artifact-id: ${{ needs.pack.outputs.pack-dir-artifact-id }}
+          create-github-releases: false
 
   # After a release: deploys the docs site to GitHub Pages.
   docs:
