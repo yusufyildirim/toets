@@ -42,6 +42,27 @@ test.describe('rails', () => {
     await expect(home.card('trending-2')).toBeFocused();
   });
 
+  test('pressUntilFocused walks down to a rail, then along it', async ({ app }) => {
+    const home = new HomePage(app);
+    await home.open();
+
+    expect(await app.focus.pressUntilFocused(Key.DOWN, home.rail('family'))).toBe(3);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, home.card('family-3'))).toBe(2);
+    await expect(home.card('family-3')).toBeFocused();
+    await expect(home.heroTitle).toHaveText('Moon Bakery');
+  });
+
+  test('pressUntilFocused fails fast when focus cannot move that way', async ({ app }) => {
+    const home = new HomePage(app);
+    await home.open();
+
+    // Up from the first rail goes nowhere: the first press that leaves focus in place fails.
+    await expect(app.focus.pressUntilFocused(Key.UP, home.menu.settings)).rejects.toMatchObject({
+      code: 'FOCUS_STUCK',
+    });
+    await expect(home.card('trending-1')).toBeFocused();
+  });
+
   test('navigateTo reaches a card in a lower rail', async ({ app }) => {
     const home = new HomePage(app);
     await home.open();

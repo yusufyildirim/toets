@@ -32,16 +32,6 @@ export interface WebDriverOptions {
   readonly testIdAttribute?: string;
   /** Overrides of the default key map (see the keys docs page). */
   readonly keys?: WebKeyMap;
-  /**
-   * For apps with virtual focus (spatial navigation libraries that style the focused element
-   * instead of moving DOM focus). CSS selectors; when unset, DOM focus is used.
-   */
-  readonly focus?: {
-    /** Matches the focused element. When several match, the last in document order wins. */
-    readonly focused?: string;
-    /** Matches focusable elements. */
-    readonly focusable?: string;
-  };
   /** How the launch payload reaches the app. Default `query` (`?__toets=`). */
   readonly launchTransport?: LaunchTransport;
   /** Navigation milestone after which `launch()` returns. Default `load`. */
@@ -65,8 +55,6 @@ export interface ResolvedWebOptions {
   readonly url: URL;
   readonly testIdAttribute: string;
   readonly keys: ResolvedKeyMap;
-  readonly focusedSelector: string | null;
-  readonly focusableSelector: string | null;
   readonly launchTransport: LaunchTransport;
   readonly waitUntil: LaunchWaitUntil;
   readonly keyRepeat: { readonly delayMs: number; readonly intervalMs: number };
@@ -156,9 +144,11 @@ export function resolveOptions(
     );
   }
 
-  const focus = merged.focus as Record<string, unknown> | undefined;
-  if (focus !== undefined && (typeof focus !== 'object' || focus === null)) {
-    throw invalid('`focus` must be an object.', 'Use `{ focused: string, focusable?: string }`.');
+  if (merged.focus !== undefined) {
+    throw invalid(
+      'The web driver has no `focus` option: it reads DOM focus only.',
+      'For a JS focus engine (virtual focus), remove `focus` and report focus from the app with `reportFocus()` from `@toets/sdk`.',
+    );
   }
 
   const repeat = (merged.keyRepeat ?? {}) as Record<string, unknown>;
@@ -192,8 +182,6 @@ export function resolveOptions(
     url,
     testIdAttribute: optionalString(merged, 'testIdAttribute') ?? 'data-testid',
     keys: resolveKeyMap(merged.keys as WebKeyMap | undefined),
-    focusedSelector: focus ? (optionalString(focus, 'focused') ?? null) : null,
-    focusableSelector: focus ? (optionalString(focus, 'focusable') ?? null) : null,
     launchTransport: oneOf(merged, 'launchTransport', ['query', 'initScript'], 'query'),
     waitUntil: oneOf(merged, 'waitUntil', ['commit', 'domcontentloaded', 'load'], 'load'),
     keyRepeat: {

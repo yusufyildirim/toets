@@ -12,8 +12,8 @@ import type { ToolContext } from './tools/shared.js';
 /** Sent to the client on connect; agents read it before using any tool. */
 export const SERVER_INSTRUCTIONS = `toets drives TV apps the way a user does: with a remote control.
 - There is no click, tap, hover, scroll or typing into elements. Everything goes through focus: move it with D-pad keys (UP/DOWN/LEFT/RIGHT), activate the focused element with SELECT, go back with BACK.
-- Loop: launch -> snapshot (what is on screen, where focus is) -> navigate_to / press -> assert. Re-snapshot after every interaction; screens change.
-- Point at elements by test ID first, text second. Tools run the same toets core code as tests (locators, remote, navigateTo, matchers, text snapshots) and answer with the matching test code.
+- Loop: launch -> snapshot (what is on screen, where focus is) -> press_until_focused / navigate_to / press -> assert. Re-snapshot after every interaction; screens change.
+- Point at elements by test ID first, text second. Tools run the same toets core code as tests (locators, remote, pressUntilFocused, navigateTo, matchers, text snapshots) and answer with the matching test code.
 - Keys beyond the D-pad, SELECT and BACK depend on the platform: check capabilities.
 - Unsure about an API, error or pattern? docs_search.`;
 

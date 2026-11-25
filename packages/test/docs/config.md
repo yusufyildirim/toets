@@ -35,16 +35,16 @@ export default defineConfig({
 - **Snapshot baselines are per project, not per host.** toets projects default `snapshotPathTemplate` to Playwright's default without the host OS suffix; a top-level or project `snapshotPathTemplate` wins.
 - **The parity reporter is added** after your reporters; `parityReport: false` turns it off. Without a `reporter`, toets uses `list` (`dot` in CI) and `html` (`open: 'never'`), so `npx playwright show-report` works.
 
-| `toets` option | Meaning                                                                                |
-| -------------- | -------------------------------------------------------------------------------------- |
-| `sdk`          | Wait for the in-app SDK on launch (adds idle sync, focus graph, media, launch states). |
-| `mock`         | Run a host-side mock server per worker (`network.mock`): `true` or its settings.       |
-| `keyOverrides` | How a semantic key is performed for this app. Flagged in reports.                      |
-| `timeouts`     | `actionMs`, `sdkConnectMs`, `navigationSettleMs`. Assertions use `expect.timeout`.     |
-| `remote`       | `intervalMs` between `repeat`/`sequence` presses (100), `longPressMs` (1000).          |
-| `idle`         | `quietMs`, `budgetMs`: how long assertions wait for idle before polling.               |
-| `steps`        | Attach a screenshot and/or text snapshot after every action (costly on devices).       |
-| `video`        | `off`, `on`, `retain-on-failure`, where the driver supports `video`.                   |
+| `toets` option | Meaning                                                                              |
+| -------------- | ------------------------------------------------------------------------------------ |
+| `sdk`          | Wait for the in-app SDK on launch (adds idle sync, app focus, media, launch states). |
+| `mock`         | Run a host-side mock server per worker (`network.mock`): `true` or its settings.     |
+| `keyOverrides` | How a semantic key is performed for this app. Flagged in reports.                    |
+| `timeouts`     | `actionMs`, `sdkConnectMs`, `navigationSettleMs`. Assertions use `expect.timeout`.   |
+| `remote`       | `intervalMs` between `repeat`/`sequence` presses (100), `longPressMs` (1000).        |
+| `idle`         | `quietMs`, `budgetMs`: how long assertions wait for idle before polling.             |
+| `steps`        | Attach a screenshot and/or text snapshot after every action (costly on devices).     |
+| `video`        | `off`, `on`, `retain-on-failure`, where the driver supports `video`.                 |
 
 ## TV trap: one worker per device
 

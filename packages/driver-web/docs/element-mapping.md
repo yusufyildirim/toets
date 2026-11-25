@@ -11,7 +11,7 @@ toets matchers work on platform-neutral element snapshots. The web driver fills 
 | `visible`     | Has a box, non-zero size, not `display: none` / `visibility: hidden` (opacity is ignored)  |
 | `inViewport`  | Visible and intersecting the viewport after clipping by `overflow` ancestors (e.g. a rail) |
 | `focusable`   | Has a `tabindex` (including `-1`) or is natively focusable, and not disabled or `inert`    |
-| `focused`     | `document.activeElement` (through open shadow roots), or the `focus.focused` selector      |
+| `focused`     | `document.activeElement` (through open shadow roots)                                       |
 | `focusWithin` | The element or a descendant is focused                                                     |
 | `enabled`     | Not `:disabled` and no `aria-disabled="true"` on it or an ancestor                         |
 | `selected`    | `aria-selected="true"` (or a selected `<option>`)                                          |

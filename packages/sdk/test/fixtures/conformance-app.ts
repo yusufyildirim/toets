@@ -3,7 +3,7 @@
  * the web adapter, plus a few extras used by the Chromium round-trip tests.
  */
 import { CONFORMANCE_FIXTURE } from '@toets/protocol';
-import { markBusy, onState, startToets } from '../../src/web/index.js';
+import { markBusy, onState, reportFocus, startToets } from '../../src/web/index.js';
 
 const { testIds, states, text } = CONFORMANCE_FIXTURE;
 
@@ -32,6 +32,32 @@ onState(async (state, flags) => {
     setTimeout(done, Number(flags.ms));
   } else if (state === states.fail) throw new Error('conformance failure');
   else if (state === 'grow') byTestId(testIds.a).classList.add('grow');
+  else if (state === 'js-engine') startJsFocusEngine();
 });
+
+/**
+ * A minimal JS focus engine: tiles are plain divs (no DOM focus); arrow keys move a `focused`
+ * class and the engine reports each move with `reportFocus()`.
+ */
+function startJsFocusEngine(): void {
+  const row = document.createElement('div');
+  row.innerHTML = [0, 1, 2]
+    .map((i) => `<div class="tile" data-testid="tile-${i}">Tile ${i}</div>`)
+    .join('');
+  document.body.appendChild(row);
+  const tiles = Array.from(row.children);
+  let index = 0;
+  const focus = (i: number) => {
+    tiles[index]?.classList.remove('focused');
+    index = Math.max(0, Math.min(tiles.length - 1, i));
+    tiles[index]?.classList.add('focused');
+    reportFocus(tiles[index] ?? null);
+  };
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowRight') focus(index + 1);
+    if (e.key === 'ArrowLeft') focus(index - 1);
+  });
+  focus(0);
+}
 
 startToets();

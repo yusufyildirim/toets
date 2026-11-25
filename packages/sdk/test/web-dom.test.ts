@@ -80,11 +80,23 @@ describe('DomMapper', () => {
         .map((n) => n.testId),
     ).toEqual(['a']);
 
-    const custom = new DomMapper({
-      focusedElement: () => document.querySelector('.focused'),
-      isFocusable: (el) => (el.getAttribute('data-testid') === 'b' ? true : undefined),
-    });
+    // A JS focus engine reports focus (`reportFocus()`): DOM focus no longer counts.
+    let reported: { target: unknown } | null = null;
+    const custom = new DomMapper(
+      { isFocusable: (el) => (el.getAttribute('data-testid') === 'b' ? true : undefined) },
+      () => reported,
+    );
+    expect(custom.focused()).toMatchObject({ testId: 'a' });
+    const b = document.querySelector('.focused');
+    reported = { target: b };
     expect(custom.focused()).toMatchObject({ testId: 'b', focusable: true, focused: true });
+    reported = { target: { current: b } };
+    expect(custom.focusedId()).toBe(custom.idOf(b as Element));
+    reported = { target: null };
+    expect(custom.focused()).toBeNull();
+    b?.remove();
+    reported = { target: b };
+    expect(custom.focused()).toBeNull();
   });
 
   it('marks hidden subtrees invisible', () => {
@@ -100,16 +112,11 @@ describe('DomMapper', () => {
     ]);
   });
 
-  it('honors a custom test id attribute and maps focus neighbors', () => {
+  it('honors a custom test id attribute', () => {
     document.body.innerHTML = `<button data-qa="a">A</button><button data-qa="b">B</button>`;
-    const [a, b] = Array.from(document.querySelectorAll('button'));
-    const mapper = new DomMapper({
-      testIdAttribute: 'data-qa',
-      focusNeighbors: (el) => (el === a ? { right: b ?? null, left: null } : null),
-    });
-    const graph = mapper.graph();
-    const ids = mapper.tree().root.children.map((n) => n.id);
-    expect(graph).toEqual([{ id: ids[0], right: ids[1], left: null }, { id: ids[1] }]);
+    const [a] = Array.from(document.querySelectorAll('button'));
+    const mapper = new DomMapper({ testIdAttribute: 'data-qa' });
+    expect(mapper.tree().root.children.map((n) => n.testId)).toEqual(['a', 'b']);
     expect(describeElement(a, 'data-qa')).toBe('button[data-qa="a"]');
   });
 });

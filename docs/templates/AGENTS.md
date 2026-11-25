@@ -10,7 +10,7 @@ TV end-to-end tests live in `e2e/` and run with toets on Playwright Test.
 
 ## Rules
 
-- No click. Move focus with `app.focus.navigateTo(locator)` or `app.remote.press(Key.X)`, assert `toBeFocused()`, then press `Key.SELECT`.
+- No click. Move focus with `app.focus.pressUntilFocused(Key.X, locator)` (or `navigateTo`, `app.remote.press`), assert `toBeFocused()`, then press `Key.SELECT`.
 - Locate by test ID (`app.getByTestId`). Add a missing test ID to the app instead of matching layout or volatile text.
 - Never sleep or poll by hand: assertions retry. Anchor a negative assertion on a positive one first.
 - Platform gaps are capabilities: `test(name, requires('key.color'), fn)`, never `if (platform === ...)`.

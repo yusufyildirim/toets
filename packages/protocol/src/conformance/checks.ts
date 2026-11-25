@@ -16,7 +16,6 @@ import {
   unknownDomains,
   validateBusyResources,
   validateFocusChanged,
-  validateFocusGraph,
   validateHelloParams,
   validateLogEntry,
   validateMediaInfo,
@@ -159,7 +158,6 @@ function firstMethodOf(domain: Domain): HostToAppMethod | undefined {
 const PROBE_PARAMS: Readonly<Record<HostToAppMethod, unknown>> = {
   'tree.get': {},
   'focus.get': {},
-  'focus.graph': {},
   'sync.waitForIdle': { timeoutMs: 0 },
   'media.get': {},
   'media.list': {},
@@ -339,26 +337,6 @@ export const sessionChecks: Check<SessionContext>[] = [
         return (node?.id ?? null) === (focused?.id ?? null);
       }, 2000);
       if (!consistent) fail('focus.get and tree.get disagree on the focused node');
-    },
-  },
-  {
-    id: 'focus.graph',
-    title: 'focus.graph returns valid edges between existing nodes',
-    scenario: 'session',
-    domains: ['focus'],
-    async run(ctx) {
-      const { nodes } = (await ctx.session.requestRaw('focus.graph', {}, ctx.requestTimeoutMs)) as {
-        nodes: unknown;
-      };
-      assertValid(validateFocusGraph(nodes), 'invalid focus graph');
-      const ids = new Set(flatten((await getTree(ctx)).root).map((n) => n.id));
-      for (const n of nodes as Array<Record<string, unknown>>) {
-        for (const key of ['id', 'up', 'down', 'left', 'right']) {
-          const v = n[key];
-          if (typeof v === 'string' && !ids.has(v))
-            fail(`focus.graph references unknown node "${v}"`);
-        }
-      }
     },
   },
   {

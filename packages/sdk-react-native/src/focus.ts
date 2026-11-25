@@ -5,9 +5,8 @@
 export type FocusTarget = object | number;
 
 /**
- * Remembers the focused host view. Fed by focus/blur events captured at the app root (both
- * Android and tvOS dispatch them for every native view) and by `reportFocus()` for focus
- * engines that do not move native focus.
+ * Remembers the natively focused host view. Fed by focus/blur events captured at the app root
+ * (both Android and tvOS dispatch them for every native view).
  */
 export class FocusTracker {
   private target: FocusTarget | null = null;
@@ -32,12 +31,6 @@ export class FocusTracker {
     this.target = null;
     this.onChange?.();
   }
-
-  /** Replaces the focused view (`null` = nothing focused). */
-  set(target: unknown): void {
-    this.target = asTarget(target);
-    this.onChange?.();
-  }
 }
 
 /** Native tag of a host instance or tag, when it has one. */
@@ -54,10 +47,13 @@ export function sameTarget(a: FocusTarget, b: FocusTarget): boolean {
   return ta !== undefined && ta === targetTag(b);
 }
 
-function asTarget(value: unknown): FocusTarget | null {
+/**
+ * The view a focus value stands for: a host instance, a native tag, or a ref object holding
+ * either (`reportFocus(ref)` as well as `reportFocus(ref.current)`).
+ */
+export function asTarget(value: unknown): FocusTarget | null {
   if (typeof value === 'number') return value;
   if (typeof value === 'object' && value !== null) {
-    // A ref object: `reportFocus(ref)` as well as `reportFocus(ref.current)`.
     if ('current' in value) return asTarget((value as { current?: unknown }).current);
     return value;
   }

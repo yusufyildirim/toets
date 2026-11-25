@@ -6,7 +6,7 @@ import * as ReactNative from 'react-native';
 import { Animated, AppRegistry, Dimensions, Platform, StyleSheet, View } from 'react-native';
 import pkg from '../package.json' with { type: 'json' };
 import { FiberMapper, hostRootOf, type Fiber, type HostProps } from './fiber.js';
-import { FocusTracker } from './focus.js';
+import { asTarget, FocusTracker } from './focus.js';
 import { instrumentAnimated, instrumentInteractionManager } from './idle.js';
 import { discoverNativePayload, payloadFromInitialProps } from './payload.js';
 import { trackUncaughtErrors } from './uncaught.js';
@@ -29,11 +29,6 @@ export interface ReactNativeToetsOptions extends Partial<Omit<ToetsOptions, 'pay
   readonly testIdProp?: string;
   /** Overrides focusability of host views; return `undefined` to keep the default. */
   readonly isFocusable?: (props: HostProps, type: string) => boolean | undefined;
-  /**
-   * Track focus from native focus/blur events. Default true. Set false for JS focus engines
-   * that never move native focus, and call {@link reportFocus} instead.
-   */
-  readonly nativeFocus?: boolean;
   /** Track `Animated` animations for idle. Default true. */
   readonly animated?: boolean;
   /** react-native-web only: options for the web adapter (`@toets/sdk/web`). */
@@ -79,14 +74,6 @@ export function startToets(options: ReactNativeToetsOptions = {}): void {
   }
 }
 
-/**
- * Tells toets which view holds focus, for focus engines that do not move native focus (or
- * to correct it). Accepts a ref, a host instance, a native tag, or `null`.
- */
-export function reportFocus(target: unknown): void {
-  tracker.set(target);
-}
-
 export interface ToetsRootProps {
   readonly children?: ReactNode;
   /** The app root's initial props; carries the Android launch payload (`__toets`). */
@@ -104,7 +91,7 @@ export class ToetsRoot extends Component<ToetsRootProps> {
   constructor(props: ToetsRootProps) {
     super(props);
     activateFromRoot(props.initialProps);
-    this.wrap = isActive() && config.nativeFocus !== false;
+    this.wrap = isActive();
   }
 
   override componentDidMount(): void {
@@ -195,7 +182,11 @@ function activate(payload: unknown): void {
   tracker = focus;
   const mapper = new FiberMapper({
     roots: mountedRoots,
-    focused: () => focus.current,
+    // Reported focus (`reportFocus()`, JS focus engines) replaces native focus once the app sends it.
+    focused: () => {
+      const reported = toets.reportedFocus;
+      return reported ? asTarget(reported.target) : focus.current;
+    },
     viewport,
     flattenStyle: (style) => StyleSheet.flatten(style as never),
     testIdProp: opts.testIdProp,
@@ -210,10 +201,6 @@ function activate(payload: unknown): void {
     return mapper.tree(p.rootId);
   });
   toets.handle('focus.get', async () => ({ node: roots.length ? await mapper.focused() : null }));
-  toets.handle('focus.graph', async (p) => {
-    requireRoot();
-    return { nodes: await mapper.graph(p.rootId) };
-  });
   toets.setFocusSource({ current: () => mapper.focusedId() });
   focus.onChange = () => toets.focusChanged();
   if (opts.animated !== false) toets.onStop(instrumentAnimated(toets.idle, Animated));

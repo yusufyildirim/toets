@@ -7,7 +7,7 @@ import { test, expect, Key } from '@toets/test';
 
 test('opens details', async ({ app }) => {
   await app.launch();
-  await app.focus.navigateTo(app.getByTestId('rail-0-card-1'));
+  await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('rail-0-card-1'));
   await app.remote.press(Key.SELECT);
   await expect(app.getByTestId('details-title')).toBeVisible();
 });

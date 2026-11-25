@@ -33,6 +33,7 @@ describe('toets MCP tools over FakeDriver', () => {
       'launch',
       'navigate_to',
       'press',
+      'press_until_focused',
       'query',
       'screenshot',
       'snapshot',
@@ -279,7 +280,31 @@ describe('toets MCP tools over FakeDriver', () => {
     );
   });
 
-  it('explains unreachable, unfocusable and missing navigation targets', async () => {
+  it('presses one direction with core pressUntilFocused and reports the presses', async () => {
+    const h = await connect();
+    await h.ok('launch');
+    const start = (await h.driver.focused())?.testId;
+    expect(
+      await h.ok('press_until_focused', { key: 'RIGHT', target: { testId: start } }),
+    ).toContain('Already focused');
+    const out = await h.ok('press_until_focused', { key: 'RIGHT', target: { testId: 'card_3' } });
+    expect(out).toMatch(/Focused after \d+ RIGHT press(es)?\./);
+    expect(out).toContain('Focus: card_3 "Movie 3"');
+    expect(out).toContain(
+      "Code: await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('card_3'));",
+    );
+    const stuck = await h.err('press_until_focused', {
+      key: 'UP',
+      target: { testId: 'card_1' },
+      maxPresses: 5,
+    });
+    expect(stuck).toContain('FOCUS_STUCK');
+    expect(
+      await h.err('press_until_focused', { key: 'SELECT', target: { testId: 'card_1' } }),
+    ).toContain('key');
+  });
+
+  it('explains unreachable and missing navigation targets', async () => {
     const h = await connect();
     await h.ok('launch');
     const box = (x: number) => ({ x, y: 0, width: 100, height: 100 });
@@ -296,7 +321,7 @@ describe('toets MCP tools over FakeDriver', () => {
     });
     expect(await h.err('navigate_to', { target: { testId: 'b' } })).toContain('FOCUS_UNREACHABLE');
     expect(await h.err('navigate_to', { target: { testId: 'island' } })).toContain(
-      'TARGET_NOT_FOCUSABLE',
+      'FOCUS_UNREACHABLE',
     );
     expect(await h.err('navigate_to', { target: { testId: 'ghost' } })).toContain(
       'ELEMENT_NOT_FOUND',

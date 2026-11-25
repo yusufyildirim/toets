@@ -1,8 +1,58 @@
 import { describe, expect, it } from 'vitest';
-import type { ToetsError } from '../src/index.js';
+import type { DirectionKey, ToetsError } from '../src/index.js';
 import { Key, type ActionInfo } from '../src/index.js';
-import { rankDirections, nextStepInGraph } from '../src/runtime/focus.js';
+import { rankDirections } from '../src/runtime/focus.js';
+import type { FakeDriver, FakeNodeSpec, FakeScreen } from '../src/testing/index.js';
 import { setup } from './fixtures.js';
+
+const box = (
+  id: string,
+  x: number,
+  y: number,
+  extra: Partial<FakeNodeSpec> = {},
+): FakeNodeSpec => ({
+  id,
+  testId: id,
+  focusable: true,
+  bounds: { x, y, width: 100, height: 100 },
+  ...extra,
+});
+
+/**
+ * A virtualized row of `total` items: only the focused item and its neighbors exist. With
+ * `fixedSlots`, three slots keep their ids while the items scroll through them (focus stays in
+ * the middle slot), like a carousel with a fixed focus position on a driver with positional refs.
+ */
+function virtualRow(total: number, opts: { fixedSlots?: boolean } = {}) {
+  const screen = (index: number): FakeScreen => {
+    const items = [index - 1, index, index + 1].filter((i) => i >= 0 && i < total);
+    return {
+      initialFocus: opts.fixedSlots ? `slot${index - Math.max(0, index - 1)}` : `item_${index}`,
+      root: {
+        id: 'root',
+        children: items.map((i, slot) =>
+          box(opts.fixedSlots ? `slot${slot}` : `item_${i}`, slot * 120, 0, {
+            testId: `item_${i}`,
+            text: `Item ${i}`,
+          }),
+        ),
+      },
+    };
+  };
+  return {
+    screen: screen(0),
+    /** Re-renders the window around the focused item after every RIGHT press. */
+    attach(driver: FakeDriver) {
+      let index = 0;
+      const press = driver.press.bind(driver);
+      driver.press = async (key, opts) => {
+        if (key !== Key.RIGHT) return press(key, opts);
+        driver.presses.push({ key, opts });
+        if (index < total - 1) driver.setScreen(screen(++index));
+      };
+    },
+  };
+}
 
 describe('rankDirections', () => {
   const r = (x: number, y: number) => ({ x, y, width: 100, height: 100 });
@@ -12,26 +62,6 @@ describe('rankDirections', () => {
   });
   it('prefers vertical first across rows, then horizontal, then detours', () => {
     expect(rankDirections(r(500, 500), r(0, 0))).toEqual(['up', 'left', 'down', 'right']);
-  });
-});
-
-describe('nextStepInGraph', () => {
-  it('returns the first step of a shortest path', () => {
-    const graph = [
-      { id: 'a', right: 'b', down: 'c' },
-      { id: 'b', down: 'd' },
-      { id: 'c', left: 'a' },
-      { id: 'd' },
-    ];
-    expect(nextStepInGraph(graph, 'a', new Set(['d']))).toBe('right');
-    expect(nextStepInGraph(graph, 'a', new Set(['c']))).toBe('down');
-    expect(nextStepInGraph(graph, 'd', new Set(['a']))).toBeNull();
-  });
-
-  it('follows only known edges: null (no move) and absent (unknown) edges are skipped', () => {
-    const graph = [{ id: 'a', right: null, down: 'c' }, { id: 'b' }, { id: 'c', right: 'b' }];
-    expect(nextStepInGraph(graph, 'a', new Set(['b']))).toBe('down');
-    expect(nextStepInGraph([{ id: 'a', right: null }], 'a', new Set(['b']))).toBeNull();
   });
 });
 
@@ -139,57 +169,154 @@ describe('focus.navigateTo', () => {
     );
   });
 
-  it('refuses targets with nothing focusable', async () => {
+  it('fails when no press reaches a target that never takes focus', async () => {
     const { app } = setup();
     await expect(
       app.focus.navigateTo(app.getByText('Trending', { exact: true })),
-    ).rejects.toMatchObject({
-      code: 'TARGET_NOT_FOCUSABLE',
+    ).rejects.toMatchObject({ code: 'FOCUS_UNREACHABLE' });
+  });
+
+  it('points to pressUntilFocused when the target is not on screen', async () => {
+    const { app } = setup();
+    await expect(app.focus.navigateTo(app.getByTestId('trending_99'))).rejects.toMatchObject({
+      code: 'ELEMENT_NOT_FOUND',
+      hint: expect.stringContaining('app.focus.pressUntilFocused(key, target)'),
     });
   });
 
-  it('follows the SDK focus graph when available', async () => {
+  it('learns moves by element, not by ref, when refs are tree positions', async () => {
+    const row = virtualRow(6, { fixedSlots: true });
+    const { app, driver } = setup({ screen: row.screen });
+    row.attach(driver);
+    // item_2 is on screen (slot 2) once item_1 holds focus.
+    await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('item_1'));
+    expect(await app.focus.navigateTo(app.getByTestId('item_2'))).toEqual(['right']);
+    expect(await app.focus.current().testId()).toBe('item_2');
+  });
+});
+
+describe('focus.pressUntilFocused', () => {
+  it('presses one direction until the target holds focus and returns the presses', async () => {
+    const steps: string[] = [];
+    const { app, driver } = setup({
+      runtime: { hooks: { step: (i: ActionInfo, run) => (steps.push(i.title), run()) } },
+    });
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('trending_3'))).toBe(3);
+    expect(await app.focus.current().testId()).toBe('trending_3');
+    expect(driver.presses.map((p) => p.key)).toEqual(['RIGHT', 'RIGHT', 'RIGHT']);
+    expect(steps).toEqual([
+      "pressUntilFocused RIGHT getByTestId('trending_3')",
+      'press RIGHT',
+      'press RIGHT',
+      'press RIGHT',
+    ]);
+  });
+
+  it('presses nothing when the target already holds focus, and accepts containers', async () => {
+    const { app, driver } = setup();
+    expect(await app.focus.pressUntilFocused(Key.DOWN, app.getByTestId('menu_home'))).toBe(0);
+    expect(await app.focus.pressUntilFocused(Key.DOWN, app.getByTestId('side_menu'))).toBe(0);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('rail_trending'))).toBe(1);
+    expect(driver.presses).toHaveLength(1);
+  });
+
+  it('reaches items of a virtualized list that do not exist yet', async () => {
+    const row = virtualRow(30);
+    const { app, driver } = setup({ screen: row.screen });
+    row.attach(driver);
+    expect(await app.getByTestId('item_20').count()).toBe(0);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('item_20'))).toBe(20);
+    expect(await app.focus.current().testId()).toBe('item_20');
+  });
+
+  it('follows items scrolling under a fixed focus position', async () => {
+    const row = virtualRow(10, { fixedSlots: true });
+    const { app, driver } = setup({ screen: row.screen });
+    row.attach(driver);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('item_7'))).toBe(7);
+    expect(await app.focus.current().testId()).toBe('item_7');
+  });
+
+  it('works with the SDK connected (idle accelerates every press)', async () => {
     const { app, host } = setup({ sdk: true });
     await app.launch();
-    const graphRequests = () =>
-      host!.session!.requests.filter((r) => r.method === 'focus.graph').length;
-    await app.focus.navigateTo(app.getByTestId('trending_2'));
-    expect(graphRequests()).toBeGreaterThan(0);
-    expect(await app.focus.current().testId()).toBe('trending_2');
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('trending_2'))).toBe(2);
+    expect(host!.session!.requests.some((r) => r.method === 'sync.waitForIdle')).toBe(true);
   });
 
-  it('never presses toward a null graph edge when falling back to geometry', async () => {
-    // b is right of a, but focus cannot move right from a: the way is down, right, up.
-    const node = (id: string, x: number, y: number, neighbors = {}) => ({
-      id,
-      testId: id,
-      focusable: true,
-      bounds: { x, y, width: 100, height: 100 },
-      neighbors,
-    });
-    const { app, driver } = setup({
-      sdk: true,
+  it('fails fast when a press does not move focus', async () => {
+    const { app } = setup();
+    const err = (await app.focus
+      .pressUntilFocused(Key.UP, app.getByTestId('trending_1'))
+      .catch((e: unknown) => e)) as ToetsError;
+    expect(err.code).toBe('FOCUS_STUCK');
+    expect(err.message).toBe(
+      'Pressed UP once toward getByTestId(\'trending_1\'): focus stayed on menu_home "Home" for 30ms after the last press. Path: menu_home "Home".',
+    );
+    expect(err.hint).toContain('Focus cannot move UP from here');
+  });
+
+  it('fails fast when focus comes back to an element it left', async () => {
+    const { app } = setup({
       screen: {
         initialFocus: 'a',
         root: {
           children: [
-            node('a', 0, 0, { right: null }),
-            node('b', 300, 0),
-            node('c', 0, 300),
-            node('d', 300, 300),
+            box('a', 0, 0),
+            box('b', 120, 0),
+            box('c', 240, 0, { neighbors: { right: 'a' } }),
+            box('d', 0, 200),
           ],
         },
       },
     });
-    // The SDK knows only a's edges: unknown elsewhere, so geometry drives the rest.
-    const full = driver.focusGraph.bind(driver);
-    driver.focusGraph = () => full().map((n) => (n.id === 'a' ? n : { id: n.id }));
-    await app.launch();
-    await app.focus.navigateTo(app.getByTestId('b'));
-    expect(await app.focus.current().testId()).toBe('b');
-    // Geometry alone would press RIGHT from a first; the null edge rules it out.
-    expect(driver.presses[0]?.key).toBe('DOWN');
-    expect(driver.presses.slice(-2).map((p) => p.key)).toEqual(['RIGHT', 'UP']);
+    const err = (await app.focus
+      .pressUntilFocused(Key.RIGHT, app.getByTestId('d'))
+      .catch((e: unknown) => e)) as ToetsError;
+    expect(err.code).toBe('FOCUS_LOOP');
+    expect(err.message).toBe(
+      "Pressed RIGHT 3 times toward getByTestId('d'): focus came back to a, so RIGHT cycles without reaching the target. Path: a → b → c → a.",
+    );
+  });
+
+  it('honors maxPresses and keeps the path short', async () => {
+    const row = virtualRow(30);
+    const { app, driver } = setup({ screen: row.screen });
+    row.attach(driver);
+    const err = (await app.focus
+      .pressUntilFocused(Key.RIGHT, app.getByTestId('item_25'), { maxPresses: 12 })
+      .catch((e: unknown) => e)) as ToetsError;
+    expect(err.code).toBe('FOCUS_UNREACHABLE');
+    expect(err.message).toMatch(
+      /^Pressed RIGHT 12 times toward getByTestId\('item_25'\) and gave up after maxPresses \(12\)\. Path: … → item_3 "Item 3" → .* → item_12 "Item 12"\.$/,
+    );
+  });
+
+  it('fails when focus leaves the app', async () => {
+    const { app } = setup({
+      screen: {
+        initialFocus: 'a',
+        root: { children: [box('a', 0, 0, { neighbors: { right: 'gone' } }), box('b', 300, 0)] },
+      },
+    });
+    await expect(
+      app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('b')),
+    ).rejects.toMatchObject({
+      code: 'NO_FOCUS',
+    });
+  });
+
+  it('rejects ambiguous targets, non-direction keys and bad maxPresses', async () => {
+    const { app } = setup();
+    await expect(
+      app.focus.pressUntilFocused(Key.RIGHT, app.getByText(/^Trending \d$/)),
+    ).rejects.toMatchObject({ code: 'STRICT_MODE_VIOLATION' });
+    await expect(
+      app.focus.pressUntilFocused(Key.SELECT as DirectionKey, app.getByTestId('trending_1')),
+    ).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
+    await expect(
+      app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('trending_1'), { maxPresses: 0 }),
+    ).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
   });
 });
 

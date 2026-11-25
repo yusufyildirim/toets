@@ -2,7 +2,7 @@
 
 Normative description of the wire protocol between the toets test host and an in-app SDK. Types live in `src/messages.ts`; this page defines behavior. "MUST", "SHOULD" and "MAY" are used as in RFC 2119.
 
-The SDK is optional (black-box tests work without it) and is an accelerator: richer trees, focus graph, idle sync, media and app state.
+The SDK is optional (black-box tests work without it) and is an accelerator: richer trees, idle sync, media and app state. It is also how apps with a JS focus engine report focus, which no driver can see from outside.
 
 ## Transport
 
@@ -69,15 +69,15 @@ Tokens are one-time: a used, unknown or expired token is rejected. A reloaded ap
 
 The hello announces implemented domains. The host only calls methods of announced domains; an SDK answers others with DomainUnavailable.
 
-| Domain    | Methods (host → app)       | Notifications (app → host) | Notes                                                        |
-| --------- | -------------------------- | -------------------------- | ------------------------------------------------------------ |
-| `tree`    | `tree.get`                 |                            |                                                              |
-| `focus`   | `focus.get`, `focus.graph` | `focus.changed`            | Requires `tree`. Announce only with a reliable focus source. |
-| `sync`    | `sync.waitForIdle`         |                            |                                                              |
-| `media`   | `media.get`, `media.list`  | `media.changed`            |                                                              |
-| `state`   | `state.apply`              |                            | Plus the payload `state`/`flags` at launch.                  |
-| `logs`    |                            | `logs.entry`               |                                                              |
-| `metrics` |                            |                            | Reserved; no messages in 1.0.                                |
+| Domain    | Methods (host → app)      | Notifications (app → host) | Notes                                                        |
+| --------- | ------------------------- | -------------------------- | ------------------------------------------------------------ |
+| `tree`    | `tree.get`                |                            |                                                              |
+| `focus`   | `focus.get`               | `focus.changed`            | Requires `tree`. Announce only with a reliable focus source. |
+| `sync`    | `sync.waitForIdle`        |                            |                                                              |
+| `media`   | `media.get`, `media.list` | `media.changed`            |                                                              |
+| `state`   | `state.apply`             |                            | Plus the payload `state`/`flags` at launch.                  |
+| `logs`    |                           | `logs.entry`               |                                                              |
+| `metrics` |                           |                            | Reserved; no messages in 1.0.                                |
 
 ## Methods
 
@@ -93,11 +93,7 @@ The UI tree (`ProtocolNode`), or the subtree at `rootId` (NotFound when it no lo
 
 ### `focus.get` `{} → { node }`
 
-The focused node (with its subtree), or `null`.
-
-### `focus.graph` `{ rootId? } → { nodes }`
-
-Focusable nodes and their neighbors per direction. An edge is a node id (focus moves there), `null` (focus does not move: screen edge or trap) or absent (unknown; the host falls back to geometry).
+The focused node (with its subtree), or `null`. Focus is the element the app's focus engine focused: platform focus (DOM, native), or what the app reported when its focus engine keeps focus in app state. There is no focus graph: the host never asks where focus would go, it presses and reads focus again.
 
 ### `sync.waitForIdle` `{ timeoutMs, quietMs? } → { idle, busy }`
 

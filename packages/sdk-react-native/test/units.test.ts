@@ -1,6 +1,6 @@
 import { IdleTracker, type MediaReporter, type MediaSnapshot } from '@toets/sdk';
 import { describe, expect, it } from 'vitest';
-import { FocusTracker } from '../src/focus.js';
+import { asTarget, FocusTracker } from '../src/focus.js';
 import { instrumentInteractionManager } from '../src/idle.js';
 import { videoMediaProps } from '../src/media.js';
 import * as noop from '../src/noop.js';
@@ -91,11 +91,21 @@ describe('FocusTracker', () => {
     expect(t.current).toBe(b);
     t.blur(2); // a tag matches its instance
     expect(t.current).toBeNull();
-    t.set({ current: a });
+    t.focus({ current: a });
     expect(t.current).toBe(a);
     t.focus(undefined);
     expect(t.current).toBe(a);
     expect(changes).toBe(4);
+  });
+
+  it('resolves reported focus values: instances, tags, refs and null', () => {
+    const a = { __nativeTag: 1 };
+    expect(asTarget(a)).toBe(a);
+    expect(asTarget(7)).toBe(7);
+    expect(asTarget({ current: a })).toBe(a);
+    expect(asTarget({ current: null })).toBeNull();
+    expect(asTarget(null)).toBeNull();
+    expect(asTarget('x')).toBeNull();
   });
 });
 

@@ -1,4 +1,4 @@
-import type { FocusGraphNode, ProtocolNode } from '@toets/protocol';
+import type { ProtocolNode } from '@toets/protocol';
 import { Activity, createElement as h, createRef, type ReactNode } from 'react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { cleanup, eventually, launch, load, onCleanup, sleep, type Adapter } from './helpers.js';
@@ -355,57 +355,23 @@ describe('focus', () => {
     expect((await session.request('focus.get', {})).node).toBeNull();
   });
 
-  it('accepts reportFocus for JS focus engines', async () => {
+  it('takes focus from reportFocus() only, once a JS focus engine reports it', async () => {
     const { sdk } = await load();
     const ref = createRef<object>();
     const app = h(Screen, {
       extra: h('RCTView', { ref, testID: 'virtual', style: box(0, 0, 5, 5) }),
     });
-    const { session } = await mountAndroid(sdk, app);
+    // Reported before the Android runtime exists (it starts with the root): replayed.
     sdk.reportFocus(ref);
+    const { session, rendered } = await mountAndroid(sdk, app);
+    expect((await session.request('focus.get', {})).node?.testId).toBe('virtual');
+    // Native focus events no longer count: one source of truth.
+    fire('focus', rendered.byTestId('card-a'));
     expect((await session.request('focus.get', {})).node?.testId).toBe('virtual');
     sdk.reportFocus(null);
     expect((await session.request('focus.get', {})).node).toBeNull();
-  });
-
-  it('reports nextFocus props in the focus graph', async () => {
-    const { sdk } = await load();
-    const Graph = (p: { right?: number; left?: number }) =>
-      h(
-        'RCTView',
-        null,
-        h('RCTView', {
-          testID: 'card-a',
-          focusable: true,
-          nextFocusRight: p.right,
-          nextFocusLeft: p.left,
-          style: box(0, 0, 10, 10),
-        }),
-        h('RCTView', { testID: 'card-b', focusable: true, style: box(20, 0, 10, 10) }),
-      );
-    const { session, rendered } = await mountAndroid(sdk, h(Graph));
-    const a = rendered.byTestId('card-a');
-    const b = rendered.byTestId('card-b');
-    rendered.update(h(sdk.ToetsRoot, null, h(Graph, { right: b.tag, left: a.tag })));
-    const { root } = await session.request('tree.get', {});
-    const { nodes } = await session.request('focus.graph', {});
-    const ida = byTestId(root, 'card-a').id;
-    const idb = byTestId(root, 'card-b').id;
-    expect(nodes).toEqual<FocusGraphNode[]>([{ id: ida, right: idb, left: null }, { id: idb }]);
-  });
-
-  it('can ignore native focus', async () => {
-    const { sdk } = await load();
-    const l = await launch();
-    sdk.startToets({ nativeFocus: false });
-    const rendered = render(h(sdk.ToetsRoot, { initialProps: { __toets: l.payload } }, h(Screen)));
-    onCleanup(() => {
-      sdk.getToets()?.stop();
-      rendered.unmount();
-    });
-    await l.session();
-    expect(rendered.container.children[0]!.props.testID).toBeUndefined();
-    expect(rendered.container.children[0]!.props.onFocusCapture).toBeUndefined();
+    sdk.reportFocus(rendered.byTestId('card-b').tag);
+    expect((await session.request('focus.get', {})).node?.testId).toBe('card-b');
   });
 });
 

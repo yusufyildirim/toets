@@ -90,8 +90,6 @@ export class WebDriver implements Driver {
     this.#opts = options;
     this.#agentConfig = {
       testIdAttribute: options.testIdAttribute,
-      focusedSelector: options.focusedSelector,
-      focusableSelector: options.focusableSelector,
     };
     this.#artifactsDir = ctx.artifactsDir ?? join(tmpdir(), 'toets-driver-web');
     this.#log = ctx.log ?? (() => {});
@@ -456,17 +454,6 @@ export class WebDriver implements Driver {
         hint: 'Something outside toets closed the page or browser. Do not close it in a test.',
         cause: error,
       });
-    }
-    if (/is not a valid selector/.test(message)) {
-      return new ToetsError(
-        'WEB_INVALID_CONFIG',
-        `A \`focus\` selector is not valid CSS: ${message}`,
-        {
-          hint: 'Fix `focus.focused` / `focus.focusable` in the web config.',
-          docs: packageDocsLink('driver-web', 'options'),
-          cause: error,
-        },
-      );
     }
     return new ToetsError('WEB_EVALUATE_FAILED', `Reading the page failed: ${message}`, {
       hint: 'The page may have navigated or crashed; check the app logs.',

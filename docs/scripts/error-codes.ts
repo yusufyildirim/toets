@@ -38,7 +38,6 @@ const MEANINGS: Readonly<Record<string, string>> = {
   STRICT_MODE_VIOLATION: 'A locator matched several elements where exactly one is needed.',
   ELEMENT_NOT_FOUND: 'A locator matched no element within the timeout.',
   ELEMENT_DETACHED: 'The element a locator resolved to left the screen before it could be read.',
-  TARGET_NOT_FOCUSABLE: '`navigateTo` target is not focusable and contains nothing focusable.',
   DRIVER_CONTRACT: 'A driver returned something that breaks the `Driver` contract (a driver bug).',
   INVALID_DRIVER: 'The configured driver module does not default-export a matching `DriverModule`.',
   NO_MANAGED_DEVICES: 'The driver cannot manage devices for this platform.',
@@ -46,6 +45,13 @@ const MEANINGS: Readonly<Record<string, string>> = {
   NOT_ENOUGH_DEVICES: 'There are fewer `external` devices than workers.',
   DEVICE_COMMAND_FAILED: 'A `command` device provider command failed.',
   NEGATION_UNSUPPORTED: 'The matcher cannot be negated with `.not`.',
+  WEB_INVALID_CONFIG:
+    'The web app config or `webDriver()` options are malformed (`url`, `keys`, ...).',
+  FOCUS_UNREACHABLE:
+    '`pressUntilFocused` or `navigateTo` gave up: `maxPresses` presses, or no direction left to try.',
+  NO_FOCUS: 'Nothing holds focus, before moving focus or after a press.',
+  FOCUS_STUCK: '`pressUntilFocused`: a press did not move focus within `navigationSettleMs`.',
+  FOCUS_LOOP: '`pressUntilFocused`: focus came back to an element it already left (a wrap-around).',
   TVOS_DEVICE_TYPE_MISSING:
     'The requested Apple TV device type is not available for the tvOS runtime.',
 };
@@ -256,7 +262,10 @@ function evaluateDocs(checker: ts.TypeChecker, node: ts.Expression, depth = 0): 
     return undefined;
   }
   if (ts.isIdentifier(node) || ts.isPropertyAccessExpression(node)) {
-    const symbol = checker.getSymbolAtLocation(ts.isIdentifier(node) ? node : node.name);
+    const symbol =
+      ts.isIdentifier(node) && ts.isShorthandPropertyAssignment(node.parent)
+        ? checker.getShorthandAssignmentValueSymbol(node.parent)
+        : checker.getSymbolAtLocation(ts.isIdentifier(node) ? node : node.name);
     const target =
       symbol && symbol.flags & ts.SymbolFlags.Alias ? checker.getAliasedSymbol(symbol) : symbol;
     const decl = target?.valueDeclaration;

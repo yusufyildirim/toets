@@ -11,7 +11,7 @@ export {
   onState,
   registerMedia,
   createMediaReporter,
-  focusChanged,
+  reportFocus,
 } from './global.js';
 export {
   Toets,
@@ -20,6 +20,7 @@ export {
   type ToetsOptions,
   type ToetsStatus,
   type FocusSource,
+  type ReportedFocus,
   type HostRequestHandler,
   type WebSocketConstructor,
   type WebSocketLike,

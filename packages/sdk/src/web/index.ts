@@ -16,13 +16,7 @@ import { discoverWebPayload } from './payload.js';
 
 export * from '../index.js';
 export { discoverWebPayload } from './payload.js';
-export {
-  DomMapper,
-  describeElement,
-  currentViewport,
-  type DomMapperOptions,
-  type FocusNeighbors,
-} from './dom.js';
+export { DomMapper, describeElement, currentViewport, type DomMapperOptions } from './dom.js';
 export { mediaElementSnapshot } from './media.js';
 export type { AnimationFilter } from './animations.js';
 
@@ -47,10 +41,9 @@ export function startToets(options: WebToetsOptions = {}): Toets {
   if (!toets.active) return toets;
 
   const testIdAttribute = options.testIdAttribute ?? 'data-testid';
-  const mapper = new DomMapper(options);
+  const mapper = new DomMapper(options, () => toets.reportedFocus);
   toets.handle('tree.get', (p) => mapper.tree(p.rootId));
   toets.handle('focus.get', () => ({ node: mapper.focused() }));
-  toets.handle('focus.graph', (p) => ({ nodes: mapper.graph(p.rootId) }));
   toets.setFocusSource({ current: () => mapper.focusedId() });
 
   if (typeof document !== 'undefined') {

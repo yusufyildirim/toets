@@ -127,28 +127,6 @@ export function validateBusyResources(value: unknown, path = 'busy'): string[] {
   return out;
 }
 
-export function validateFocusGraph(value: unknown, path = 'nodes'): string[] {
-  if (!Array.isArray(value)) return [`${path} must be an array`];
-  const out: string[] = [];
-  const ids = new Set<string>();
-  value.forEach((n, i) => {
-    const p = `${path}[${i}]`;
-    if (!isObj(n)) {
-      out.push(`${p} must be an object`);
-      return;
-    }
-    if (typeof n.id !== 'string' || !n.id) out.push(`${p}.id must be a non-empty string`);
-    else if (ids.has(n.id)) out.push(`${p}.id "${n.id}" is not unique`);
-    else ids.add(n.id);
-    for (const dir of ['up', 'down', 'left', 'right']) {
-      const v = n[dir];
-      if (v !== undefined && v !== null && typeof v !== 'string')
-        out.push(`${p}.${dir} must be a node id, null or absent`);
-    }
-  });
-  return out;
-}
-
 export function validateLogEntry(value: unknown, path = 'params'): string[] {
   if (!isObj(value)) return [`${path} must be an object`];
   const out: string[] = [];

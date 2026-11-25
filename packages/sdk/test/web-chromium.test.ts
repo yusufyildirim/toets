@@ -139,6 +139,26 @@ describe.skipIf(!available)('web adapter in Chromium', () => {
       off();
     });
 
+    it('takes focus from reportFocus() once a JS focus engine reports it', async () => {
+      await page.locator('[data-testid="conformance-a"]').focus();
+      const changes: Array<{ from: string | null; to: string | null }> = [];
+      const off = session.on('focus.changed', (e) => changes.push(e));
+      await session.request('state.apply', { state: 'js-engine' });
+      const focusedTestId = async () => (await session.request('focus.get', {})).node?.testId;
+      await expect.poll(focusedTestId).toBe('tile-0');
+      await page.keyboard.press('ArrowRight');
+      await expect.poll(focusedTestId).toBe('tile-1');
+      // DOM focus is still on the button: reported focus is the only source now.
+      expect(await page.evaluate(() => document.activeElement?.getAttribute('data-testid'))).toBe(
+        'conformance-a',
+      );
+      const { root } = await session.request('tree.get', {});
+      expect(find(root, 'tile-1')?.focused).toBe(true);
+      expect(find(root, 'conformance-a')?.focused).toBe(false);
+      await expect.poll(() => changes.at(-1)?.to).toBe(find(root, 'tile-1')?.id);
+      off();
+    });
+
     it('exposes <video> elements as media players', async () => {
       await page.evaluate(() => {
         const v = document.createElement('video');

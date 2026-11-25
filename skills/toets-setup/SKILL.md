@@ -46,7 +46,7 @@ Tests that fail only on a new platform are often real differences (focus engine,
 Each is independent; add only what the tests need.
 
 - **Network mocking**: `toets: { mock: true }` in the config (or `mock: { handlers }` for baseline handlers every test gets), and the app sends API traffic to the launch payload's `mockUrl` with the real origin in a header. (`concepts/network-mocking`, `reference/mock/docs/app-integration`)
-- **In-app SDK**: `toets: { sdk: true }` in the config, and the app starts the SDK; adds idle sync, focus graph, media state, named states. Debug or test builds only, never production. (`concepts/sdk`, `reference/sdk/docs/overview`, `reference/sdk-react-native/docs/react-native`)
+- **In-app SDK**: `toets: { sdk: true }` in the config, and the app starts the SDK; adds idle sync, media state, named states, and app-reported focus for JS focus engines (`reportFocus()`). Debug or test builds only, never production. (`concepts/sdk`, `reference/sdk/docs/overview`, `reference/sdk-react-native/docs/react-native`)
 
 ## 6. Guardrails for agents and humans
 

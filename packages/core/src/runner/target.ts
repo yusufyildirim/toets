@@ -24,7 +24,8 @@ export type MockServerFactory = (opts: MockServerConfig) => Promise<MockServerLi
 export interface RuntimeConfig {
   /**
    * In-app SDK. When on, each launch issues a token and waits for the app to connect, adding
-   * the SDK capabilities (idle sync, focus graph, media, launch states, logs). Default off.
+   * the SDK capabilities (idle sync, media, launch states, logs) and the app's view of focus.
+   * Default off.
    */
   readonly sdk?:
     | boolean

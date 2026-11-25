@@ -25,7 +25,6 @@ describe('resolveOptions', () => {
     expect(o.launchTransport).toBe('query');
     expect(o.waitUntil).toBe('load');
     expect(o.keyRepeat).toEqual({ delayMs: 500, intervalMs: 50 });
-    expect(o.focusedSelector).toBeNull();
     expect(o.source).toEqual({
       kind: 'launch',
       launchOptions: {},
@@ -34,14 +33,14 @@ describe('resolveOptions', () => {
   });
 
   it('merges app config and platform options, platform winning', () => {
-    const o = resolveOptions(
-      { testIdAttribute: 'data-test' },
-      { url, testIdAttribute: 'data-qa', focus: { focused: '.focused' } },
-    );
+    const o = resolveOptions({ testIdAttribute: 'data-test' }, { url, testIdAttribute: 'data-qa' });
     expect(o.url.href).toBe(url);
     expect(o.testIdAttribute).toBe('data-test');
-    expect(o.focusedSelector).toBe('.focused');
-    expect(o.focusableSelector).toBeNull();
+  });
+
+  it('points a removed `focus` option to reportFocus()', () => {
+    const options = { url, focus: { focused: '.focused' } } as WebDriverOptions;
+    expect(invalid(options).hint).toContain('reportFocus()');
   });
 
   it('picks the browser source', () => {
@@ -66,7 +65,6 @@ describe('resolveOptions', () => {
     ['unknown transport', { url, launchTransport: 'hash' as never }],
     ['unknown waitUntil', { url, waitUntil: 'networkidle' as never }],
     ['non-positive repeat delay', { url, keyRepeat: { delayMs: 0 } }],
-    ['empty focus selector', { url, focus: { focused: '' } }],
     ['bad key map', { url, keys: { BACK: { key: '' } } }],
   ])('rejects %s', (_, options) => {
     invalid(options);

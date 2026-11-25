@@ -3,7 +3,7 @@
  * nodes with real focus movement (explicit neighbors, otherwise nearest node in the pressed
  * direction), key handlers and a press log. Not a platform: never ship it to users.
  */
-import type { FocusGraphNode, ProtocolNode } from '@toets/protocol';
+import type { ProtocolNode } from '@toets/protocol';
 import { PNG } from 'pngjs';
 import type { PlatformEvent } from '../api.js';
 import type { Capability } from '../capabilities.js';
@@ -208,28 +208,6 @@ export class FakeDriver implements Driver {
   /** Viewport size in the screen's coordinate space. */
   get viewportSize(): { readonly width: number; readonly height: number } {
     return this.viewport;
-  }
-
-  /**
-   * The focus graph an SDK would report (`focus.graph`): the neighbor of every focusable node,
-   * `null` where focus does not move.
-   */
-  focusGraph(): FocusGraphNode[] {
-    const saved = this.focusedId;
-    try {
-      return [...this.nodes.values()]
-        .filter((n) => n.spec.focusable && this.isVisible(n) && n.spec.enabled !== false)
-        .map((n) => {
-          this.focusedId = n.id;
-          const node: { -readonly [K in keyof FocusGraphNode]: FocusGraphNode[K] } = { id: n.id };
-          for (const d of ['up', 'down', 'left', 'right'] as const) {
-            node[d] = this.neighbor(d);
-          }
-          return node;
-        });
-    } finally {
-      this.focusedId = saved;
-    }
   }
 
   async drainLogs(): Promise<readonly LogEntry[]> {

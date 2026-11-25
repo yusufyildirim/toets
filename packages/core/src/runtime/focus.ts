@@ -1,17 +1,39 @@
-import type { FocusGraphNode } from '@toets/protocol';
-import type { Focus, Locator, NavigateOptions } from '../api.js';
+import type { Focus, Locator, NavigateOptions, PressUntilFocusedOptions } from '../api.js';
 import { ToetsError, packageDocsLink } from '../errors.js';
-import { DIRECTION_KEY, type Direction } from '../keys.js';
+import { DIRECTION_KEY, type Direction, type DirectionKey } from '../keys.js';
 import type { ElementRef, ElementSnapshot, Rect } from '../snapshot.js';
 import type { RuntimeContext } from './context.js';
-import { createLocator, describeElement, locatorImpl, type LocatorImpl } from './locator.js';
+import {
+  createLocator,
+  describeElement,
+  locatorImpl,
+  strictModeError,
+  type LocatorImpl,
+} from './locator.js';
 import type { RemoteImpl } from './remote.js';
 import type { Target } from './target.js';
 import { sleep } from './retry.js';
-import { findNode, walkTree } from './tree.js';
 
 const DIRECTIONS: readonly Direction[] = ['up', 'down', 'left', 'right'];
+const DIRECTION_KEYS: ReadonlySet<string> = new Set(Object.values(DIRECTION_KEY));
 const SETTLE_POLL_MS = 50;
+const DEFAULT_MAX_PRESSES = 50;
+/** Elements of the focus path shown in error messages (the most recent ones). */
+const PATH_SHOWN = 10;
+
+/**
+ * Identity of a focused element across presses: its ref plus its test ID and text. Some
+ * drivers derive refs from tree positions, so a list that scrolls under a fixed focus position
+ * keeps the ref while the focused item changes.
+ */
+type FocusKey = string & { readonly __focusKey: unique symbol };
+
+function focusKey(el: ElementSnapshot): FocusKey {
+  return JSON.stringify([el.ref, el.testId, el.text]) as FocusKey;
+}
+
+const sameFocus = (a: ElementSnapshot | null, b: ElementSnapshot | null): boolean =>
+  a === null || b === null ? a === b : focusKey(a) === focusKey(b);
 
 /**
  * Waits after a key press until the app is idle (SDK `sync.idle`), focus left `from`, or
@@ -29,6 +51,26 @@ export async function settleFocus(
   while (performance.now() < deadline) {
     const now = await target.focused();
     if (now?.ref !== from) return;
+    await sleep(SETTLE_POLL_MS);
+  }
+}
+
+/**
+ * Focus after a press that has to move it. Idle (SDK) lets the app finish reacting first; then
+ * focus is polled until it lands on another element or `settleMs` passed, so a slow app is never
+ * reported as stuck early. Returns the element holding focus at the end: `before` (or `null`
+ * when focus is lost) means the press did not move it.
+ */
+async function focusAfterPress(
+  target: Target,
+  before: ElementSnapshot,
+  settleMs: number,
+): Promise<ElementSnapshot | null> {
+  const deadline = performance.now() + settleMs;
+  await target.waitForIdle(settleMs);
+  for (;;) {
+    const now = await target.focused();
+    if ((now && !sameFocus(now, before)) || performance.now() >= deadline) return now;
     await sleep(SETTLE_POLL_MS);
   }
 }
@@ -75,25 +117,25 @@ export function towardDirections(from: Rect, to: Rect): Direction[] {
 interface Visit {
   bounds: Rect;
   readonly tried: Set<Direction>;
-  /** Observed transitions; a press that did not move focus maps to the element itself. */
-  readonly edges: Map<Direction, ElementRef>;
+  /** Observed moves; a press that did not move focus maps to the element itself. */
+  readonly moves: Map<Direction, FocusKey>;
 }
 
-/** First step along learned transitions to the nearest other element satisfying `wanted`. */
+/** First step along observed moves to the nearest other element satisfying `wanted`. */
 function walkToward(
-  visits: ReadonlyMap<ElementRef, Visit>,
-  from: ElementRef,
+  visits: ReadonlyMap<FocusKey, Visit>,
+  from: FocusKey,
   wanted: (v: Visit) => boolean,
 ): Direction | null {
-  const firstStep = new Map<ElementRef, Direction>();
-  const queue: ElementRef[] = [from];
+  const firstStep = new Map<FocusKey, Direction>();
+  const queue: FocusKey[] = [from];
   const seen = new Set([from]);
   while (queue.length) {
-    const ref = queue.shift() as ElementRef;
-    for (const [d, next] of visits.get(ref)?.edges ?? []) {
+    const key = queue.shift() as FocusKey;
+    for (const [d, next] of visits.get(key)?.moves ?? []) {
       if (seen.has(next)) continue;
       seen.add(next);
-      const step = ref === from ? d : (firstStep.get(ref) as Direction);
+      const step = key === from ? d : (firstStep.get(key) as Direction);
       const visit = visits.get(next);
       if (!visit || wanted(visit)) return step; // unvisited elements are unexplored
       firstStep.set(next, step);
@@ -103,35 +145,14 @@ function walkToward(
   return null;
 }
 
-/**
- * First step of a shortest path through the SDK focus graph, or `null`. Only known edges are
- * followed: `null` (focus does not move) and absent (unknown) edges are not.
- */
-export function nextStepInGraph(
-  graph: readonly FocusGraphNode[],
-  from: string,
-  goals: ReadonlySet<string>,
-): Direction | null {
-  const byId = new Map(graph.map((n) => [n.id, n]));
-  const firstStep = new Map<string, Direction>();
-  const queue: string[] = [from];
-  const seen = new Set([from]);
-  while (queue.length) {
-    const id = queue.shift() as string;
-    const node = byId.get(id);
-    if (!node) continue;
-    for (const d of DIRECTIONS) {
-      const next = node[d];
-      if (!next || seen.has(next)) continue;
-      seen.add(next);
-      const step = id === from ? d : (firstStep.get(id) as Direction);
-      if (goals.has(next)) return step;
-      firstStep.set(next, step);
-      queue.push(next);
-    }
-  }
-  return null;
+/** `a → b → c`, the last {@link PATH_SHOWN} elements focus passed through. */
+function describePath(path: readonly ElementSnapshot[]): string {
+  const shown = path.slice(-PATH_SHOWN).map(describeElement);
+  if (path.length > PATH_SHOWN) shown.unshift('…');
+  return shown.join(' → ');
 }
+
+const times = (n: number) => (n === 1 ? 'once' : `${n} times`);
 
 export class FocusImpl implements Focus {
   constructor(
@@ -143,76 +164,170 @@ export class FocusImpl implements Focus {
     return createLocator(this.ctx, [{ kind: 'focused' }]);
   }
 
-  async navigateTo(target: Locator, opts?: NavigateOptions): Promise<readonly Direction[]> {
-    const goal = locatorImpl(target);
-    if (!goal) {
-      throw new ToetsError('INVALID_ARGUMENT', 'navigateTo() needs a toets Locator.', {
-        docs: packageDocsLink('core', 'focus-navigation'),
-      });
+  async pressUntilFocused(
+    key: DirectionKey,
+    target: Locator,
+    opts?: PressUntilFocusedOptions,
+  ): Promise<number> {
+    if (typeof key !== 'string' || !DIRECTION_KEYS.has(key)) {
+      throw new ToetsError(
+        'INVALID_ARGUMENT',
+        `pressUntilFocused() presses a direction key (Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT), got ${JSON.stringify(key)}.`,
+        { docs: packageDocsLink('core', 'focus-navigation') },
+      );
     }
-    const maxPresses = opts?.maxPresses ?? 50;
+    const goal = this.goal(target, 'pressUntilFocused');
+    const maxPresses = this.maxPresses(opts?.maxPresses);
+    return this.ctx.step(
+      { kind: 'pressUntilFocused', title: `pressUntilFocused ${key} ${goal.description}` },
+      async () => {
+        let focused = await this.waitForFocus();
+        const path = [focused];
+        const seen = new Set([focusKey(focused)]);
+        for (let presses = 0; ;) {
+          if (await this.holdsFocus(goal)) return presses;
+          const pressed = () => `Pressed ${key} ${times(presses)} toward ${goal.description}`;
+          const docs = packageDocsLink('core', 'focus-navigation');
+          if (presses >= maxPresses) {
+            throw new ToetsError(
+              'FOCUS_UNREACHABLE',
+              `${pressed()} and gave up after maxPresses (${maxPresses}). Path: ${describePath(path)}.`,
+              {
+                hint: `The target may be more than ${maxPresses} presses away (raise maxPresses), or not in this direction. Check its locator and the screen in app.snapshot().`,
+                docs,
+              },
+            );
+          }
+          await this.remote.press(key);
+          presses++;
+          const settleMs = this.ctx.timeouts.navigationSettleMs;
+          const after = await focusAfterPress(this.ctx.target, focused, settleMs);
+          if (!after) {
+            throw new ToetsError(
+              'NO_FOCUS',
+              `${pressed()}: nothing holds focus after the last press. Path: ${describePath(path)}.`,
+              {
+                hint: 'The press moved focus out of the app, or onto something the platform does not report. Check the screen in app.snapshot().',
+                docs,
+              },
+            );
+          }
+          if (sameFocus(after, focused)) {
+            throw new ToetsError(
+              'FOCUS_STUCK',
+              `${pressed()}: focus stayed on ${describeElement(after)} for ${settleMs}ms after the last press. Path: ${describePath(path)}.`,
+              {
+                hint: `Focus cannot move ${key} from here: the end of a row or list, a focus trap, or a disabled target. Check the direction, that the target is enabled, and the screen in app.snapshot().`,
+                docs,
+              },
+            );
+          }
+          path.push(after);
+          if (seen.has(focusKey(after))) {
+            throw new ToetsError(
+              'FOCUS_LOOP',
+              `${pressed()}: focus came back to ${describeElement(after)}, so ${key} cycles without reaching the target. Path: ${describePath(path)}.`,
+              {
+                hint: 'The target is not on this path (a wrap-around row or menu). Check its locator, that it is enabled and visible, or press another direction.',
+                docs,
+              },
+            );
+          }
+          seen.add(focusKey(after));
+          focused = after;
+        }
+      },
+    );
+  }
+
+  async navigateTo(target: Locator, opts?: NavigateOptions): Promise<readonly Direction[]> {
+    const goal = this.goal(target, 'navigateTo');
+    const maxPresses = this.maxPresses(opts?.maxPresses);
     return this.ctx.step({ kind: 'navigate', title: `navigateTo ${goal.description}` }, () =>
       this.navigate(goal, maxPresses),
     );
   }
 
+  private goal(target: Locator, method: string): LocatorImpl {
+    const goal = locatorImpl(target);
+    if (!goal) {
+      throw new ToetsError('INVALID_ARGUMENT', `${method}() needs a toets Locator.`, {
+        docs: packageDocsLink('core', 'focus-navigation'),
+      });
+    }
+    return goal;
+  }
+
+  private maxPresses(value: number | undefined): number {
+    if (value === undefined) return DEFAULT_MAX_PRESSES;
+    if (!Number.isInteger(value) || value < 1) {
+      throw new ToetsError(
+        'INVALID_ARGUMENT',
+        `maxPresses must be a positive integer, got ${value}.`,
+        { docs: packageDocsLink('core', 'focus-navigation') },
+      );
+    }
+    return value;
+  }
+
+  /** Whether `goal` (strict: at most one match) or an element inside it holds focus. */
+  private async holdsFocus(goal: LocatorImpl): Promise<boolean> {
+    const matches = await goal.resolve();
+    if (matches.length > 1) throw strictModeError(goal.chain, matches);
+    const el = matches[0];
+    return !!el && (el.focused || el.focusWithin);
+  }
+
   /**
-   * Online search with real presses. Every observed transition is learned; each (element,
-   * direction) pair is tried at most once, so the search always ends. Order of preference:
-   * the SDK focus graph; an untried direction toward the target; walking known transitions back
-   * to the nearest element that still has one; an untried detour; walking to any element with
-   * an untried direction.
+   * Online search with real presses. Every observed move is learned; each (element, direction)
+   * pair is tried at most once, so the search always ends. Order of preference: an untried
+   * direction toward the target; walking observed moves back to the nearest element that still
+   * has one; an untried detour; walking to any element with an untried direction.
    */
   private async navigate(goal: LocatorImpl, maxPresses: number): Promise<readonly Direction[]> {
     const path: Direction[] = [];
-    const visits = new Map<ElementRef, Visit>();
-    let goals: ReadonlySet<string> | null = null;
+    const visits = new Map<FocusKey, Visit>();
 
     for (;;) {
-      const el = await goal.resolveOne();
+      const el = await this.onScreen(goal);
       if (el.focused || el.focusWithin) return path;
-      goals ??= await this.focusTargets(goal, el);
 
       const focused = await this.waitForFocus();
       if (path.length >= maxPresses) {
         throw this.unreachable(goal, focused, path, `gave up after ${maxPresses} presses`);
       }
-      const visit = visits.get(focused.ref) ?? {
+      const here = focusKey(focused);
+      const visit = visits.get(here) ?? {
         bounds: focused.bounds,
         tried: new Set(),
-        edges: new Map(),
+        moves: new Map(),
       };
       visit.bounds = focused.bounds;
-      visits.set(focused.ref, visit);
+      visits.set(here, visit);
 
-      const direction = await this.chooseDirection(focused.ref, el.bounds, goals, visits);
+      const direction = this.chooseDirection(here, el.bounds, visits);
       if (!direction) throw this.unreachable(goal, focused, path, 'no untried direction is left');
       visit.tried.add(direction);
       await this.remote.press(DIRECTION_KEY[direction]);
       path.push(direction);
-      await this.settle(focused.ref);
+      await settleFocus(this.ctx.target, focused.ref, this.ctx.timeouts.navigationSettleMs);
       const after = await this.ctx.target.focused();
-      visit.edges.set(direction, after?.ref ?? focused.ref);
+      visit.moves.set(direction, after ? focusKey(after) : here);
     }
   }
 
-  /** Refs that count as "arrived": the target itself, or its focusable descendants. */
-  private async focusTargets(goal: LocatorImpl, el: ElementSnapshot): Promise<ReadonlySet<string>> {
-    if (el.focusable) return new Set([el.ref]);
-    const node = findNode(await this.ctx.target.tree(), el.ref);
-    if (!node) return new Set([el.ref]);
-    const refs = [...walkTree(node)].filter((n) => n.focusable && n.visible).map((n) => n.ref);
-    if (!refs.length) {
-      throw new ToetsError(
-        'TARGET_NOT_FOCUSABLE',
-        `${goal.description} is not focusable and contains nothing focusable.`,
-        {
-          hint: 'Navigate to the focusable element itself (a card or button), or to a container holding one. Check focusability in app.snapshot().',
-          docs: packageDocsLink('core', 'focus-navigation'),
-        },
-      );
+  /** The target, which navigateTo aims at by its bounds. */
+  private async onScreen(goal: LocatorImpl): Promise<ElementSnapshot> {
+    try {
+      return await goal.resolveOne();
+    } catch (e) {
+      if (!(e instanceof ToetsError) || e.code !== 'ELEMENT_NOT_FOUND') throw e;
+      throw new ToetsError('ELEMENT_NOT_FOUND', e.message, {
+        hint: 'navigateTo aims at the target on screen. For an item that appears only as focus comes near (virtualized lists), press toward it with app.focus.pressUntilFocused(key, target).',
+        docs: packageDocsLink('core', 'focus-navigation'),
+        cause: e,
+      });
     }
-    return new Set(refs);
   }
 
   private async waitForFocus(): Promise<ElementSnapshot> {
@@ -221,33 +336,18 @@ export class FocusImpl implements Focus {
       return { ok: f !== null, value: f };
     }, this.ctx.timeouts.actionMs);
     if (result.value) return result.value;
-    throw new ToetsError('NO_FOCUS', 'Nothing is focused, so focus cannot be navigated.', {
-      hint: 'Launch the app and wait until it is ready (e.g. expect(app.focus.current()).toBeVisible()) before navigating.',
+    throw new ToetsError('NO_FOCUS', 'Nothing is focused, so focus cannot be moved.', {
+      hint: 'Launch the app and wait until it is ready (e.g. expect(app.focus.current()).toBeVisible()) before moving focus.',
       docs: packageDocsLink('core', 'focus-navigation'),
     });
   }
 
-  private async chooseDirection(
-    from: ElementRef,
+  private chooseDirection(
+    from: FocusKey,
     goal: Rect,
-    goals: ReadonlySet<string>,
-    visits: ReadonlyMap<ElementRef, Visit>,
-  ): Promise<Direction | null> {
+    visits: ReadonlyMap<FocusKey, Visit>,
+  ): Direction | null {
     const here = visits.get(from) as Visit;
-    const graph = await this.ctx.target.focusGraph();
-    // A graph without edges (an SDK that only lists focusables) says nothing about paths.
-    if (graph?.some((n) => DIRECTIONS.some((d) => n[d] !== undefined))) {
-      // A `null` edge is known not to move focus: never spend a press on it.
-      const node = graph.find((n) => n.id === from);
-      for (const d of DIRECTIONS) {
-        if (node?.[d] !== null || here.tried.has(d)) continue;
-        here.tried.add(d);
-        here.edges.set(d, from);
-      }
-      const step = nextStepInGraph(graph, from, goals);
-      if (step && !here.tried.has(step)) return step;
-      this.ctx.log('the focus graph has no untried path from here; using geometry');
-    }
     const toward = (v: Visit) => towardDirections(v.bounds, goal).filter((d) => !v.tried.has(d));
     const any = (v: Visit) => rankDirections(v.bounds, goal).filter((d) => !v.tried.has(d));
     return (
@@ -256,10 +356,6 @@ export class FocusImpl implements Focus {
       any(here)[0] ??
       walkToward(visits, from, (v) => any(v).length > 0)
     );
-  }
-
-  private settle(from: ElementRef | undefined): Promise<void> {
-    return settleFocus(this.ctx.target, from, this.ctx.timeouts.navigationSettleMs);
   }
 
   private unreachable(
@@ -272,7 +368,7 @@ export class FocusImpl implements Focus {
       'FOCUS_UNREACHABLE',
       `Could not move focus to ${goal.description}: ${reason}. Focus is on ${describeElement(focused)}. Path: ${path.length ? path.join(', ') : '(none)'}.`,
       {
-        hint: 'The target may be disabled, hidden, behind a focus trap, or not reachable with the D-pad from here. Inspect app.snapshot(), navigate in smaller steps, or raise maxPresses for long lists.',
+        hint: 'The target may be disabled, hidden, behind a focus trap, or not reachable with the D-pad from here. Inspect app.snapshot(), or press toward it with app.focus.pressUntilFocused(key, target) for clear stuck and loop errors.',
         docs: packageDocsLink('core', 'focus-navigation'),
       },
     );

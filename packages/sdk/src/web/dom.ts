@@ -1,34 +1,31 @@
 import {
   RpcError,
   RpcErrorCode,
-  type FocusGraphNode,
   type ProtocolNode,
   type Rect,
   type Viewport,
 } from '@toets/protocol';
-
-/** Where focus goes from an element per direction (element = target, `null` = blocked). */
-export interface FocusNeighbors {
-  readonly up?: Element | null;
-  readonly down?: Element | null;
-  readonly left?: Element | null;
-  readonly right?: Element | null;
-}
+import type { ReportedFocus } from '../runtime.js';
 
 export interface DomMapperOptions {
   /** Attribute holding test ids. Default `data-testid` (react-native-web renders `testID` there). */
   readonly testIdAttribute?: string;
   /** Root element of the tree. Default `document.body`. */
   readonly root?: () => Element | null;
-  /**
-   * The focused element. Default: `document.activeElement` (through open shadow roots).
-   * Override for focus engines that do not move DOM focus (they track a "focused" class).
-   */
-  readonly focusedElement?: () => Element | null;
   /** Overrides focusability; return `undefined` to keep the default. */
   readonly isFocusable?: (el: Element) => boolean | undefined;
-  /** Exposes the app focus engine's neighbors for `focus.graph`. Default: unknown edges. */
-  readonly focusNeighbors?: (el: Element) => FocusNeighbors | null | undefined;
+}
+
+/** The element a `reportFocus()` value stands for: an element or a ref object holding one. */
+function reportedElement(target: unknown): Element | null {
+  const value =
+    typeof target === 'object' && target !== null && 'current' in target
+      ? (target as { current: unknown }).current
+      : target;
+  if (typeof value !== 'object' || value === null) return null;
+  const el = value as Element & { isConnected?: boolean };
+  // A detached element holds no focus (`isConnected` is missing on old engines: assume attached).
+  return el.nodeType === 1 && el.isConnected !== false ? el : null;
 }
 
 const SKIP = ['SCRIPT', 'STYLE', 'NOSCRIPT', 'TEMPLATE', 'HEAD', 'META', 'LINK', 'TITLE'];
@@ -83,10 +80,16 @@ export class DomMapper {
   private nextId = 1;
   private readonly opts: DomMapperOptions;
   private readonly attr: string;
+  private readonly reported: () => ReportedFocus | null;
 
-  constructor(opts: DomMapperOptions = {}) {
+  /**
+   * @param reported Focus reported by the app (`reportFocus()`); while it returns `null`, focus
+   * is `document.activeElement`.
+   */
+  constructor(opts: DomMapperOptions = {}, reported: () => ReportedFocus | null = () => null) {
     this.opts = opts;
     this.attr = opts.testIdAttribute ?? 'data-testid';
+    this.reported = reported;
   }
 
   idOf(el: Element): string {
@@ -135,30 +138,6 @@ export class DomMapper {
     return el ? this.idOf(el) : null;
   }
 
-  graph(rootId?: string): FocusGraphNode[] {
-    const { root } = this.tree(rootId);
-    const out: FocusGraphNode[] = [];
-    const neighbors = this.opts.focusNeighbors;
-    const visit = (node: ProtocolNode): void => {
-      if (node.focusable) {
-        const el = neighbors ? this.elementById(node.id) : null;
-        const n = el && neighbors ? safe(() => neighbors(el), null) : null;
-        const entry: { -readonly [K in keyof FocusGraphNode]: FocusGraphNode[K] } = { id: node.id };
-        if (n) {
-          for (const dir of ['up', 'down', 'left', 'right'] as const) {
-            const target = n[dir];
-            if (target === null) entry[dir] = null;
-            else if (target) entry[dir] = this.idOf(target);
-          }
-        }
-        out.push(entry);
-      }
-      node.children.forEach(visit);
-    };
-    visit(root);
-    return out;
-  }
-
   elementById(id: string): Element | null {
     const root = this.rootElement();
     if (!root) return null;
@@ -171,8 +150,10 @@ export class DomMapper {
     return findInShadow(root, (el) => this.ids.get(el) === id);
   }
 
+  /** The reported focus when the app reports it (`reportFocus()`), else `document.activeElement`. */
   focusedElement(): Element | null {
-    if (this.opts.focusedElement) return safe(() => this.opts.focusedElement!(), null);
+    const reported = this.reported();
+    if (reported) return reportedElement(reported.target);
     if (typeof document === 'undefined') return null;
     let el: Element | null = document.activeElement;
     while (el && el.shadowRoot && el.shadowRoot.activeElement) el = el.shadowRoot.activeElement;
