@@ -1,14 +1,21 @@
 {
   "name": "@toets/driver-android-tv",
   "version": "0.1.0",
-  "description": "toets driver for Android TV / Fire TV emulators, built on Appium UiAutomator2.",
+  "description": "toets driver for Android TV, Google TV and Fire TV emulators: E2E testing for TV apps, built on Appium UiAutomator2.",
   "keywords": [
     "toets",
     "tv",
+    "smart-tv",
+    "tv-app",
     "e2e",
+    "end-to-end",
     "testing",
+    "test-automation",
     "android-tv",
+    "google-tv",
     "fire-tv",
+    "leanback",
+    "android",
     "appium",
     "uiautomator2",
     "emulator"

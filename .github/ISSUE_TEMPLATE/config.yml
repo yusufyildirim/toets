@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Questions and ideas
+    url: https://github.com/yusufyildirim/toets/discussions
+    about: Ask how to test something, or discuss an idea before opening a feature request.
+  - name: Docs
+    url: https://github.com/yusufyildirim/toets/blob/main/docs/index.md
+    about: Install, concepts, guides, platforms and error codes.

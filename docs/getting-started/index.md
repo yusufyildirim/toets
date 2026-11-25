@@ -7,17 +7,7 @@ description: Install toets, configure platforms and run a first cross-platform T
 toets is a set of [Playwright Test](https://playwright.dev/docs/intro) fixtures for TV apps. Every platform is a Playwright project, and every test receives one fixture, `app`: the app under test on the current platform. You keep Playwright's runner, reporters, UI mode, retries and sharding.
 
 ::: warning Pre-alpha
-toets is not on npm yet and its APIs may change. Until the first release, install tarballs packed from a checkout of the toets repository:
-
-```sh
-# in the toets checkout: packs every package into /tmp/toets (absolute path)
-pnpm install && pnpm build && pnpm pack:local /tmp/toets
-# in your project, instead of the npm install below (add toets-tv-sdk for the in-app SDK)
-npm install --save-dev /tmp/toets/toets-tv-{core,protocol,mock,test,driver-web}-0.0.0.tgz @playwright/test
-```
-
-Install tarballs, not `link:`s to the checkout: a link loads the checkout's own `@playwright/test` next to yours and fails with `Playwright Test did not expect test() to be called here`. With pnpm, also set `pnpm.overrides` for `@toets/core`, `@toets/protocol` and `@toets/mock` to their `file:` tarballs, or it looks them up on npm.
-
+toets APIs may change between minor versions until 1.0.
 :::
 
 ## Requirements

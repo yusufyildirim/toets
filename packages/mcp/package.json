@@ -1,15 +1,26 @@
 {
   "name": "@toets/mcp",
   "version": "0.1.0",
-  "description": "toets MCP server: drive TV apps and read toets docs from agents with the same primitives tests use.",
+  "description": "toets MCP server: let AI agents drive TV apps (web, Android TV, tvOS) and search the toets docs with the same primitives tests use.",
   "keywords": [
     "toets",
     "tv",
+    "smart-tv",
+    "tv-app",
     "e2e",
+    "end-to-end",
     "testing",
+    "test-automation",
     "mcp",
+    "mcp-server",
     "model-context-protocol",
-    "agents"
+    "ai",
+    "agents",
+    "android-tv",
+    "google-tv",
+    "fire-tv",
+    "tvos",
+    "apple-tv"
   ],
   "license": "MIT",
   "author": "Yusuf YILDIRIM",

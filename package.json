@@ -1,6 +1,8 @@
 {
   "name": "toets-monorepo",
   "private": true,
+  "description": "toets monorepo: cross-platform E2E testing for TV apps (web, Android TV / Fire TV, tvOS) on Playwright Test.",
+  "license": "MIT",
   "type": "module",
   "repository": {
     "type": "git",

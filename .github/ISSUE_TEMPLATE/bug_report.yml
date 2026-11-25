@@ -1,0 +1,44 @@
+name: Bug report
+description: Something in toets does not work as documented.
+labels: [bug]
+body:
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened
+      description: Include the full `ToetsError` output (code, hint, docs) if there is one.
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction
+      description: Minimal test and config, or a link to a repository.
+      render: ts
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - web
+        - Android TV / Google TV
+        - Fire TV
+        - tvOS
+    validations:
+      required: true
+  - type: textarea
+    id: env
+    attributes:
+      label: Environment
+      description: '`@toets/*` versions, `@playwright/test` version, Node, host OS, emulator or simulator image, app framework.'
+    validations:
+      required: true
