@@ -14,7 +14,7 @@ await expect(app.media).toBePlaying(); // needs media.state
 ## How it fits
 
 - **On launch** toets issues a one-time token and passes a payload (`sdkUrl`, `token`, `mockUrl`, `state`, `flags`) to the app through the driver. The app connects and toets waits up to `timeouts.sdkConnectMs`; if it never connects, launch fails with `SDK_NOT_CONNECTED`.
-- **Composition:** the SDK answers tree, queries, focus, media and idle; the driver still does input, launch and screenshots. If an SDK request fails, toets falls back to the driver. When the SDK reports nothing focused, the driver's focused element counts, matched into the SDK tree by its unique test ID, else by its bounds (scaled to the SDK viewport): some native views take focus without a framework focus event (a react-native-tvos `TextInput` on tvOS).
+- **Composition:** the SDK answers tree, queries, focus, media and idle; the driver still does input, launch and screenshots. If an SDK request fails, toets falls back to the driver. When the SDK reports nothing focused, the driver's focused element counts, matched into the SDK tree by its unique test ID: some native views take focus without a framework focus event (a react-native-tvos `TextInput` on tvOS).
 - **Without the payload the SDK is inert**, so production builds can ship it.
 
 ## Principles
