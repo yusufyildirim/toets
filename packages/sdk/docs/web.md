@@ -10,7 +10,20 @@ import { startToets } from '@toets/sdk/web';
 startToets(); // first thing in the entry file, before the router rewrites the URL
 ```
 
-The package is ESM with bare imports: bundle it with the app (any bundler), even for a plain HTML/JS app.
+The package is ESM with bare imports: bundle it with the app (any bundler), even for a plain HTML/JS app. Its ES2015 output needs no transpiling.
+
+Bundlers without `package.json` `exports` support (webpack 4, Create React App 3 and 4) cannot find the toets packages. Alias them to the files Node resolves:
+
+```js nocheck
+// webpack.config.js (Create React App: through react-app-rewired or craco)
+const toets = ['@toets/protocol', '@toets/sdk', '@toets/sdk/web', '@toets/sdk/noop'];
+// React Native apps also: '@toets/sdk-react-native', '@toets/sdk-react-native/noop'
+module.exports = {
+  resolve: {
+    alias: Object.fromEntries(toets.map((name) => [`${name}$`, require.resolve(name)])),
+  },
+};
+```
 
 The web driver passes the payload as `?__toets=<base64url>` (also read inside hash routes) or `window.__TOETS__` through an init script.
 

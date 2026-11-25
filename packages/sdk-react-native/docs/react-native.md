@@ -2,6 +2,8 @@
 
 `@toets/sdk-react-native` targets react-native-tvos (Android TV, Fire TV, tvOS) on the new architecture, and react-native-web. It builds on `@toets/sdk`: the app-facing API (`onState`, `markBusy`, `getLaunchPayload`, ...) is re-exported, see that package's docs.
 
+On the web it supports react-native-web 0.18 and later with React 18 and later. Bundlers without `exports` support (webpack 4, Create React App 3 and 4) need aliases for the toets packages ([web adapter](../../sdk/docs/web.md)). The bundler aliases `react-native` to `react-native-web`, so web-only apps do not install `react-native` (an optional peer dependency).
+
 ## Setup
 
 ```ts nocheck
