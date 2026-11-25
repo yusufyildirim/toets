@@ -1,6 +1,6 @@
 {
   "name": "@toets/eslint-plugin",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ESLint rules for toets TV app E2E tests: no fixed waits, semantic keys, stable page objects, no platform escape hatches.",
   "keywords": [
     "toets",
