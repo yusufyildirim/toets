@@ -34,5 +34,6 @@ The remote has up, down, left, right, select, back (the Menu button), play/pause
 ## Traps
 
 - **The focus engine is strict.** tvOS only focuses elements the app marks focusable, and moves by its own geometry rules. A test that passes on web can fail here for real reasons.
+- **Presses right after a screen change are lost.** Until the new screen holds focus, the remote does nothing. Assert focus on it (`toBeFocused`), not just visibility, before the next press.
 - **First run builds WebDriverAgent.** It takes about a minute once per Xcode version (cached in `~/Library/Caches/toets/tvos-wda`); cache that folder in CI.
 - **`BACK` on the home screen leaves the app.** As on a real Apple TV.

@@ -41,7 +41,7 @@ Measured on an Apple Silicon Mac, Xcode 27.2, Apple TV 4K (3rd generation) (at 1
 | ----------------------------------------- | --------- | ------ |
 | `query` / `focused` / `tree`, 29 elements | ~110ms    | ~150ms |
 | `query` / `focused` / `tree`, 95 elements | ~255ms    | ~260ms |
-| `press` (incl. focus check)               | ~260ms    | ~590ms |
+| `press`                                   | ~235ms    |        |
 | `press` with `holdMs: 1500`               | ~1.73s    |        |
 | `screenshot`                              | ~60-120ms |        |
 | element screenshot                        | ~165ms    |        |
@@ -50,7 +50,7 @@ Measured on an Apple Silicon Mac, Xcode 27.2, Apple TV 4K (3rd generation) (at 1
 | `reset` (app not running)                 | ~15ms     |        |
 | `start` (booted simulator)                | ~4.2s     |        |
 
-29 elements is the Swift fixture app, 95 the React Native example's home screen. The p90 of `press` is presses right after a screen transition, which wait for focus (see [traps](./traps.md)). A raw `XCUIRemote` press costs ~235ms whatever its duration. The integration test prints p50/p90/max per action on your machine:
+29 elements is the Swift fixture app, 95 the React Native example's home screen. A `press` is one `XCUIRemote` press, ~235ms whatever its duration. The integration test prints p50/p90/max per action on your machine:
 
 ```sh
 TOETS_TVOS_UDID=<udid> pnpm --filter @toets/driver-tvos test test/integration

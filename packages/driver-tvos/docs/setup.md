@@ -42,7 +42,6 @@ All optional, passed to `platforms.tvOS({ ... })`:
 | `wda.mode`             | `prebuilt` (default) or `xcodebuild` (XCUITest builds WDA per session)      |
 | `wda.path`             | A ready WebDriverAgent runner `.app`, e.g. from a CI cache                  |
 | `capabilities`         | Extra Appium capabilities, merged last                                      |
-| `focusWaitMs`          | How long a press waits for focus after a screen transition (default 1500)   |
 | `logs.enabled/process` | App log collection (default on, filtered to the app's `CFBundleExecutable`) |
 | `managed`              | Options of the `managed` device provider                                    |
 

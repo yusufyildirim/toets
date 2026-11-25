@@ -26,18 +26,19 @@ Docs are referenced by slug, for example `concepts/idle`: the docs site page `/<
 
 ## Symptoms
 
-| Symptom                                          | Likely cause and fix                                                                                                                                  |
-| ------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Element not found on one platform                | Test ID missing or not mapped there. Check the text snapshot; add the ID in the app. (`concepts/locators-and-assertions`)                             |
-| Focus on the wrong element                       | Overlay, focus memory or that platform's focus engine rules. Assert focus after each step to find where it diverged. (`concepts/focus`)               |
-| `FOCUS_STUCK`, `FOCUS_LOOP`, `FOCUS_UNREACHABLE` | The message lists where focus went. Stuck: end of a row, a trap or a disabled target. Loop: the target is not in that direction. Possibly an app bug. |
-| Timeout naming a busy resource                   | App never idle (poller, animation, player). Exclude the noise in the SDK config, or fix the app. (`concepts/idle`)                                    |
-| Unsupported key / capability error               | The remote lacks the key. Add `requires`, or a key override if the app has a gesture for it. (`concepts/remote-and-keys`)                             |
-| Negative assertion passes, bug still there       | It ran before the state existed. Anchor it on a positive assertion first. (`concepts/idle`)                                                           |
-| Passes on web, fails on device                   | Slower device, stricter focus engine, missing key. Compare text snapshots between platforms. (`platforms/tvos`, `platforms/android-tv`)               |
-| Mock not applied                                 | `toets.mock` off, handler added after `launch()`, or the app never routed the request: check `app.network.requests()`. (`concepts/network-mocking`)   |
-| Launch or device errors                          | Read driver and device logs; check the platform's `app` config and host requirements. (`platforms/web`)                                               |
-| Fails in CI only                                 | Missing KVM, cold boots, uncached WebDriverAgent, fewer CPUs. (`ci/android`, `ci/tvos`)                                                               |
+| Symptom                                                | Likely cause and fix                                                                                                                                  |
+| ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Element not found on one platform                      | Test ID missing or not mapped there. Check the text snapshot; add the ID in the app. (`concepts/locators-and-assertions`)                             |
+| Focus on the wrong element                             | Overlay, focus memory or that platform's focus engine rules. Assert focus after each step to find where it diverged. (`concepts/focus`)               |
+| `FOCUS_STUCK`, `FOCUS_LOOP`, `FOCUS_UNREACHABLE`       | The message lists where focus went. Stuck: end of a row, a trap or a disabled target. Loop: the target is not in that direction. Possibly an app bug. |
+| Timeout naming a busy resource                         | App never idle (poller, animation, player). Exclude the noise in the SDK config, or fix the app. (`concepts/idle`)                                    |
+| Unsupported key / capability error                     | The remote lacks the key. Add `requires`, or a key override if the app has a gesture for it. (`concepts/remote-and-keys`)                             |
+| Negative assertion passes, bug still there             | It ran before the state existed. Anchor it on a positive assertion first. (`concepts/idle`)                                                           |
+| tvOS: a press right after a screen change does nothing | The new screen had no focus yet, so tvOS dropped the press. Assert focus on the new screen before pressing, not visibility. (`platforms/tvos`)        |
+| Passes on web, fails on device                         | Slower device, stricter focus engine, missing key. Compare text snapshots between platforms. (`platforms/tvos`, `platforms/android-tv`)               |
+| Mock not applied                                       | `toets.mock` off, handler added after `launch()`, or the app never routed the request: check `app.network.requests()`. (`concepts/network-mocking`)   |
+| Launch or device errors                                | Read driver and device logs; check the platform's `app` config and host requirements. (`platforms/web`)                                               |
+| Fails in CI only                                       | Missing KVM, cold boots, uncached WebDriverAgent, fewer CPUs. (`ci/android`, `ci/tvos`)                                                               |
 
 ## Never
 

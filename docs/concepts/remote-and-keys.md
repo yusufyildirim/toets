@@ -69,3 +69,4 @@ export default defineConfig({
 - **`BACK` is the Menu button on Apple TV.** The driver maps it; tests stay semantic.
 - **Fixed key sequences are brittle.** `repeat(Key.RIGHT, 7)` encodes today's layout. Use [`pressUntilFocused`](./focus.md) unless the sequence itself is under test.
 - **Do not add sleeps between presses.** `repeat` and `sequence` already space presses (`intervalMs`, default 100 ms, configurable as `toets.remote.intervalMs`). Between separate presses, assert the state you expect instead of waiting.
+- **Assert focus after a screen change.** After a key that opens or closes a screen, assert focus on the new screen (`toBeFocused`) before the next press, not just that it is visible. tvOS drops presses until the new screen holds focus ([tvOS](../platforms/tvos.md)). `pressUntilFocused` and `navigateTo` wait for focus themselves.
