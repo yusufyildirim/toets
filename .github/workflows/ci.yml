@@ -32,6 +32,8 @@ jobs:
       # Format, lint, typecheck, API docs, unit tests (packages and examples) and the docs checks
       # (examples run against the docs' in-memory demo app, no browser).
       - run: pnpm check
+      # The site build fails on dead links; catch them here, not when deploying a release.
+      - run: pnpm docs:build
 
   e2e-web:
     name: E2E (web, Chromium)

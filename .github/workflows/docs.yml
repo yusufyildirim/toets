@@ -1,0 +1,54 @@
+name: Docs
+
+# Deploys the docs site to GitHub Pages. The Release workflow calls it after every npm release, so
+# the site documents the published packages, not unreleased `main`. Run it by hand from `main` to
+# redeploy (Actions > Docs > Run workflow).
+on:
+  workflow_call:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Build docs
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .tool-versions
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      # The Pages URL (custom domain or `https://<owner>.github.io/<repo>`) sets the site base and
+      # the absolute links in llms.txt and the sitemap.
+      - id: pages
+        uses: actions/configure-pages@v5
+      - run: pnpm docs:build
+        env:
+          TOETS_DOCS_URL: ${{ steps.pages.outputs.base_url }}
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: docs/.vitepress/dist
+
+  deploy:
+    name: Deploy docs
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    # One deployment at a time; a queued one waits instead of cancelling a running one.
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

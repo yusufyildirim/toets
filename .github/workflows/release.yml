@@ -48,6 +48,8 @@ jobs:
     runs-on: ubuntu-24.04
     timeout-minutes: 30
     environment: npm
+    outputs:
+      published: ${{ steps.release.outputs.published }}
     permissions:
       contents: write # push release tags
       id-token: write # npm trusted publishing and provenance
@@ -60,5 +62,22 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
-      - run: pnpm release
+      # `changeset publish` tags HEAD for every package it publishes; no new tag means nothing
+      # was released. The checkout fetches no tags, so only this run's tags point at HEAD.
+      - id: release
+        run: |
+          pnpm release
+          if [ -n "$(git tag --points-at HEAD)" ]; then published=true; else published=false; fi
+          echo "published=$published" >> "$GITHUB_OUTPUT"
       - run: git push origin --tags
+
+  # After a release: deploys the docs site to GitHub Pages.
+  docs:
+    name: Docs
+    needs: publish
+    if: needs.publish.outputs.published == 'true'
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+    uses: ./.github/workflows/docs.yml
