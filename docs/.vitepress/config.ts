@@ -52,6 +52,7 @@ export default defineConfig({
     sidebar: sidebar(),
     outline: { level: [2, 3] },
     search: { provider: 'local' },
+    socialLinks: [{ icon: 'github', link: 'https://github.com/yusufyildirim/toets' }],
   },
   transformPageData(page) {
     // Package overview pages are generated from one dynamic route; title them per package.
