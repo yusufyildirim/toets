@@ -16,9 +16,6 @@ import { sleep } from './retry.js';
 
 const DIRECTIONS: readonly Direction[] = ['up', 'down', 'left', 'right'];
 const DIRECTION_KEYS: ReadonlySet<string> = new Set(Object.values(DIRECTION_KEY));
-const KEY_DIRECTION = Object.fromEntries(
-  Object.entries(DIRECTION_KEY).map(([d, k]) => [k, d]),
-) as Record<DirectionKey, Direction>;
 const SETTLE_POLL_MS = 50;
 const DEFAULT_MAX_PRESSES = 50;
 /** Elements of the focus path shown in error messages (the most recent ones). */
@@ -117,24 +114,9 @@ export function towardDirections(from: Rect, to: Rect): Direction[] {
   );
 }
 
-/**
- * Presses in `direction` a system text field can take to move its caret instead of focus: one
- * per character sideways, one per line up or down (web spatial navigation moves the caret inside
- * an input before leaving it). Navigation repeats a direction that left focus on such a field
- * this many times before calling it stuck.
- */
-export function caretTravel(el: ElementSnapshot, direction: Direction): number {
-  if (!el.editable) return 0;
-  const value = el.value ?? '';
-  if (direction === 'left' || direction === 'right') return [...value].length;
-  return value.split('\n').length;
-}
-
 interface Visit {
   bounds: Rect;
   readonly tried: Set<Direction>;
-  /** Presses per direction that left focus here: caret moves in a text field. */
-  readonly caret: Map<Direction, number>;
   /** Observed moves; a press that did not move focus maps to the element itself. */
   readonly moves: Map<Direction, FocusKey>;
 }
@@ -209,8 +191,6 @@ export class FocusImpl implements Focus {
         let focused = await this.waitForFocus();
         const path = [focused];
         const seen = new Set([focusKey(focused)]);
-        const direction = KEY_DIRECTION[key];
-        let caret = 0;
         for (let presses = 0; ;) {
           if (await this.holdsFocus(goal)) return presses;
           const pressed = () => `Pressed ${key} ${times(presses)} toward ${goal.description}`;
@@ -239,10 +219,6 @@ export class FocusImpl implements Focus {
               },
             );
           }
-          if (sameFocus(after, focused) && caret < caretTravel(after, direction)) {
-            caret++; // the press moved the field's caret
-            continue;
-          }
           if (sameFocus(after, focused)) {
             throw new ToetsError(
               'FOCUS_STUCK',
@@ -266,7 +242,6 @@ export class FocusImpl implements Focus {
           }
           seen.add(focusKey(after));
           focused = after;
-          caret = 0;
         }
       },
     );
@@ -340,7 +315,6 @@ export class FocusImpl implements Focus {
       const visit = visits.get(here) ?? {
         bounds: focused.bounds,
         tried: new Set(),
-        caret: new Map(),
         moves: new Map(),
       };
       visit.bounds = focused.bounds;
@@ -353,13 +327,6 @@ export class FocusImpl implements Focus {
       path.push(direction);
       await settleFocus(this.ctx.target, focused.ref, this.ctx.timeouts.navigationSettleMs);
       const after = await this.ctx.target.focused();
-      const caret = visit.caret.get(direction) ?? 0;
-      if (after && sameFocus(after, focused) && caret < caretTravel(after, direction)) {
-        // The press moved the field's caret: the direction is not tried until it reached the end.
-        visit.caret.set(direction, caret + 1);
-        visit.tried.delete(direction);
-        continue;
-      }
       visit.moves.set(direction, after ? focusKey(after) : here);
     }
   }

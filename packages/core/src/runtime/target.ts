@@ -1,9 +1,16 @@
-import type { Domain, HostToAppMethod, MediaInfo, ProtocolNode, SdkSession } from '@toets/protocol';
+import type {
+  Domain,
+  HostToAppMethod,
+  MediaInfo,
+  ProtocolNode,
+  SdkSession,
+  Viewport,
+} from '@toets/protocol';
 import type { Capability } from '../capabilities.js';
 import { fromProtocolError } from '../errors.js';
 import type { Driver } from '../driver.js';
 import type { SelectorChain } from '../selectors.js';
-import type { ElementSnapshot, UITree } from '../snapshot.js';
+import type { ElementSnapshot, Rect, UITree } from '../snapshot.js';
 import type { IdleCheck } from './retry.js';
 import { evaluateChain, focusedIn, protocolToTree } from './tree.js';
 
@@ -105,30 +112,47 @@ export class Target {
   private sdkTree(): Promise<UITree | undefined> {
     return this.viaSdk('tree.get', async (s) => {
       const { root, viewport } = await s.request('tree.get', {});
-      return protocolToTree(await this.withNativeFocus(root), viewport);
+      return protocolToTree(await this.withNativeFocus(root, viewport ?? root.bounds), viewport);
     });
   }
 
   /**
    * The SDK learns focus from the framework's focus events, and some native views take focus
    * without one (a react-native-tvos `TextInput` on tvOS). When the SDK reports nothing focused,
-   * the driver's focused element counts, matched into the SDK tree by its unique test ID.
+   * the driver's focused element counts. SDK and driver trees share no element IDs, so it maps
+   * into the SDK tree by its unique test ID, else by its bounds scaled to the SDK viewport.
    */
-  private async withNativeFocus(root: ProtocolNode): Promise<ProtocolNode> {
+  private async withNativeFocus(root: ProtocolNode, viewport: Viewport): Promise<ProtocolNode> {
     const nodes = [...protocolNodes(root)];
     if (nodes.some((n) => n.focused)) return root;
-    let testId: string | null | undefined;
+    let focused: ProtocolNode | undefined;
     try {
-      testId = (await this.driver.focused())?.testId;
+      focused = await this.nativeFocusIn(nodes, viewport);
     } catch {
       return root;
     }
-    const matches = testId ? nodes.filter((n) => n.testId === testId) : [];
-    if (matches.length !== 1) return root;
-    const focused = matches[0];
+    if (!focused) return root;
     const mark = (n: ProtocolNode): ProtocolNode =>
       n === focused ? { ...n, focused: true } : { ...n, children: n.children.map(mark) };
     return mark(root);
+  }
+
+  private async nativeFocusIn(
+    nodes: readonly ProtocolNode[],
+    viewport: Viewport,
+  ): Promise<ProtocolNode | undefined> {
+    const native = await this.driver.focused();
+    if (!native) return undefined;
+    if (native.testId) {
+      const byTestId = nodes.filter((n) => n.testId === native.testId);
+      if (byTestId.length === 1) return byTestId[0];
+    }
+    const driverViewport = (await this.driver.tree()).viewport;
+    if (!driverViewport.width || !driverViewport.height) return undefined;
+    const sx = viewport.width / driverViewport.width;
+    const sy = viewport.height / driverViewport.height;
+    const { x, y, width, height } = native.bounds;
+    return sameArea(nodes, { x: x * sx, y: y * sy, width: width * sx, height: height * sy });
   }
 
   async tree(): Promise<UITree> {
@@ -171,6 +195,34 @@ export class Target {
       return { supported: false };
     }
   }
+}
+
+/** Overlap (intersection over union) a node needs to count as the same element. */
+const SAME_AREA = 0.8;
+
+/**
+ * The node covering `bounds`: the best overlap of at least {@link SAME_AREA}, preferring
+ * focusable nodes, then the deepest of nodes sharing the same bounds (a field inside its wrapper).
+ */
+function sameArea(nodes: readonly ProtocolNode[], bounds: Rect): ProtocolNode | undefined {
+  let best: { node: ProtocolNode; score: number } | undefined;
+  for (const node of nodes) {
+    if (!node.visible) continue;
+    const overlap = Math.round(intersectionOverUnion(node.bounds, bounds) * 100) / 100;
+    if (overlap < SAME_AREA) continue;
+    const score = overlap + (node.focusable || node.editable ? 1 : 0);
+    // Document order is depth-first, so `>=` keeps the deepest of equal candidates.
+    if (!best || score >= best.score) best = { node, score };
+  }
+  return best?.node;
+}
+
+function intersectionOverUnion(a: Rect, b: Rect): number {
+  const w = Math.min(a.x + a.width, b.x + b.width) - Math.max(a.x, b.x);
+  const h = Math.min(a.y + a.height, b.y + b.height) - Math.max(a.y, b.y);
+  if (w <= 0 || h <= 0) return 0;
+  const inter = w * h;
+  return inter / (a.width * a.height + b.width * b.height - inter);
 }
 
 function* protocolNodes(node: ProtocolNode): Generator<ProtocolNode> {

@@ -50,7 +50,3 @@ The target must be on screen, since its bounds aim the presses. For items that a
 ## TV trap: focus memory and traps
 
 TV focus engines remember the last focused child of a row and may jump there instead of the nearest item. Modals trap focus. Both look like "geometry lies". `pressUntilFocused` does not care where a press should go, only where it went; `navigateTo` copes by learning the real moves. A stuck or unreachable error usually means a real focus trap in the app.
-
-## Text fields: caret before focus
-
-An arrow on a focused system text field can move its caret instead of focus (web spatial navigation does this inside an input). Both methods keep pressing a direction that left focus on a text field as long as the caret can still move: once per character sideways, once per line up or down. Only then is the field stuck in that direction.

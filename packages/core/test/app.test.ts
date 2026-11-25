@@ -123,6 +123,33 @@ describe('SDK composition', () => {
     expect(await app.getByTestId(focused!).snapshot()).toContain('[focused');
   });
 
+  it("matches the driver's focus by bounds when the focused element has no test ID", async () => {
+    const { app, driver } = setup({ sdk: true });
+    await app.launch();
+    const focused = await app.focus.current().testId();
+    const tree = driver.protocolTree.bind(driver);
+    // No focus flags, no test ID on the focused node, and SDK coordinates at half the driver's.
+    const strip = (n: ProtocolNode): ProtocolNode => {
+      const { testId, ...rest } = n;
+      const b = n.bounds;
+      return {
+        ...rest,
+        ...(testId === undefined || testId === focused ? {} : { testId }),
+        focused: false,
+        bounds: { x: b.x / 2, y: b.y / 2, width: b.width / 2, height: b.height / 2 },
+        children: n.children.map(strip),
+      };
+    };
+    driver.protocolTree = () => strip(tree());
+    const size = driver.viewportSize;
+    Object.defineProperty(driver, 'viewportSize', {
+      get: () => ({ width: size.width / 2, height: size.height / 2 }),
+    });
+    const expected = (await driver.focused())!.text;
+    expect(expected).toBeTruthy();
+    expect(await app.focus.current().text()).toBe(expected);
+  });
+
   it('waits for idle before each assertion check', async () => {
     const { app, host } = setup({ sdk: true });
     await app.launch();
