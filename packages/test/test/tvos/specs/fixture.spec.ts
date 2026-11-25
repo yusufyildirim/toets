@@ -30,6 +30,8 @@ test('opens details, long-presses for the context menu and restores focus on bac
   await expect(app.getByTestId('context_reset')).toBeVisible();
   await app.remote.press(Key.BACK);
   await expect(app.getByTestId('context_reset')).toHaveCount(0);
+  // tvOS drops presses until focus is back: assert it before the next press.
+  await expect(app.getByTestId('like_button')).toBeFocused();
 
   await app.remote.press(Key.BACK);
   await expect(app.getByTestId('rail_item_2')).toBeFocused();
@@ -37,10 +39,12 @@ test('opens details, long-presses for the context menu and restores focus on bac
 
 test('toggles the player with PLAY_PAUSE', async ({ app }) => {
   await app.launch();
+  await expect(app.getByTestId('rail_item_1')).toBeFocused();
   await app.remote.press(Key.SELECT);
   await expect(app.getByTestId('play_button')).toBeFocused();
   await app.remote.press(Key.SELECT);
   await expect(app.getByTestId('player_state')).toHaveText('playing');
+  await expect(app.getByTestId('player_toggle')).toBeFocused();
   await app.remote.press(Key.PLAY_PAUSE);
   await expect(app.getByTestId('player_state')).toHaveText('paused');
   await expect(app.getByTestId('player_title')).toBeInViewport();

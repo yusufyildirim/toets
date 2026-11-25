@@ -53,12 +53,6 @@ export interface TvosDriverOptions {
     /** Default 900000. */
     readonly buildTimeoutMs?: number;
   };
-  /**
-   * Before a press, wait up to this long for an element to have focus. tvOS drops remote
-   * presses while nothing is focused, which is the case for about 350ms during every screen
-   * transition. `0` presses immediately. Default 1500.
-   */
-  readonly focusWaitMs?: number;
   /** Maximum time to open the Appium session (installs and launches WDA). Default 300000. */
   readonly sessionTimeoutMs?: number;
   /** Extra Appium capabilities, merged last (escape hatch for XCUITest tuning). */

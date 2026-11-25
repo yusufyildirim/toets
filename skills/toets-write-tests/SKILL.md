@@ -75,7 +75,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 
 ## Platform notes
 
-- tvOS has only D-pad, select, back, play/pause and home keys. (`platforms/tvos`)
+- tvOS has only D-pad, select, back, play/pause and home keys, and drops presses until a new screen holds focus: after a screen change, assert focus (`toBeFocused`) before the next press. (`platforms/tvos`)
 - Android TV has every TV key; emulators are slower than web. (`platforms/android-tv`)
 - Web focus is `document.activeElement`, unless the app reports its own focus with the SDK. (`platforms/web`)
 

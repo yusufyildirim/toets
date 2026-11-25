@@ -140,6 +140,8 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, ()
     await waitFocus('rail_item_1');
     await press(Key.SELECT);
     await waitText('details_title', 'Details Item 1');
+    // tvOS drops presses until the new screen holds focus: assert focus, not just visibility.
+    await waitFocus('play_button');
     await press(Key.RIGHT);
     await waitFocus('like_button');
     await press(Key.SELECT, 1500);
@@ -154,6 +156,7 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, ()
       () => byId('context_reset'),
       (el) => !el,
     );
+    await waitFocus('like_button');
     await press(Key.BACK);
     await waitFocus('rail_item_1');
   });
@@ -164,6 +167,7 @@ describe.skipIf(!udid)('tvOS driver on the fixture app', { timeout: 60_000 }, ()
     await waitFocus('play_button');
     await press(Key.SELECT);
     await waitText('player_state', 'playing');
+    await waitFocus('player_toggle');
     await press(Key.PLAY_PAUSE);
     await waitText('player_state', 'paused');
   });

@@ -13,7 +13,7 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
       description: [
         'Press TV remote keys in order, like a user. This is the only way to interact: there is no click, tap, hover, type or scroll.',
         'UP/DOWN/LEFT/RIGHT move focus, SELECT activates the focused element, BACK goes back. Other keys depend on the platform (see `capabilities`); key overrides from the config apply, as in tests.',
-        'Every key is checked before the first press. Returns where focus landed once it settled, and the matching test code. To reach a known element prefer `press_until_focused` (or `navigate_to`); use `press` for single steps and SELECT.',
+        'Every key is checked before the first press. Returns where focus landed once it settled, and the matching test code. To reach a known element prefer `press_until_focused` (or `navigate_to`); use `press` for single steps and SELECT. Press a key that changes the screen alone: tvOS drops the next key until the new screen holds focus.',
       ].join(' '),
       inputSchema: z.object({
         keys: z
