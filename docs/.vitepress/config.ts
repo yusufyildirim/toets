@@ -8,6 +8,11 @@ const title = 'toets';
 const description =
   'Cross-platform E2E testing for TV apps: one test for web, Android TV / Fire TV and tvOS, with focus and the remote as first-class primitives.';
 
+// Public site URL, set by the deploy workflow (e.g. `https://user.github.io/toets`). Its path is
+// the site base; llms.txt and the sitemap use it for absolute links. Unset: served from `/`.
+const siteUrl = process.env.TOETS_DOCS_URL?.replace(/\/$/, '');
+const base = siteUrl ? `${new URL(siteUrl).pathname.replace(/\/$/, '')}/` : '/';
+
 // Pages outside docs/ (package docs, skills) import Vue from their own folders, where it is not
 // installed. Resolve it from the docs package for every page.
 const vueDir = dirname(createRequire(import.meta.url).resolve('vue/package.json'));
@@ -16,6 +21,8 @@ export default defineConfig({
   title,
   description,
   lang: 'en-US',
+  base,
+  ...(siteUrl ? { sitemap: { hostname: `${siteUrl}/` } } : {}),
   cleanUrls: true,
   lastUpdated: false,
   // The site renders docs/, every package's docs/ and the agent skills, without copying them.

@@ -8,6 +8,8 @@ pnpm docs:build   # static site + llms.txt + llms-full.txt in docs/.vitepress/di
 pnpm docs:check   # typecheck, unit tests, code examples, skills, error codes (part of `pnpm check`)
 ```
 
+The site deploys to GitHub Pages after every release ([RELEASING.md](../RELEASING.md)), so it documents the published packages. `TOETS_DOCS_URL` (the public site URL, set by the deploy workflow) sets the site base and the absolute links in `llms.txt` and the sitemap; without it the build serves from `/` with root-relative links.
+
 ## What the site renders
 
 The VitePress source root is the repository (`srcDir: '..'`); rewrites map files to URLs, so nothing is copied:
