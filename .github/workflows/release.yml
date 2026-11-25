@@ -62,12 +62,25 @@ jobs:
           cache: pnpm
           registry-url: https://registry.npmjs.org
       - run: pnpm install --frozen-lockfile
+      # `changeset publish` creates annotated tags, which need a committer identity. Without one
+      # `git tag` fails and changesets ignores the failure.
+      - run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
       # `changeset publish` tags HEAD for every package it publishes; no new tag means nothing
-      # was released. The checkout fetches no tags, so only this run's tags point at HEAD.
+      # was released. The checkout fetches no tags, so only this run's tags point at HEAD. Fails
+      # when a logged tag is missing, so a release never silently skips tags and the docs deploy.
       - id: release
         run: |
-          pnpm release
-          if [ -n "$(git tag --points-at HEAD)" ]; then published=true; else published=false; fi
+          set -o pipefail
+          pnpm release 2>&1 | tee "$RUNNER_TEMP/release.log"
+          expected=$(grep -c 'New tag:' "$RUNNER_TEMP/release.log" || true)
+          actual=$(git tag --points-at HEAD | wc -l)
+          if [ "$expected" -ne "$actual" ]; then
+            echo "::error::changeset publish logged $expected new tags but $actual exist at HEAD"
+            exit 1
+          fi
+          if [ "$actual" -gt 0 ]; then published=true; else published=false; fi
           echo "published=$published" >> "$GITHUB_OUTPUT"
       - run: git push origin --tags
 
