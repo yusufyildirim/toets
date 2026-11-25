@@ -20,5 +20,7 @@ CI ([`ci.yml`](./.github/workflows/ci.yml)) runs `pnpm check` and the web E2E su
 
 ## Pull requests
 
+- Questions and ideas go to [Discussions](https://github.com/yusufyildirim/toets/discussions); open an issue for bugs and agreed features.
+- PR titles follow [Conventional Commits](https://www.conventionalcommits.org) (`feat(focus): ...`, `fix(driver-tvos): ...`). PRs are squash-merged with the title as the commit message.
 - Public API changes ship with TSDoc, docs page updates, skill updates (if affected) and a tested example.
 - Add a changeset for user-facing changes: `pnpm changeset`. See [RELEASING.md](./RELEASING.md).

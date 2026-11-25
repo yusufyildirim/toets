@@ -30,6 +30,8 @@ A new trusted publisher expires unless it publishes within 2 days, so configure 
 ## One-time repository setup
 
 - Actions may create pull requests: Settings > Actions > General > "Allow GitHub Actions to create and approve pull requests".
+- `main` is protected by the `main` ruleset: squash-merged PRs only, `Check` and `E2E (web, Chromium)` must pass, no force pushes. Admins can bypass it on pull requests only.
+- The "Version Packages" PR is opened with `GITHUB_TOKEN`, which does not trigger CI, so its required checks never report. Merge it with the admin bypass ("Merge without waiting for requirements").
 - Optional: require a reviewer on the `npm` environment (Settings > Environments) to approve each publish.
 
 ## Checking a release locally
