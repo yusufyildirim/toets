@@ -8,6 +8,7 @@ import {
   packageDocsLink,
   type AppTargetConfig,
   type DriverModule,
+  type KeyboardDefinition,
   type Platform,
 } from '@toets/core';
 import type { DeviceSelection, RuntimeConfig } from '@toets/core/runner';
@@ -40,6 +41,8 @@ export interface McpTargetConfig {
   readonly toets?: RuntimeConfig;
   /** Default timeout of the `assert` tool for this target. */
   readonly expectTimeoutMs?: number;
+  /** App-drawn keyboards (`defineKeyboard`) for this target; replaces the top-level ones. */
+  readonly keyboards?: readonly KeyboardDefinition[];
 }
 
 /** Config of the toets MCP server. */
@@ -52,6 +55,8 @@ export interface McpConfig {
   readonly expectTimeoutMs?: number;
   /** Runtime options for every target; a target's `toets` overrides them. */
   readonly toets?: RuntimeConfig;
+  /** App-drawn keyboards (`defineKeyboard`) for every target, as the test config's `keyboards`. */
+  readonly keyboards?: readonly KeyboardDefinition[];
   /** Where drivers write artifacts (videos, logs). Default: a temp directory. */
   readonly artifactsDir?: string;
   /** Extra docs folders for `docs_search`, besides the shipped docs of installed toets packages. */
@@ -145,6 +150,9 @@ const devicesSchema = z.union([
     .strict(),
 ]);
 
+/** Shape only; the core validates definitions when the target starts (`defineKeyboard`). */
+const keyboardsSchema = z.array(z.object({ name: z.string().min(1) }).loose());
+
 const configSchema = z
   .object({
     targets: z
@@ -163,6 +171,7 @@ const configSchema = z
             devices: devicesSchema.optional(),
             toets: runtimeSchema.optional(),
             expectTimeoutMs: z.number().int().positive().optional(),
+            keyboards: keyboardsSchema.optional(),
           })
           .strict(),
       )
@@ -170,6 +179,7 @@ const configSchema = z
     defaultTarget: z.string().optional(),
     expectTimeoutMs: z.number().int().positive().optional(),
     toets: runtimeSchema.optional(),
+    keyboards: keyboardsSchema.optional(),
     artifactsDir: z.string().optional(),
     docsDirs: z.array(z.string()).optional(),
   })

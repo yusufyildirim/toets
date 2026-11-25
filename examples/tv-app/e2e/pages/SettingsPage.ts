@@ -9,6 +9,10 @@ export class SettingsPage {
   readonly apiUrl: Locator;
   readonly mock: Locator;
   readonly platform: Locator;
+  readonly pin: Locator;
+  readonly pinStatus: Locator;
+  readonly pinValue: Locator;
+  readonly pinError: Locator;
 
   constructor(app: App) {
     this.app = app;
@@ -18,10 +22,21 @@ export class SettingsPage {
     this.apiUrl = app.getByTestId('settings_api_url');
     this.mock = app.getByTestId('settings_mock');
     this.platform = app.getByTestId('settings_platform');
+    this.pin = app.getByTestId('settings_pin');
+    this.pinStatus = app.getByTestId('settings_pin_status');
+    this.pinValue = app.getByTestId('pin_value');
+    this.pinError = app.getByTestId('pin_error');
   }
 
   async waitUntilLoaded(): Promise<void> {
     await expect(this.screen).toBeVisible();
+  }
+
+  /** Opens the parental PIN dialog. */
+  async openPin(): Promise<void> {
+    await this.app.focus.navigateTo(this.pin);
+    await this.app.remote.press(Key.SELECT);
+    await expect(this.pinValue).toBeVisible();
   }
 
   async toggleAutoplay(): Promise<void> {

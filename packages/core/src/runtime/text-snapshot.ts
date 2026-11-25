@@ -16,12 +16,24 @@
  * - Name: the test ID; `text` for an anonymous text element; `element` for an anonymous
  *   focusable or busy element.
  * - Text: shown on the element that owns it (no child carries text), whitespace-normalized.
- * - States, in fixed order: `focused`, `selected`, `busy`, `disabled`, `offscreen`.
+ * - States, in fixed order: `focused`, `selected`, `busy`, `disabled`, `offscreen`, `editable`,
+ *   `secure`. A system text field shows its value instead of its text: `- email [editable]
+ *   value="a@b.co"`, masked when secure (`value="••••"`).
+ * - A declared app keyboard collapses to one line without children:
+ *   `- osk [keyboard: search, layer: lower, focused: "m"]`.
  * - Only visible elements inside the viewport are listed (plus the focused one); wrappers
  *   without a test ID, text or state are skipped and their children hoisted, so platform
  *   layout differences do not leak into the snapshot. Bounds are never included.
  */
-import type { UINode, UITree } from '../snapshot.js';
+import type { ElementRef, UINode, UITree } from '../snapshot.js';
+
+export interface TextSnapshotOptions {
+  /**
+   * Elements listed as one line without children, keyed by ref, with the bracket content to
+   * show (declared keyboards: `keyboard: search, layer: lower`).
+   */
+  readonly collapsed?: ReadonlyMap<ElementRef, string>;
+}
 
 interface Entry {
   readonly line: string;
@@ -55,10 +67,16 @@ function states(node: UINode): string[] {
   if (ownBusy(node)) out.push('busy');
   if (!node.enabled) out.push('disabled');
   if (!node.inViewport) out.push('offscreen');
+  if (node.editable) out.push('editable');
+  if (node.secure) out.push('secure');
   return out;
 }
 
 function lineOf(node: UINode): string {
+  if (node.editable) {
+    const s = states(node);
+    return `${node.testId ?? 'field'} [${s.join(', ')}] value=${JSON.stringify(node.value ?? '')}`;
+  }
   const ownText = hasOwnText(node) ? node.text : null;
   const name = node.testId ?? (ownText !== null ? 'text' : 'element');
   let line = name;
@@ -68,11 +86,17 @@ function lineOf(node: UINode): string {
   return line;
 }
 
-function collect(node: UINode, force: boolean): Entry[] {
+function collect(node: UINode, force: boolean, opts: TextSnapshotOptions): Entry[] {
   // A hidden element hides its subtree; a shown-but-offscreen parent may still hold the focus.
   if (!force && !node.visible && !node.focusWithin) return [];
-  const children = node.children.flatMap((c) => collect(c, false));
-  if (force || (isShown(node) && isMeaningful(node))) return [{ line: lineOf(node), children }];
+  const collapsed = opts.collapsed?.get(node.ref);
+  if (collapsed !== undefined) {
+    return [{ line: `${node.testId ?? 'keyboard'} [${collapsed}]`, children: [] }];
+  }
+  const children = node.children.flatMap((c) => collect(c, false, opts));
+  if (force || (isShown(node) && (isMeaningful(node) || node.editable))) {
+    return [{ line: lineOf(node), children }];
+  }
   return children;
 }
 
@@ -105,8 +129,12 @@ function render(entries: readonly Entry[], indent: string, out: string[]): void 
  * Renders a tree (or the subtree at `root`) as a text snapshot. A given `root` is always listed,
  * even when it would otherwise be skipped.
  */
-export function renderTextSnapshot(tree: UITree, root?: UINode): string {
-  const entries = root ? collect(root, true) : collect(tree.root, false);
+export function renderTextSnapshot(
+  tree: UITree,
+  root?: UINode,
+  opts: TextSnapshotOptions = {},
+): string {
+  const entries = root ? collect(root, true, opts) : collect(tree.root, false, opts);
   if (!entries.length) return '[]';
   const out: string[] = [];
   render(entries, '', out);

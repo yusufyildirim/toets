@@ -35,6 +35,7 @@ test.describe.serial('onboarding', () => {
 ## Principles
 
 - **Launch explicitly.** `app.launch({ state, flags, clearData })` makes the starting point visible in the test.
+- **What `app` holds:** locators (`getByTestId`, `getByText`), `remote`, `focus`, `keyboard` ([text input](../../core/docs/text-input.md)), `media`, `network` and `platform`.
 - **Platform escape hatch.** `app.platformOnly('web', async (page) => { ... })` runs code with the driver's native handle (a Playwright `Page` on web) only on that platform, as a recorded step. Use it sparingly; it is not portable.
 
 ## TV trap: app state survives terminate

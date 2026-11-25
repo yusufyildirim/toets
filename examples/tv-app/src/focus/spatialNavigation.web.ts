@@ -15,7 +15,8 @@ const KEY_TO_DIRECTION: Record<string, Direction> = {
   ArrowRight: 'right',
 };
 
-const FOCUSABLE = '[tabindex="0"]';
+// Text fields are focusable without a tabindex.
+const FOCUSABLE = '[tabindex="0"], input:not([disabled]), textarea:not([disabled])';
 const GROUP = '[data-focus-group]';
 
 const memory = new WeakMap<Element, HTMLElement>();
@@ -103,11 +104,21 @@ function isTrapped(current: HTMLElement, next: HTMLElement, direction: Direction
   );
 }
 
+/** The innermost group around `current` that traps `direction`: the search stays inside it. */
+function trappingGroup(current: HTMLElement, direction: Direction): Element | null {
+  return (
+    groupsOf(current).find((group) =>
+      (group.getAttribute('data-focus-trap') ?? '').split(' ').includes(direction),
+    ) ?? null
+  );
+}
+
 function findNext(current: HTMLElement, direction: Direction): HTMLElement | null {
   const from = current.getBoundingClientRect();
   let best: HTMLElement | null = null;
   let bestScore = Infinity;
-  for (const candidate of focusables()) {
+  // Inside a trap, elements outside it (a screen behind a dialog) are never candidates.
+  for (const candidate of focusables(trappingGroup(current, direction) ?? document)) {
     if (candidate === current) continue;
     const rect = candidate.getBoundingClientRect();
     if (!isReachable(candidate, rect, current)) continue;
@@ -136,11 +147,21 @@ function onFocusIn(event: FocusEvent): void {
   for (const group of groupsOf(target)) memory.set(group, target);
 }
 
+/** Left and right move the caret inside a text field until it reaches that end. */
+function caretMoves(el: Element | null, direction: Direction): boolean {
+  if (!(el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)) return false;
+  if (direction === 'up' || direction === 'down') return false;
+  const { selectionStart: start, selectionEnd: end, value } = el;
+  if (start === null || end === null) return false;
+  return direction === 'left' ? end > 0 : start < value.length;
+}
+
 function onKeyDown(event: KeyboardEvent): void {
   const direction = KEY_TO_DIRECTION[event.key];
   if (!direction || event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey)
     return;
   const active = document.activeElement;
+  if (caretMoves(active, direction)) return;
   const current =
     active instanceof HTMLElement && active.matches(FOCUSABLE) && isVisible(active) ? active : null;
   event.preventDefault();
@@ -154,10 +175,11 @@ function onKeyDown(event: KeyboardEvent): void {
 
 /** Installs the key and focus listeners; returns an uninstaller. */
 export function installSpatialNavigation(): () => void {
-  document.addEventListener('keydown', onKeyDown);
+  // Capture: react-native-web's TextInput stops keydown from bubbling.
+  document.addEventListener('keydown', onKeyDown, true);
   document.addEventListener('focusin', onFocusIn);
   return () => {
-    document.removeEventListener('keydown', onKeyDown);
+    document.removeEventListener('keydown', onKeyDown, true);
     document.removeEventListener('focusin', onFocusIn);
   };
 }

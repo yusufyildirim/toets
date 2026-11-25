@@ -1,4 +1,4 @@
-import { Key, type AppRuntime, type LaunchOptions } from '@toets/core';
+import { Key, describeChain, targetChain, type AppRuntime, type LaunchOptions } from '@toets/core';
 import type { McpServer } from '@modelcontextprotocol/server';
 import { z } from 'zod';
 import { describeKeyOverride, jsString } from '@toets/core/runner';
@@ -92,10 +92,23 @@ export function registerAppTools(server: McpServer, { session }: ToolContext): v
             `Keys: ${supported.join(' ')}`,
             ...(missing.length ? [`Unsupported keys: ${missing.join(' ')}`] : []),
             ...(overrides.length ? [`Key overrides: ${overrides.join(', ')}`] : []),
+            keyboardsLine(runtime),
           );
         }),
       ),
   );
+}
+
+/** Declared app keyboards and the fields `fill` types into with them. */
+function keyboardsLine(runtime: AppRuntime): string {
+  const keyboards = runtime.keyboards.map((k) => {
+    const fields = (k.fields ?? []).map((f) => describeChain(targetChain(f)));
+    return fields.length ? `${k.name} (fields: ${fields.join(', ')})` : k.name;
+  });
+  const system = runtime.capabilities.has('text.input')
+    ? 'system text fields: yes (text.input)'
+    : 'system text fields: no';
+  return `Keyboards: ${keyboards.length ? keyboards.join('; ') : 'none declared'}; ${system}`;
 }
 
 function sdkLine(runtime: AppRuntime): string {

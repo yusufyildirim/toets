@@ -281,6 +281,14 @@ export class FiberMapper {
     if (label) info.label = label;
     const role = firstString(props.role, props.accessibilityRole);
     if (role && role !== 'none') info.role = role;
+    if (isInput && enabled) {
+      // The placeholder is never the value. Secure values are masked before they leave the app.
+      const value = firstString(props.text, props.value, props.defaultValue) ?? '';
+      const secure = props.secureTextEntry === true;
+      info.editable = true;
+      info.value = secure ? '\u2022'.repeat([...value].length) : value;
+      if (secure) info.secure = true;
+    }
     return info as NodeInfo;
   }
 

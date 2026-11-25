@@ -34,4 +34,5 @@ export const TVOS_CAPABILITIES: ReadonlySet<Capability> = new Set<Capability>([
   'screenshot.element',
   'logs',
   'video',
+  'text.input',
 ]);

@@ -1,4 +1,4 @@
-import { Key } from '@toets/core';
+import { defineKeyboard, Key } from '@toets/core';
 import { http, HttpResponse } from '@toets/mock';
 import { describe, expect, it } from 'vitest';
 import { defineConfig, platforms, type ToetsProjectConfig } from '../../src/config.js';
@@ -157,6 +157,22 @@ describe('defineConfig', () => {
   it('leaves reporters alone when the parity report is off', () => {
     expect(defineConfig({ parityReport: false }).reporter).toBeUndefined();
     expect(defineConfig({ parityReport: false, reporter: 'dot' }).reporter).toBe('dot');
+  });
+});
+
+describe('keyboards', () => {
+  const search = defineKeyboard({ name: 'search', root: { testId: 'osk' } });
+  const pin = defineKeyboard({ name: 'pin', root: { testId: 'pin_pad' } });
+
+  it('sets the keyboards fixture option at the top level and per project', () => {
+    const config = defineConfig({
+      keyboards: [search],
+      projects: [platforms.web(), platforms.tvOS({ keyboards: [pin] })],
+    });
+    expect(config.use).toMatchObject({ keyboards: [search] });
+    expect(config.projects?.[0]?.use).not.toHaveProperty('keyboards');
+    expect(config.projects?.[1]?.use).toMatchObject({ keyboards: [pin] });
+    expect(toetsOf(config.projects?.[1]).driverOptions).toEqual({});
   });
 });
 

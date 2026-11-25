@@ -63,7 +63,7 @@ export type {
   TvosDriverOptions,
   TvosManagedDeviceOptions,
 } from '@toets/driver-tvos';
-export { Key, ToetsError } from '@toets/core';
+export { defineKeyboard, Key, ToetsError } from '@toets/core';
 /** Network mocking building blocks for `app.network.use(...)` (from `@toets/mock`, MSW based). */
 export { bypass, delay, failure, http, HttpResponse, latency, passthrough } from '@toets/mock';
 export type { FailureOptions, HttpHandler, LatencySpec } from '@toets/mock';
@@ -72,7 +72,10 @@ export type {
   Capability,
   Direction,
   DirectionKey,
+  ElementTarget as Target,
   Focus,
+  Keyboard,
+  KeyboardDefinition,
   KeyOverride,
   LaunchOptions,
   Locator,
@@ -88,4 +91,5 @@ export type {
   RequestFilter,
   Screenshot,
   ScreenshotOptions,
+  TextEntryOptions,
 } from '@toets/core';

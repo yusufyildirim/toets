@@ -53,6 +53,19 @@ function fakeFixtureApp(bugs: Bugs = {}): ConformanceTarget {
           node('n1', { testId: ids.a, focusable: true }),
           node('n2', { testId: ids.b, focusable: true }),
           node('n3', { testId: ids.text, text: CONFORMANCE_FIXTURE.text }),
+          node('n4', {
+            testId: ids.field,
+            focusable: true,
+            editable: true,
+            value: CONFORMANCE_FIXTURE.fieldValue,
+          }),
+          node('n5', {
+            testId: ids.secret,
+            focusable: true,
+            editable: true,
+            secure: true,
+            value: '•'.repeat(CONFORMANCE_FIXTURE.secretValue.length),
+          }),
         ],
       });
     const find = (root: ProtocolNode, id: string): ProtocolNode | undefined =>

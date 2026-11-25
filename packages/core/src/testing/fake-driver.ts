@@ -7,7 +7,7 @@ import type { ProtocolNode } from '@toets/protocol';
 import { PNG } from 'pngjs';
 import type { PlatformEvent } from '../api.js';
 import type { Capability } from '../capabilities.js';
-import type { Driver, DriverLaunchOptions } from '../driver.js';
+import type { Driver, DriverLaunchOptions, DriverTextInput } from '../driver.js';
 import { DIRECTION_KEY, type Direction, type Key, type PressOptions } from '../keys.js';
 import type { Platform } from '../platform.js';
 import type { SelectorChain } from '../selectors.js';
@@ -24,6 +24,11 @@ export interface FakeNodeSpec {
   readonly enabled?: boolean;
   readonly selected?: boolean;
   readonly busy?: boolean;
+  /** A system text field; its initial value is `value` (default `''`). */
+  readonly editable?: boolean;
+  readonly value?: string;
+  /** A password field: value and text are masked. */
+  readonly secure?: boolean;
   /**
    * Explicit focus neighbors by node id; `null` = focus does not move that way. Missing
    * directions fall back to geometry.
@@ -69,6 +74,14 @@ export class FakeDriver implements Driver {
   /** Handlers for non-directional keys; receive the focused node id. */
   readonly keyHandlers = new Map<Key, (focusedId: string | null, driver: FakeDriver) => void>();
   launched = false;
+  /** System text entry; present when the driver declares `text.input`. */
+  readonly text?: DriverTextInput;
+  /** System text calls, in order: `replace:a@b`, `insert:x`, `delete:2`, `submit`, `close`. */
+  readonly textCalls: string[] = [];
+  /** Called on a system keyboard `submit()` with the focused node id. */
+  onSubmit: ((focusedId: string | null) => void) | null = null;
+  /** Values of editable nodes by node id. */
+  readonly values = new Map<string, string>();
 
   private nodes = new Map<string, FakeNode>();
   private rootNode!: FakeNode;
@@ -85,11 +98,52 @@ export class FakeDriver implements Driver {
     this.platform = opts.platform ?? 'web';
     this.capabilities = new Set(capabilities);
     this.setScreen(screen);
+    if (this.capabilities.has('text.input')) this.text = this.systemText();
+  }
+
+  /** Value of an editable node. */
+  valueOf(id: string): string {
+    return this.values.get(id) ?? '';
+  }
+
+  /** Web-like system text entry over the focused editable node. */
+  private systemText(): DriverTextInput {
+    const focusedField = () => {
+      const n = this.focusedId ? this.nodes.get(this.focusedId) : undefined;
+      return n?.spec.editable ? n.id : null;
+    };
+    const edit = (change: (value: string) => string) => {
+      const id = focusedField();
+      if (id) this.values.set(id, change(this.valueOf(id)));
+    };
+    return {
+      isOpen: async () => focusedField() !== null,
+      replace: async (_field, text) => {
+        this.textCalls.push(`replace:${text}`);
+        edit(() => text);
+      },
+      insert: async (text) => {
+        this.textCalls.push(`insert:${text}`);
+        edit((v) => v + text);
+      },
+      deleteBackward: async (count) => {
+        this.textCalls.push(`delete:${count}`);
+        edit((v) => [...v].slice(0, Math.max(0, [...v].length - count)).join(''));
+      },
+      submit: async () => {
+        this.textCalls.push('submit');
+        this.onSubmit?.(this.focusedId);
+      },
+      close: async () => {
+        this.textCalls.push('close');
+      },
+    };
   }
 
   /** Replaces the whole screen (simulates navigation). */
   setScreen(screen: FakeScreen): void {
     this.nodes.clear();
+    this.values.clear();
     this.rootNode = this.build(screen.root, null);
     this.focusedId = screen.initialFocus ?? null;
     if (screen.viewport) this.viewport = screen.viewport;
@@ -187,6 +241,9 @@ export class FakeDriver implements Driver {
       enabled: n.spec.enabled !== false,
       selected: !!n.spec.selected,
       busy: !!n.spec.busy,
+      ...(n.spec.editable
+        ? { editable: true, value: this.shownValue(n), ...(n.spec.secure ? { secure: true } : {}) }
+        : {}),
       children: n.children.map(convert),
     });
     return convert(this.rootNode);
@@ -224,6 +281,7 @@ export class FakeDriver implements Driver {
     const id = spec.id ?? spec.testId ?? `n${this.counter++}`;
     const node: FakeNode = { id, spec, parent, children: [] };
     this.nodes.set(id, node);
+    if (spec.editable) this.values.set(id, spec.value ?? '');
     node.children = (spec.children ?? []).map((c) => this.build(c, node));
     return node;
   }
@@ -235,7 +293,14 @@ export class FakeDriver implements Driver {
     }
   }
 
+  /** An editable node's value as reported: masked when secure. */
+  private shownValue(n: FakeNode): string {
+    const value = this.valueOf(n.id);
+    return n.spec.secure ? '\u2022'.repeat([...value].length) : value;
+  }
+
   private textOf(n: FakeNode): string | null {
+    if (n.spec.editable) return this.shownValue(n) || null;
     const parts = [n.spec.text, ...n.children.map((c) => this.textOf(c))].filter(
       (p): p is string => !!p,
     );
@@ -279,6 +344,9 @@ export class FakeDriver implements Driver {
       enabled: n.spec.enabled !== false,
       selected: !!n.spec.selected,
       busy,
+      editable: !!n.spec.editable,
+      value: n.spec.editable ? this.shownValue(n) : null,
+      secure: !!n.spec.editable && !!n.spec.secure,
     };
   }
 

@@ -30,6 +30,8 @@ describe('toets MCP tools over FakeDriver', () => {
       'assert',
       'capabilities',
       'docs_search',
+      'erase',
+      'fill',
       'launch',
       'navigate_to',
       'press',
@@ -37,6 +39,8 @@ describe('toets MCP tools over FakeDriver', () => {
       'query',
       'screenshot',
       'snapshot',
+      'submit',
+      'type',
     ]);
     for (const tool of tools) expect(tool.description?.length).toBeGreaterThan(80);
     expect(h.client.getInstructions()).toBe(SERVER_INSTRUCTIONS);

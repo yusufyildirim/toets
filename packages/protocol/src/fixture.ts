@@ -7,8 +7,14 @@ export const CONFORMANCE_FIXTURE = {
     b: 'conformance-b',
     /** Non-focusable element whose own text is {@link CONFORMANCE_FIXTURE.text}. */
     text: 'conformance-text',
+    /** Editable text field holding {@link CONFORMANCE_FIXTURE.fieldValue} (protocol 1.1). */
+    field: 'conformance-field',
+    /** Secure (password) text field holding {@link CONFORMANCE_FIXTURE.secretValue} (protocol 1.1). */
+    secret: 'conformance-secret',
   },
   text: 'Conformance',
+  fieldValue: 'Typed',
+  secretValue: 'pass',
   /** States the fixture's `onState` handler implements. */
   states: {
     /** Move focus to `conformance-a`. */

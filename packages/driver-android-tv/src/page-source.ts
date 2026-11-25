@@ -45,6 +45,9 @@ const parser = new XMLParser({
  * - `focusable`: Android's flag, except on containers holding a focusable descendant (scroll
  *   views, lists): Android focuses those only when no descendant can take focus.
  * - `busy`: always `false`; Android has no busy flag (the SDK `sync` domain provides it).
+ * - `editable`: an enabled `EditText`. `value` is its text, `''` while Android shows the hint
+ *   (`showing-hint`, the hint is reported as the text); `secure` is `password`, whose text
+ *   Android already reports as one `•` per character.
  */
 export function parsePageSource(xml: string, opts: PageSourceOptions = {}): UITree {
   const testIdAttribute = opts.testIdAttribute ?? 'resource-id';
@@ -88,6 +91,8 @@ export function parsePageSource(xml: string, opts: PageSourceOptions = {}): UITr
     const displayed = attrs.displayed !== 'false';
     const visible = displayed && bounds.width > 0 && bounds.height > 0;
     const ownText = attrs['showing-hint'] === 'true' ? '' : (attrs.text ?? '');
+    const editable = /EditText$/.test(attrs.class ?? '') && attrs.enabled !== 'false';
+    const secure = editable && attrs.password === 'true';
     const text = normalize(
       [ownText, ...children.filter((c) => c.visible).map((c) => c.text ?? '')].join(' '),
     );
@@ -109,6 +114,9 @@ export function parsePageSource(xml: string, opts: PageSourceOptions = {}): UITr
       enabled: isRoot || attrs.enabled !== 'false',
       selected: attrs.selected === 'true',
       busy: false,
+      editable,
+      value: editable ? (secure ? '\u2022'.repeat([...ownText].length) : ownText) : null,
+      secure,
       children,
     };
     if (rawFocusable || holdsFocusable) withFocusable.add(result);

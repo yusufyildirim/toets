@@ -15,7 +15,8 @@ await expect(app).toMatchTextSnapshot(); // per-platform baseline file
 ## Format
 
 - One entry per element: `- name "text" [states]`. The name is the test ID, else `text`, else `element`.
-- States: `focused`, `selected`, `busy`, `disabled`, `offscreen`.
+- States: `focused`, `selected`, `busy`, `disabled`, `offscreen`, then `editable` and `secure` for system text fields, whose entry ends with their value instead of text: `- email [editable] value="ada@example.com"`, `- password [editable, secure] value="••••"`.
+- A declared app keyboard is one line without children: `- 'osk [keyboard: search, layer: lower, focused: "m"]'` (quoted: YAML). A snapshot of the keyboard's root lists its keys. See [text input](./text-input.md).
 - Only visible elements inside the viewport are listed, plus the focused element even when it is offscreen. Wrappers with no test ID, text or state are flattened away.
 - An empty screen is `[]`.
 

@@ -41,6 +41,9 @@ export interface AgentSnapshot {
   readonly enabled: boolean;
   readonly selected: boolean;
   readonly busy: boolean;
+  readonly editable: boolean;
+  readonly value: string | null;
+  readonly secure: boolean;
 }
 
 export interface AgentNode extends AgentSnapshot {
@@ -240,6 +243,29 @@ export function pageAgent(req: AgentRequest): string {
     const p = parentOf(i);
     return styleAt(i).display === 'contents' && (p < 0 || rendersText(p));
   });
+  const mask = (value: string): string => '\u2022'.repeat(Array.from(value).length);
+  /**
+   * A system text field and its value (masked for passwords, never the placeholder): text-like
+   * inputs, textareas and contenteditable hosts that are not read-only.
+   */
+  const fieldAt = memo((i): { value: string; secure: boolean } | null => {
+    const el = at(i);
+    if (el instanceof HTMLInputElement) {
+      const types = ['text', 'search', 'email', 'url', 'tel', 'password', 'number'];
+      if (el.readOnly || types.indexOf(el.type) < 0) return null;
+      const secure = el.type === 'password';
+      return { value: secure ? mask(el.value) : el.value, secure };
+    }
+    if (el instanceof HTMLTextAreaElement) {
+      return el.readOnly ? null : { value: el.value, secure: false };
+    }
+    if (el instanceof HTMLElement && el.isContentEditable) {
+      const parent = el.parentElement;
+      if (parent && parent.isContentEditable) return null;
+      return { value: el.innerText, secure: false };
+    }
+    return null;
+  });
   const rawVisible = memo((i) => rawText(i, false));
   const rawAll = memo((i) => rawText(i, true));
 
@@ -250,8 +276,10 @@ export function pageAgent(req: AgentRequest): string {
    */
   const textAt = memo((i): string | null => {
     const el = at(i);
+    const field = fieldAt(i);
+    if (field) return normalize(field.value);
     if (el instanceof HTMLInputElement || el instanceof HTMLTextAreaElement)
-      return normalize(el.value);
+      return el.type === 'password' ? null : normalize(el.value);
     if (el instanceof HTMLSelectElement) {
       return normalize(Array.from(el.selectedOptions, (o) => o.text).join(' '));
     }
@@ -377,6 +405,9 @@ export function pageAgent(req: AgentRequest): string {
         el.getAttribute('aria-selected') === 'true' ||
         (el instanceof HTMLOptionElement && el.selected),
       busy: busy[i] === 1,
+      editable: fieldAt(i) !== null,
+      value: fieldAt(i)?.value ?? null,
+      secure: fieldAt(i)?.secure ?? false,
     };
   };
 

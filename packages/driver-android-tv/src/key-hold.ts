@@ -15,7 +15,7 @@ export class KeyHolder {
 
   constructor(private readonly adb: Adb) {}
 
-  async hold(keycode: number, holdMs: number): Promise<void> {
+  async hold(keycode: number, holdMs: number, source?: number): Promise<void> {
     this.pushed ??= this.adb.push(KEY_HOLD_JAR, REMOTE_JAR).catch((e: unknown) => {
       this.pushed = undefined;
       throw e;
@@ -23,7 +23,10 @@ export class KeyHolder {
     await this.pushed;
     const ms = Math.max(0, Math.round(holdMs));
     const res = await this.adb.run(
-      ['shell', `CLASSPATH=${REMOTE_JAR} app_process / tv.toets.helper.KeyHold ${keycode} ${ms}`],
+      [
+        'shell',
+        `CLASSPATH=${REMOTE_JAR} app_process / tv.toets.helper.KeyHold ${keycode} ${ms}${source === undefined ? '' : ` ${source}`}`,
+      ],
       { timeoutMs: ms + 30_000 },
     );
     if (res.exitCode !== 0 || !/repeats=\d+/.test(res.stdout)) {

@@ -244,6 +244,12 @@ export class DomMapper {
     if (label) node.label = label;
     const role = roleOf(el);
     if (role) node.role = role;
+    const field = textField(el);
+    if (field) {
+      node.editable = true;
+      node.value = field.secure ? '\u2022'.repeat(Array.from(field.value).length) : field.value;
+      if (field.secure) node.secure = true;
+    }
     return node as Omit<ProtocolNode, 'id' | 'children'>;
   }
 }
@@ -361,6 +367,30 @@ function isSelected(el: Element): boolean {
   if (el.tagName === 'INPUT') return (el as HTMLInputElement).checked === true;
   if (el.tagName === 'OPTION') return (el as HTMLOptionElement).selected === true;
   return false;
+}
+
+const TEXT_INPUT_TYPES = ['', 'text', 'search', 'email', 'url', 'tel', 'password', 'number'];
+
+/**
+ * A system text field (input, textarea, contenteditable host) and its current text. Read-only
+ * fields are not editable. The value is never the placeholder.
+ */
+function textField(el: Element): { value: string; secure: boolean } | undefined {
+  const tag = el.tagName;
+  if (tag === 'INPUT') {
+    const input = el as HTMLInputElement;
+    if (input.readOnly || TEXT_INPUT_TYPES.indexOf(input.type) < 0) return undefined;
+    return { value: input.value, secure: input.type === 'password' };
+  }
+  if (tag === 'TEXTAREA') {
+    const area = el as HTMLTextAreaElement;
+    return area.readOnly ? undefined : { value: area.value, secure: false };
+  }
+  const editable = el.getAttribute('contenteditable');
+  if (editable === '' || editable === 'true' || editable === 'plaintext-only') {
+    return { value: (el as HTMLElement).innerText ?? el.textContent ?? '', secure: false };
+  }
+  return undefined;
 }
 
 function ownText(el: Element): string | undefined {

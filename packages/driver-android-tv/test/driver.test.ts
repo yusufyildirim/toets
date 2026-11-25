@@ -1,4 +1,10 @@
-import { Key, type ToetsError, type DriverCreateContext, type ElementRef } from '@toets/core';
+import {
+  Key,
+  type ToetsError,
+  type DriverCreateContext,
+  type ElementRef,
+  type ElementSnapshot,
+} from '@toets/core';
 import { encodeLaunchPayloadParam } from '@toets/protocol';
 import { mkdirSync, mkdtempSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
@@ -45,6 +51,16 @@ class FakeSession implements AppiumSession {
   }
   async deleteSession() {
     this.deleted++;
+  }
+  async findElement(using: string, value: string) {
+    this.executed.push(['findElement', [using, value]]);
+    return { 'element-6066-11e4-a52e-4f735466cecf': 'el-1' };
+  }
+  async elementClear(id: string) {
+    this.executed.push(['elementClear', [id]]);
+  }
+  async elementSendKeys(id: string, text: string) {
+    this.executed.push(['elementSendKeys', [id, text]]);
   }
 }
 
@@ -136,6 +152,7 @@ describe('AndroidTvDriver', () => {
         'logs',
         'platform.events',
         'screenshot.element',
+        'text.input',
         'video',
       ].sort(),
     );
@@ -156,6 +173,28 @@ describe('AndroidTvDriver', () => {
     expect(t.servers[0]?.env?.ANDROID_HOME).toBe(t.sdkRoot);
     // logcat streams in the background
     expect(t.runner.lines('spawn')[0]).toContain('logcat -v epoch -v uid');
+  });
+
+  it('enters text into the focused field through UiAutomator2', async () => {
+    const field = { testId: 'search' } as ElementSnapshot;
+    await driver.text.replace(field, 'ma ü');
+    await driver.text.replace(field, '');
+    await driver.text.insert('x', null);
+    await driver.text.deleteBackward(2, null);
+    await driver.text.submit(null);
+    await driver.text.close();
+    expect(t.session.executed).toEqual([
+      ['findElement', ['-android uiautomator', 'new UiSelector().focused(true)']],
+      ['elementClear', ['el-1']],
+      ['elementSendKeys', ['el-1', 'ma ü']],
+      ['findElement', ['-android uiautomator', 'new UiSelector().focused(true)']],
+      ['elementClear', ['el-1']],
+      ['mobile: type', [{ text: 'x' }]],
+      ['mobile: pressKey', [{ keycode: 67 }]],
+      ['mobile: pressKey', [{ keycode: 67 }]],
+      ['mobile: performEditorAction', [{ action: 'done' }]],
+      ['mobile: hideKeyboard', []],
+    ]);
   });
 
   it('launches with the payload as the __toets string extra after reversing its ports', async () => {
@@ -236,11 +275,11 @@ describe('AndroidTvDriver', () => {
     expect(fetches).toBe(3);
   });
 
-  it('presses keys through UiAutomator2 and holds them through the key-hold helper', async () => {
+  it('presses keys through UiAutomator2, D-pad keys from the D-pad source, and holds them through the key-hold helper', async () => {
     await driver.press(Key.SELECT);
     await driver.press(Key.RED);
     expect(t.session.executed).toEqual([
-      ['mobile: pressKey', [{ keycode: 23 }]],
+      ['mobile: pressKey', [{ keycode: 23, source: 0x201 }]],
       ['mobile: pressKey', [{ keycode: 183 }]],
     ]);
 
@@ -249,8 +288,8 @@ describe('AndroidTvDriver', () => {
     const lines = t.runner.lines('run');
     expect(lines.filter((l) => l.includes('push')).length).toBe(1);
     expect(lines.filter((l) => l.includes('app_process'))).toEqual([
-      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/toets-key-hold.jar app_process / tv.toets.helper.KeyHold 22 1500',
-      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/toets-key-hold.jar app_process / tv.toets.helper.KeyHold 22 800',
+      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/toets-key-hold.jar app_process / tv.toets.helper.KeyHold 22 1500 513',
+      'adb -s emulator-5554 shell CLASSPATH=/data/local/tmp/toets-key-hold.jar app_process / tv.toets.helper.KeyHold 22 800 513',
     ]);
   });
 

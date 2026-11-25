@@ -83,6 +83,15 @@ export function validateNodeTree(value: unknown, path = 'root'): string[] {
     for (const k of ['visible', 'focusable', 'focused', 'enabled', 'selected', 'busy']) {
       if (typeof node[k] !== 'boolean') out.push(`${p}.${k} must be a boolean`);
     }
+    for (const k of ['editable', 'secure']) {
+      if (node[k] !== undefined && typeof node[k] !== 'boolean')
+        out.push(`${p}.${k} must be a boolean when present`);
+    }
+    checkOptionalString(node, 'value', p, out);
+    if (node.editable !== true && (node.value !== undefined || node.secure === true))
+      out.push(`${p}: value and secure are only allowed on editable nodes`);
+    if (node.secure === true && typeof node.value === 'string' && /[^•]/.test(node.value))
+      out.push(`${p}.value of a secure node must be masked (one • per character)`);
     if (node.focused === true) focused++;
     if (!Array.isArray(node.children)) {
       out.push(`${p}.children must be an array`);

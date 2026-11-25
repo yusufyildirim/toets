@@ -20,6 +20,7 @@ export const TvosErrorCode = {
   ELEMENT_DETACHED: 'TVOS_ELEMENT_DETACHED',
   ELEMENT_NOT_VISIBLE: 'TVOS_ELEMENT_NOT_VISIBLE',
   RECORDING_FAILED: 'TVOS_RECORDING_FAILED',
+  NO_TEXT_FIELD: 'TVOS_NO_TEXT_FIELD',
 } as const;
 
 export type TvosErrorCode = (typeof TvosErrorCode)[keyof typeof TvosErrorCode];

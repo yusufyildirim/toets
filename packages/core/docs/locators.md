@@ -17,6 +17,7 @@ await expect(card).toBeFocused();
 - **Text matching:** a string is a case-insensitive substring after whitespace normalization; `{ exact: true }` is a case-sensitive full match; a `RegExp` is tested as is. Text matches resolve to the deepest element that carries the text.
 - **Strict by default.** Actions and single-element assertions fail when a locator matches more than one element. Add `.first()`, `.nth(i)` or a narrower chain. `toHaveCount` and `count()` accept many.
 - **`app.focus.current()`** is a locator for whatever is focused right now.
+- **The one action is `fill(text)`**: it replaces a field's text through its keyboard, reaching the field with real presses ([text input](./text-input.md)). Everything else is focus and keys; there is no click.
 
 ## TV trap: virtualized lists
 

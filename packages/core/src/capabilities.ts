@@ -24,6 +24,11 @@ export type Capability =
    * children as its siblings (React Native on Android TV and tvOS).
    */
   | 'tree.hierarchy'
+  /**
+   * System text entry: the platform enters text into editable fields (`fill`, and
+   * `app.keyboard` on a system field or keyboard). App-drawn keyboards need only the D-pad.
+   */
+  | 'text.input'
   | 'sync.idle'
   | 'media.state'
   | 'app.state'

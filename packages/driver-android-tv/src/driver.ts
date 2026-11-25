@@ -6,6 +6,7 @@ import {
   type Driver,
   type DriverCreateContext,
   type DriverLaunchOptions,
+  type DriverTextInput,
   type ElementRef,
   type ElementSnapshot,
   type Key,
@@ -28,7 +29,7 @@ import {
 import { nodeCommandRunner, type CommandRunner } from './command.js';
 import { DOCS, androidError } from './errors.js';
 import { KeyHolder } from './key-hold.js';
-import { ANDROID_KEYCODES, REMOTE_PROFILE_CAPABILITIES, keySupported } from './keys.js';
+import { ANDROID_KEYCODES, REMOTE_PROFILE_CAPABILITIES, keySource, keySupported } from './keys.js';
 import { LogcatCollector } from './logcat.js';
 import { parseAppConfig, type AndroidTvAppConfig, type AndroidTvDriverOptions } from './options.js';
 import { findByRef, parsePageSource } from './page-source.js';
@@ -46,7 +47,15 @@ export interface AppiumSession {
   execute(script: string, ...args: unknown[]): Promise<unknown>;
   updateSettings(settings: Record<string, unknown>): Promise<unknown>;
   deleteSession(): Promise<unknown>;
+  /** W3C Find Element; returns the element reference object. */
+  findElement(using: string, value: string): Promise<Record<string, string>>;
+  elementClear(elementId: string): Promise<unknown>;
+  elementSendKeys(elementId: string, text: string): Promise<unknown>;
 }
+
+/** W3C element reference key. */
+const ELEMENT_KEY = 'element-6066-11e4-a52e-4f735466cecf';
+const KEYCODE_DEL = 67;
 
 /** Seams for unit tests. Production code uses the defaults. */
 export interface AndroidTvDriverDeps {
@@ -112,6 +121,7 @@ export class AndroidTvDriver implements Driver {
       'screenshot.element',
       'video',
       'platform.events',
+      'text.input',
       ...(options.logcat === false ? [] : (['logs'] as const)),
     ]);
     this.logcat =
@@ -342,11 +352,15 @@ export class AndroidTvDriver implements Driver {
       );
     }
     const keycode = ANDROID_KEYCODES[key];
+    const source = keySource(key);
     if (opts?.holdMs !== undefined) {
-      await this.keyHolder.hold(keycode, opts.holdMs);
+      await this.keyHolder.hold(keycode, opts.holdMs, source);
       return;
     }
-    await this.requireSession().execute('mobile: pressKey', { keycode });
+    await this.requireSession().execute(
+      'mobile: pressKey',
+      source === undefined ? { keycode } : { keycode, source },
+    );
   }
 
   async screenshot(opts: { readonly element?: ElementRef } = {}): Promise<Uint8Array> {
@@ -380,6 +394,66 @@ export class AndroidTvDriver implements Driver {
 
   async stopRecording(): Promise<string> {
     return this.recorder.stop();
+  }
+
+  /**
+   * System text entry through UiAutomator2, the way IMEs set text: `replace` sets the focused
+   * field's text (unicode included) without opening the keyboard, `insert` types at the caret
+   * (`mobile: type`), `deleteBackward` presses DEL, `submit` performs the IME action (`done`;
+   * apps receive it as `onEditorAction` / `onSubmitEditing`), `close` hides the IME.
+   */
+  readonly text: DriverTextInput = {
+    isOpen: async () => (await this.requireSession().execute('mobile: isKeyboardShown')) === true,
+    replace: async (_field, text) => {
+      const session = this.requireSession();
+      const id = await this.focusedFieldId();
+      await session.elementClear(id);
+      if (text !== '') await session.elementSendKeys(id, text);
+    },
+    insert: async (text) => {
+      if (text === '') return;
+      await this.requireSession().execute('mobile: type', { text });
+    },
+    deleteBackward: async (count) => {
+      const session = this.requireSession();
+      for (let i = 0; i < count; i++) {
+        await session.execute('mobile: pressKey', { keycode: KEYCODE_DEL });
+      }
+    },
+    submit: async () => {
+      await this.requireSession().execute('mobile: performEditorAction', { action: 'done' });
+    },
+    close: async () => {
+      await this.requireSession().execute('mobile: hideKeyboard');
+    },
+  };
+
+  private async focusedFieldId(): Promise<string> {
+    let ref: Record<string, string>;
+    try {
+      ref = await this.requireSession().findElement(
+        '-android uiautomator',
+        'new UiSelector().focused(true)',
+      );
+    } catch (e) {
+      throw androidError(
+        'ANDROID_NO_TEXT_FIELD',
+        `No focused text field to enter text into: ${(e as Error).message}`,
+        { hint: 'Move focus to the field first (fill() does).', docs: DOCS.capabilities },
+      );
+    }
+    const id = ref[ELEMENT_KEY] ?? ref.ELEMENT;
+    if (!id) {
+      throw androidError(
+        'ANDROID_NO_TEXT_FIELD',
+        'Appium returned no element for the focused field.',
+        {
+          hint: 'Check the Appium UiAutomator2 driver version.',
+          docs: DOCS.capabilities,
+        },
+      );
+    }
+    return id;
   }
 
   /** The WebdriverIO `Browser` (Appium UiAutomator2 session) for `app.platformOnly`. */

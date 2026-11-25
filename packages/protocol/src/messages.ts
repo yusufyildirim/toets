@@ -9,7 +9,7 @@
  */
 
 /** Protocol version implemented by this package. See `docs/spec.md` > Versioning. */
-export const PROTOCOL_VERSION = '1.0.0';
+export const PROTOCOL_VERSION = '1.1.0';
 
 /** Method name of the handshake request (app to host). */
 export const HELLO_METHOD = 'toets.hello';
@@ -59,6 +59,18 @@ export interface ProtocolNode {
   readonly enabled: boolean;
   readonly selected: boolean;
   readonly busy: boolean;
+  /**
+   * A system text field: the platform enters its text (an `input`, a React Native `TextInput`).
+   * Since 1.1; absent means `false`.
+   */
+  readonly editable?: boolean;
+  /**
+   * Current text of an editable node, `''` when empty, never its placeholder. Masked (one `•`
+   * per character) when `secure`. Only on editable nodes. Since 1.1.
+   */
+  readonly value?: string;
+  /** A password field. Only on editable nodes. Since 1.1; absent means `false`. */
+  readonly secure?: boolean;
   readonly children: readonly ProtocolNode[];
 }
 

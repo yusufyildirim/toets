@@ -11,7 +11,7 @@ export function registerInspectTools(server: McpServer, { session }: ToolContext
     {
       title: 'Text snapshot of the screen',
       description: [
-        'Read the current screen as a YAML text snapshot, exactly what `app.snapshot()` returns in a test: one line per element in tree order, `testId "text" [states]`, nested by containment. States: focused, selected, busy, disabled, offscreen.',
+        'Read the current screen as a YAML text snapshot, exactly what `app.snapshot()` returns in a test: one line per element in tree order, `testId "text" [states]`, nested by containment. States: focused, selected, busy, disabled, offscreen, editable, secure. System text fields show `value="..."` (masked when secure); a declared app keyboard collapses to one line, `osk [keyboard: search, layer: lower, focused: "m"]`.',
         'Use it to see what is on screen and where focus is before deciding what to press. Cheap and deterministic: prefer it over `screenshot`.',
         'Wrappers without a test ID, text, focusability or state are left out; anonymous elements show as `text` or `element`. Pass `target` for one subtree (`locator.snapshot()`). The output can be pasted into `toMatchTextSnapshot`.',
       ].join(' '),
@@ -124,7 +124,7 @@ export function registerInspectTools(server: McpServer, { session }: ToolContext
       title: 'Assert like a test',
       description: [
         'Check a condition with the same matcher code `expect` runs in a toets test: it retries until the condition holds or the timeout passes (waiting for app idle first when the SDK has it), and fails with the same message a test would.',
-        'Locator matchers (need `target`): toBeVisible, toBeInViewport, toBeFocused, toHaveFocusWithin, toBeEnabled, toBeDisabled, toBeSelected, toBeBusy, toHaveText / toContainText (`expected`), toHaveCount (`count`). Screen: toMatchTextSnapshot (`expected` YAML from `snapshot`; `target` optional). Media (`media.state`): toBePlaying, toBePaused, toHaveMediaState (`expected`), toHavePosition (`seconds`, `tolerance`). Network (`network.mock`): toHaveRequested (`request`, `times`). Any of them with `not`.',
+        'Locator matchers (need `target`): toBeVisible, toBeInViewport, toBeFocused, toHaveFocusWithin, toBeEnabled, toBeDisabled, toBeSelected, toBeBusy, toHaveText / toContainText (`expected`), toHaveValue (`expected`, system text fields), toHaveCount (`count`). Keyboard: toBeOpen (`app.keyboard`, no target). Screen: toMatchTextSnapshot (`expected` YAML from `snapshot`; `target` optional). Media (`media.state`): toBePlaying, toBePaused, toHaveMediaState (`expected`), toHavePosition (`seconds`, `tolerance`). Network (`network.mock`): toHaveRequested (`request`, `times`). Any of them with `not`.',
         'Use it to confirm an assertion before writing it; the result includes the test code line. A locator matching several elements fails (strict mode). TV trap: after pressing keys, assert focus with toBeFocused instead of assuming the press moved it.',
       ].join(' '),
       inputSchema: z.object({
@@ -134,7 +134,7 @@ export function registerInspectTools(server: McpServer, { session }: ToolContext
           .string()
           .optional()
           .describe(
-            'toHaveText: full text; toContainText: substring; toMatchTextSnapshot: snapshot YAML; toHaveMediaState: a media state (playing, paused, buffering, ...).',
+            'toHaveText: full text; toContainText: substring; toHaveValue: value of a system text field; toMatchTextSnapshot: snapshot YAML; toHaveMediaState: a media state (playing, paused, buffering, ...).',
           ),
         count: z.number().int().min(0).optional().describe('toHaveCount: expected match count.'),
         seconds: z.number().min(0).optional().describe('toHavePosition: playback position.'),
@@ -197,5 +197,7 @@ function states(el: ElementSnapshot): string {
   if (!el.enabled) out.push('disabled');
   if (!el.visible) out.push('hidden');
   else if (!el.inViewport) out.push('offscreen');
+  if (el.editable) out.push('editable');
+  if (el.secure) out.push('secure');
   return out.length ? ` [${out.join(', ')}]` : '';
 }

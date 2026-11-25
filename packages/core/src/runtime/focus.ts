@@ -28,11 +28,11 @@ const PATH_SHOWN = 10;
  */
 type FocusKey = string & { readonly __focusKey: unique symbol };
 
-function focusKey(el: ElementSnapshot): FocusKey {
+export function focusKey(el: ElementSnapshot): FocusKey {
   return JSON.stringify([el.ref, el.testId, el.text]) as FocusKey;
 }
 
-const sameFocus = (a: ElementSnapshot | null, b: ElementSnapshot | null): boolean =>
+export const sameFocus = (a: ElementSnapshot | null, b: ElementSnapshot | null): boolean =>
   a === null || b === null ? a === b : focusKey(a) === focusKey(b);
 
 /**
@@ -154,6 +154,13 @@ function describePath(path: readonly ElementSnapshot[]): string {
 
 const times = (n: number) => (n === 1 ? 'once' : `${n} times`);
 
+/** What `navigateTo` aims at: a locator, or an element the core resolves itself (a key). */
+export interface NavigationGoal {
+  readonly description: string;
+  /** The goal on screen now, waiting for it like `Locator` does (`ELEMENT_NOT_FOUND`). */
+  resolveOne(): Promise<ElementSnapshot>;
+}
+
 export class FocusImpl implements Focus {
   constructor(
     private readonly ctx: RuntimeContext,
@@ -248,6 +255,14 @@ export class FocusImpl implements Focus {
     );
   }
 
+  /** {@link FocusImpl.navigateTo} without a step of its own, for actions built on it. */
+  navigateToGoal(
+    goal: NavigationGoal,
+    maxPresses = DEFAULT_MAX_PRESSES,
+  ): Promise<readonly Direction[]> {
+    return this.navigate(goal, maxPresses);
+  }
+
   private goal(target: Locator, method: string): LocatorImpl {
     const goal = locatorImpl(target);
     if (!goal) {
@@ -284,7 +299,7 @@ export class FocusImpl implements Focus {
    * direction toward the target; walking observed moves back to the nearest element that still
    * has one; an untried detour; walking to any element with an untried direction.
    */
-  private async navigate(goal: LocatorImpl, maxPresses: number): Promise<readonly Direction[]> {
+  private async navigate(goal: NavigationGoal, maxPresses: number): Promise<readonly Direction[]> {
     const path: Direction[] = [];
     const visits = new Map<FocusKey, Visit>();
 
@@ -317,7 +332,7 @@ export class FocusImpl implements Focus {
   }
 
   /** The target, which navigateTo aims at by its bounds. */
-  private async onScreen(goal: LocatorImpl): Promise<ElementSnapshot> {
+  private async onScreen(goal: NavigationGoal): Promise<ElementSnapshot> {
     try {
       return await goal.resolveOne();
     } catch (e) {
@@ -330,7 +345,7 @@ export class FocusImpl implements Focus {
     }
   }
 
-  private async waitForFocus(): Promise<ElementSnapshot> {
+  async waitForFocus(): Promise<ElementSnapshot> {
     const result = await this.ctx.retry(async () => {
       const f = await this.ctx.target.focused();
       return { ok: f !== null, value: f };
@@ -359,7 +374,7 @@ export class FocusImpl implements Focus {
   }
 
   private unreachable(
-    goal: LocatorImpl,
+    goal: NavigationGoal,
     focused: ElementSnapshot,
     path: readonly Direction[],
     reason: string,

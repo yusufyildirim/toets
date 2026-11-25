@@ -5,7 +5,7 @@ import { describe, expect, it } from 'vitest';
 import { load, type Adapter } from './helpers.js';
 import { fire, render, type FakeInstance, type Rendered } from './renderer.js';
 
-const { testIds, states, text } = CONFORMANCE_FIXTURE;
+const { testIds, states, text, fieldValue, secretValue } = CONFORMANCE_FIXTURE;
 
 const box = (left: number, top: number, width: number, height: number) => ({
   style: { left, top, width, height },
@@ -18,6 +18,19 @@ function Fixture(): ReactNode {
     h('RCTView', { testID: testIds.a, focusable: true, ...box(100, 100, 300, 200) }),
     h('RCTView', { testID: testIds.b, focusable: true, ...box(450, 100, 300, 200) }),
     h('RCTText', { testID: testIds.text, ...box(100, 400, 600, 50) }, text),
+    h('RCTSinglelineTextInputView', {
+      testID: testIds.field,
+      focusable: true,
+      text: fieldValue,
+      ...box(100, 500, 600, 60),
+    }),
+    h('RCTSinglelineTextInputView', {
+      testID: testIds.secret,
+      focusable: true,
+      secureTextEntry: true,
+      text: secretValue,
+      ...box(100, 600, 600, 60),
+    }),
   );
 }
 

@@ -66,8 +66,44 @@ export interface Driver {
   /** Stops recording and returns the file path of the video. */
   stopRecording?(): Promise<string>;
 
+  /**
+   * System text entry (`text.input`). Present exactly when the driver declares `text.input`.
+   */
+  readonly text?: DriverTextInput;
+
   /** The underlying tool handle for `app.platformOnly` (Playwright `Page`, WebdriverIO `Browser`). */
   escapeHatch(): unknown;
+}
+
+/**
+ * System text entry: how the platform puts text into an editable field, the way its own
+ * keyboards (on-screen, IME, remote apps) do. The core reaches fields with real D-pad presses
+ * first, then calls these; it verifies the result and closes a keyboard `replace` left open.
+ * Text never goes through synthetic in-app events (VISION decision 17).
+ */
+export interface DriverTextInput {
+  /**
+   * Whether system text entry is active now: a system keyboard is on screen, or (web, where TV
+   * keyboards have no DOM) an editable element holds focus.
+   */
+  isOpen(): Promise<boolean>;
+  /**
+   * Replaces the whole text of `field`, the focused editable element, with `text` (`''`
+   * clears it). Never submits. May open the system keyboard.
+   */
+  replace(field: ElementSnapshot, text: string): Promise<void>;
+  /**
+   * Inserts `text` at the caret of active text entry. May open the system keyboard. `field` is
+   * the focused editable element as the core sees it (its `value` included), or `null` when the
+   * core sees none (a system keyboard holds focus).
+   */
+  insert(text: string, field: ElementSnapshot | null): Promise<void>;
+  /** Deletes `count` characters before the caret of active text entry. `field` as in `insert`. */
+  deleteBackward(count: number, field: ElementSnapshot | null): Promise<void>;
+  /** Triggers the keyboard's action key (Search, Done, Go) of active text entry. */
+  submit(field: ElementSnapshot | null): Promise<void>;
+  /** Closes the system keyboard if one is on screen, keeping the text. */
+  close(): Promise<void>;
 }
 
 /** Per-platform app config from the user's toets config. */

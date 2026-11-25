@@ -1,10 +1,11 @@
-import type { Locator, Screenshot, ScreenshotOptions } from '../api.js';
+import type { Locator, Screenshot, ScreenshotOptions, TextEntryOptions } from '../api.js';
 import { ToetsError, packageDocsLink } from '../errors.js';
 import type { Selector, SelectorChain } from '../selectors.js';
 import type { ElementSnapshot } from '../snapshot.js';
 import type { RuntimeContext } from './context.js';
 import { cropPng, createScreenshot } from './screenshot.js';
 import { renderTextSnapshot } from './text-snapshot.js';
+import type { TextEntryResult } from './keyboard.js';
 import { findNode } from './tree.js';
 
 function describeSelector(step: Selector): string {
@@ -171,7 +172,19 @@ export class LocatorImpl {
         },
       );
     }
-    return renderTextSnapshot(tree, node);
+    // A keyboard collapses inside a screen; snapshotting the keyboard itself shows its keys.
+    const collapsed = this.ctx.textEntry.collapsed(tree);
+    collapsed.delete(node.ref);
+    return renderTextSnapshot(tree, node, { collapsed });
+  }
+
+  async fill(text: string, opts?: TextEntryOptions): Promise<void> {
+    await this.fillWith(text, opts);
+  }
+
+  /** {@link LocatorImpl.fill}, telling which keyboard typed and how many presses it took. */
+  fillWith(text: string, opts?: TextEntryOptions): Promise<TextEntryResult> {
+    return this.ctx.textEntry.fill(this, text, opts);
   }
 
   toString(): string {
@@ -183,7 +196,11 @@ export function createLocator(ctx: RuntimeContext, chain: SelectorChain): Locato
   return new LocatorImpl(ctx, chain) as unknown as Locator;
 }
 
-/** The implementation behind a public `Locator`, or `null` for anything else. */
+/**
+ * The implementation behind a public `Locator`, or `null` for anything else.
+ *
+ * @internal
+ */
 export function locatorImpl(value: unknown): LocatorImpl | null {
   return value instanceof LocatorImpl ? value : null;
 }

@@ -113,6 +113,28 @@ describe('parsePageSource', () => {
     expect(byTestId(t.root, 'gone')).toMatchObject({ visible: false, text: 'hidden' });
     expect(t.root.children[0]?.text).toBe('Tom & Jerry S1');
   });
+
+  it('reports text fields as editable with their value, passwords as secure', () => {
+    const xml = `<hierarchy rotation="0">
+  <node index="0" text="" class="android.widget.FrameLayout" bounds="[0,0][1280,720]">
+    <node index="0" text="Email" showing-hint="true" resource-id="com.x:id/email" class="android.widget.EditText" bounds="[10,10][200,50]" />
+    <node index="1" text="a@b.co" resource-id="com.x:id/email2" class="android.widget.EditText" bounds="[10,60][200,100]" />
+    <node index="2" text="••••" password="true" resource-id="com.x:id/pass" class="android.widget.EditText" bounds="[10,110][200,150]" />
+    <node index="3" text="off" enabled="false" resource-id="com.x:id/off" class="android.widget.EditText" bounds="[10,160][200,200]" />
+    <node index="4" text="Hi" resource-id="com.x:id/label" class="android.widget.TextView" bounds="[10,210][200,250]" />
+  </node>
+</hierarchy>`;
+    const t = parsePageSource(xml);
+    expect(byTestId(t.root, 'email')).toMatchObject({ editable: true, value: '', secure: false });
+    expect(byTestId(t.root, 'email2')).toMatchObject({ editable: true, value: 'a@b.co' });
+    expect(byTestId(t.root, 'pass')).toMatchObject({
+      editable: true,
+      value: '••••',
+      secure: true,
+    });
+    expect(byTestId(t.root, 'off')).toMatchObject({ editable: false, value: null, secure: false });
+    expect(byTestId(t.root, 'label')).toMatchObject({ editable: false, value: null });
+  });
 });
 
 describe('refs', () => {

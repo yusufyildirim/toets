@@ -54,6 +54,28 @@ describe('DomMapper', () => {
     ]);
   });
 
+  it('reports text fields with their value; passwords masked and secure', () => {
+    document.body.innerHTML = `
+      <input data-testid="email" type="email" placeholder="Email">
+      <input data-testid="password" type="password" value="pa😀s">
+      <textarea data-testid="notes">hi</textarea>
+      <div data-testid="rich" contenteditable="true">rich</div>
+      <input data-testid="ro" readonly value="x">
+      <input data-testid="box" type="checkbox">
+      <button data-testid="b">B</button>`;
+    const byId = (id: string) =>
+      new DomMapper().tree().root.children.find((n) => n.testId === id) as ProtocolNode;
+    expect(byId('email')).toMatchObject({ editable: true, value: '' });
+    expect(byId('email').secure).toBeUndefined();
+    expect(byId('password')).toMatchObject({ editable: true, secure: true, value: '••••' });
+    expect(byId('notes')).toMatchObject({ editable: true, value: 'hi' });
+    expect(byId('rich')).toMatchObject({ editable: true, value: 'rich' });
+    for (const id of ['ro', 'box', 'b']) {
+      expect(byId(id).editable, id).toBeUndefined();
+      expect(byId(id).value, id).toBeUndefined();
+    }
+  });
+
   it('keeps ids stable and serves subtrees', () => {
     document.body.innerHTML = `<div data-testid="rail"><button data-testid="a">A</button></div>`;
     const mapper = new DomMapper();

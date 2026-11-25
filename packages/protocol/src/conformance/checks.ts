@@ -64,7 +64,7 @@ export interface Check<C> {
   run(ctx: C): Promise<void>;
 }
 
-const { testIds, states, text: fixtureText } = CONFORMANCE_FIXTURE;
+const { testIds, states, text: fixtureText, fieldValue, secretValue } = CONFORMANCE_FIXTURE;
 
 function flatten(root: ProtocolNode): ProtocolNode[] {
   const out: ProtocolNode[] = [];
@@ -419,6 +419,40 @@ export const sessionChecks: Check<SessionContext>[] = [
       const ownText = [t, ...t.children].map((n) => n.text ?? '').join('');
       if (!ownText.includes(fixtureText)) fail(`"${testIds.text}" must have text "${fixtureText}"`);
       if (t.focusable) fail(`"${testIds.text}" must not be focusable`);
+    },
+  },
+  {
+    id: 'fixture.text-fields',
+    title: 'fixture: text fields report editable, value and secure (protocol 1.1)',
+    scenario: 'session',
+    domains: ['tree'],
+    fixture: true,
+    async run(ctx) {
+      const v = parseProtocolVersion(ctx.session.hello.protocol);
+      // Fields added in 1.1 are optional for 1.0 SDKs.
+      if (!v || v.minor < 1) return;
+      const nodes = flatten((await getTree(ctx)).root);
+      const find = (id: string) =>
+        nodes.find((n) => n.testId === id) ?? fail(`no node with testId "${id}"`);
+      const field = find(testIds.field);
+      if (field.editable !== true) fail(`"${testIds.field}" must be editable`);
+      if (field.value !== fieldValue)
+        fail(
+          `"${testIds.field}" must have value "${fieldValue}", got ${JSON.stringify(field.value)}`,
+        );
+      if (field.secure === true) fail(`"${testIds.field}" must not be secure`);
+      const secret = find(testIds.secret);
+      if (secret.editable !== true || secret.secure !== true)
+        fail(`"${testIds.secret}" must be editable and secure`);
+      const masked = '•'.repeat(secretValue.length);
+      if (secret.value !== masked)
+        fail(
+          `"${testIds.secret}" must have the masked value "${masked}", got ${JSON.stringify(secret.value)}`,
+        );
+      for (const n of nodes) {
+        if (!n.editable && (n.value !== undefined || n.secure === true))
+          fail(`node "${n.id}" is not editable but has value or secure`);
+      }
     },
   },
   {

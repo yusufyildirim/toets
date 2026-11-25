@@ -3,6 +3,13 @@ export interface TvosSession {
   execute(script: string, ...args: unknown[]): Promise<unknown>;
   takeScreenshot(): Promise<string>;
   deleteSession(): Promise<unknown>;
+  /** W3C Find Elements; returns element reference objects. */
+  findElements(using: string, value: string): Promise<Record<string, string>[]>;
+  elementClear(elementId: string): Promise<unknown>;
+  elementSendKeys(elementId: string, text: string): Promise<unknown>;
+  /** W3C Get Active Element: the focused element, also in system overlays the app source lacks. */
+  getActiveElement(): Promise<Record<string, string>>;
+  getElementAttribute(elementId: string, name: string): Promise<string | null>;
 }
 
 export interface SessionRequest {

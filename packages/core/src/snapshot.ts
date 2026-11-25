@@ -28,6 +28,18 @@ export interface ElementSnapshot {
   readonly selected: boolean;
   /** The element or one of its descendants reports busy (loading). */
   readonly busy: boolean;
+  /**
+   * A system text field: the platform enters its text (web `input`, `textarea` and
+   * `contenteditable`, Android `EditText`, tvOS text fields). App-drawn fields are not editable.
+   */
+  readonly editable: boolean;
+  /**
+   * Text of an editable element, `''` when empty, `null` for other elements. Never the
+   * placeholder. Masked (one `•` per character) when {@link ElementSnapshot.secure}.
+   */
+  readonly value: string | null;
+  /** A password field: its value and text are masked everywhere. */
+  readonly secure: boolean;
 }
 
 export interface UINode extends ElementSnapshot {

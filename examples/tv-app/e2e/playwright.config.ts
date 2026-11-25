@@ -1,5 +1,7 @@
 import { defineConfig, platforms, type DeviceSelection } from '@toets/test';
 
+import { keyboards } from './keyboards.js';
+
 /**
  * One suite, every platform. Build the app first (`pnpm build:web`, `pnpm build:android`,
  * `pnpm build:tvos`), then `pnpm e2e --project=<name>`.
@@ -44,6 +46,7 @@ export default defineConfig({
     tvOS: { app: '../dist/tvos/toetsTV.app', bundleId: 'dev.toets.example' },
   },
   toets: { sdk: true, mock: true },
+  keyboards,
   projects: [
     platforms.web(web),
     platforms.androidTV(android),
