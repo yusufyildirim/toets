@@ -1,6 +1,6 @@
 {
   "name": "@toets/mock",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Network mocking for TV app E2E tests: MSW handlers on a host-side mock server with upstream proxying, same on web, Android TV and tvOS.",
   "keywords": [
     "toets",

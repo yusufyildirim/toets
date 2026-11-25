@@ -1,6 +1,6 @@
 {
   "name": "@toets/protocol",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "toets in-app SDK protocol for TV app E2E testing: JSON-RPC types, spec, host server and conformance suite.",
   "keywords": [
     "toets",
