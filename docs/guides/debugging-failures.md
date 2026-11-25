@@ -10,7 +10,7 @@ toets failures are meant to explain themselves. Read what they say before changi
 
 - **The error.** A thrown error reads `ToetsError: [CODE] what happened`, then `Hint:` (likely cause and fix) and `Docs:` (the page, with its offline path). Every code is listed in the [error code index](../reference/core/docs/errors.md). A failed assertion shows the locator, expected and received state, what was focused and whether the app was idle.
 - **The failure dump** (`toets-failure.md`, with `toets-screenshot.png`), in the failed test's `test-results/` folder and attached to the report: platform and capabilities, the focused element, a [text snapshot](../concepts/text-snapshots.md) of the screen, the last keys pressed, what kept the app busy, recent logs and requests. See [failure dumps](../reference/core/docs/failure-dumps.md).
-- **The report.** `npx playwright show-report` lists every action as a step (`press RIGHT`, `pressUntil RIGHT getByTestId('card')`). Per test: `toets-logs` and, with mocking on, `toets-network.har`. Per-step screenshots and snapshots (`toets.steps`) and video (`toets.video`) are off by default; turn them on while debugging. Web runs also record Playwright traces (`--trace on`).
+- **The report.** `npx playwright show-report` lists every action as a step (`press RIGHT`, `pressUntilFocused RIGHT getByTestId('card')`). Per test: `toets-logs` and, with mocking on, `toets-network.har`. Per-step screenshots and snapshots (`toets.steps`) and video (`toets.video`) are off by default; turn them on while debugging. Web runs also record Playwright traces (`--trace on`).
 
 ## 2. Reproduce narrowly
 

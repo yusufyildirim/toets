@@ -13,7 +13,7 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
       description: [
         'Press TV remote keys in order, like a user. This is the only way to interact: there is no click, tap, hover, type or scroll.',
         'UP/DOWN/LEFT/RIGHT move focus, SELECT activates the focused element, BACK goes back. Other keys depend on the platform (see `capabilities`); key overrides from the config apply, as in tests.',
-        'Every key is checked before the first press. Returns where focus landed once it settled, and the matching test code. To reach a known element prefer `press_until` (or `navigate_to`); use `press` for single steps and SELECT.',
+        'Every key is checked before the first press. Returns where focus landed once it settled, and the matching test code. To reach a known element prefer `press_until_focused` (or `navigate_to`); use `press` for single steps and SELECT.',
       ].join(' '),
       inputSchema: z.object({
         keys: z
@@ -64,11 +64,11 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
   );
 
   server.registerTool(
-    'press_until',
+    'press_until_focused',
     {
       title: 'Press a direction until an element is focused',
       description: [
-        'Press one D-pad direction until an element (or one of its descendants) is focused, reading focus after every press: exactly `app.focus.pressUntil(key, locator)` from a test. The preferred way to reach an element: the app decides where each press goes, toets only checks.',
+        'Press one D-pad direction until an element (or one of its descendants) is focused, reading focus after every press: exactly `app.focus.pressUntilFocused(key, locator)` from a test. The preferred way to reach an element: the app decides where each press goes, toets only checks.',
         'The element may not exist yet (virtualized lists render items as focus approaches). Fails fast with FOCUS_STUCK when a press does not move focus, FOCUS_LOOP when focus comes back to an element it left, FOCUS_UNREACHABLE after maxPresses; the message lists the elements focus passed.',
         'Then `press` SELECT to activate the element.',
       ].join(' '),
@@ -92,7 +92,7 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
         session.exclusive(async () => {
           const { runtime } = session.launched();
           const locator = locate(runtime.app, target);
-          const presses = await runtime.app.focus.pressUntil(
+          const presses = await runtime.app.focus.pressUntilFocused(
             key as DirectionKey,
             locator,
             maxPresses === undefined ? undefined : { maxPresses },
@@ -103,7 +103,7 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
               ? 'Already focused; no presses needed.'
               : `Focused after ${presses} ${key} press${presses === 1 ? '' : 'es'}.`,
             focusLine(await runtime.target.focused()),
-            `Code: await app.focus.pressUntil(Key.${key}, ${locatorCode(locator)}${options});`,
+            `Code: await app.focus.pressUntilFocused(Key.${key}, ${locatorCode(locator)}${options});`,
           );
         }),
       ),
@@ -115,8 +115,8 @@ export function registerInputTools(server: McpServer, { session }: ToolContext):
       title: 'Navigate focus to element',
       description: [
         'Move focus to an element on screen with real D-pad presses and report the path: exactly `app.focus.navigateTo(locator)` from a test. Each press is aimed by element geometry and checked by reading focus; presses that do not move focus are learned and detoured around.',
-        'Use it when the way there is not one direction; for one direction prefer `press_until`, which fails faster and clearer. Then `press` SELECT to activate the element.',
-        'Done when the element or one of its descendants is focused. Fails with the reason when the element is missing (TV lists are virtualized: use `press_until` toward offscreen items) or unreachable.',
+        'Use it when the way there is not one direction; for one direction prefer `press_until_focused`, which fails faster and clearer. Then `press` SELECT to activate the element.',
+        'Done when the element or one of its descendants is focused. Fails with the reason when the element is missing (TV lists are virtualized: use `press_until_focused` toward offscreen items) or unreachable.',
       ].join(' '),
       inputSchema: z.object({
         target: targetSchema,

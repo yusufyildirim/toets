@@ -176,11 +176,11 @@ describe('focus.navigateTo', () => {
     ).rejects.toMatchObject({ code: 'FOCUS_UNREACHABLE' });
   });
 
-  it('points to pressUntil when the target is not on screen', async () => {
+  it('points to pressUntilFocused when the target is not on screen', async () => {
     const { app } = setup();
     await expect(app.focus.navigateTo(app.getByTestId('trending_99'))).rejects.toMatchObject({
       code: 'ELEMENT_NOT_FOUND',
-      hint: expect.stringContaining('app.focus.pressUntil(key, target)'),
+      hint: expect.stringContaining('app.focus.pressUntilFocused(key, target)'),
     });
   });
 
@@ -189,23 +189,23 @@ describe('focus.navigateTo', () => {
     const { app, driver } = setup({ screen: row.screen });
     row.attach(driver);
     // item_2 is on screen (slot 2) once item_1 holds focus.
-    await app.focus.pressUntil(Key.RIGHT, app.getByTestId('item_1'));
+    await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('item_1'));
     expect(await app.focus.navigateTo(app.getByTestId('item_2'))).toEqual(['right']);
     expect(await app.focus.current().testId()).toBe('item_2');
   });
 });
 
-describe('focus.pressUntil', () => {
+describe('focus.pressUntilFocused', () => {
   it('presses one direction until the target holds focus and returns the presses', async () => {
     const steps: string[] = [];
     const { app, driver } = setup({
       runtime: { hooks: { step: (i: ActionInfo, run) => (steps.push(i.title), run()) } },
     });
-    expect(await app.focus.pressUntil(Key.RIGHT, app.getByTestId('trending_3'))).toBe(3);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('trending_3'))).toBe(3);
     expect(await app.focus.current().testId()).toBe('trending_3');
     expect(driver.presses.map((p) => p.key)).toEqual(['RIGHT', 'RIGHT', 'RIGHT']);
     expect(steps).toEqual([
-      "pressUntil RIGHT getByTestId('trending_3')",
+      "pressUntilFocused RIGHT getByTestId('trending_3')",
       'press RIGHT',
       'press RIGHT',
       'press RIGHT',
@@ -214,9 +214,9 @@ describe('focus.pressUntil', () => {
 
   it('presses nothing when the target already holds focus, and accepts containers', async () => {
     const { app, driver } = setup();
-    expect(await app.focus.pressUntil(Key.DOWN, app.getByTestId('menu_home'))).toBe(0);
-    expect(await app.focus.pressUntil(Key.DOWN, app.getByTestId('side_menu'))).toBe(0);
-    expect(await app.focus.pressUntil(Key.RIGHT, app.getByTestId('rail_trending'))).toBe(1);
+    expect(await app.focus.pressUntilFocused(Key.DOWN, app.getByTestId('menu_home'))).toBe(0);
+    expect(await app.focus.pressUntilFocused(Key.DOWN, app.getByTestId('side_menu'))).toBe(0);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('rail_trending'))).toBe(1);
     expect(driver.presses).toHaveLength(1);
   });
 
@@ -225,7 +225,7 @@ describe('focus.pressUntil', () => {
     const { app, driver } = setup({ screen: row.screen });
     row.attach(driver);
     expect(await app.getByTestId('item_20').count()).toBe(0);
-    expect(await app.focus.pressUntil(Key.RIGHT, app.getByTestId('item_20'))).toBe(20);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('item_20'))).toBe(20);
     expect(await app.focus.current().testId()).toBe('item_20');
   });
 
@@ -233,21 +233,21 @@ describe('focus.pressUntil', () => {
     const row = virtualRow(10, { fixedSlots: true });
     const { app, driver } = setup({ screen: row.screen });
     row.attach(driver);
-    expect(await app.focus.pressUntil(Key.RIGHT, app.getByTestId('item_7'))).toBe(7);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('item_7'))).toBe(7);
     expect(await app.focus.current().testId()).toBe('item_7');
   });
 
   it('works with the SDK connected (idle accelerates every press)', async () => {
     const { app, host } = setup({ sdk: true });
     await app.launch();
-    expect(await app.focus.pressUntil(Key.RIGHT, app.getByTestId('trending_2'))).toBe(2);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('trending_2'))).toBe(2);
     expect(host!.session!.requests.some((r) => r.method === 'sync.waitForIdle')).toBe(true);
   });
 
   it('fails fast when a press does not move focus', async () => {
     const { app } = setup();
     const err = (await app.focus
-      .pressUntil(Key.UP, app.getByTestId('trending_1'))
+      .pressUntilFocused(Key.UP, app.getByTestId('trending_1'))
       .catch((e: unknown) => e)) as ToetsError;
     expect(err.code).toBe('FOCUS_STUCK');
     expect(err.message).toBe(
@@ -271,7 +271,7 @@ describe('focus.pressUntil', () => {
       },
     });
     const err = (await app.focus
-      .pressUntil(Key.RIGHT, app.getByTestId('d'))
+      .pressUntilFocused(Key.RIGHT, app.getByTestId('d'))
       .catch((e: unknown) => e)) as ToetsError;
     expect(err.code).toBe('FOCUS_LOOP');
     expect(err.message).toBe(
@@ -284,7 +284,7 @@ describe('focus.pressUntil', () => {
     const { app, driver } = setup({ screen: row.screen });
     row.attach(driver);
     const err = (await app.focus
-      .pressUntil(Key.RIGHT, app.getByTestId('item_25'), { maxPresses: 12 })
+      .pressUntilFocused(Key.RIGHT, app.getByTestId('item_25'), { maxPresses: 12 })
       .catch((e: unknown) => e)) as ToetsError;
     expect(err.code).toBe('FOCUS_UNREACHABLE');
     expect(err.message).toMatch(
@@ -299,7 +299,9 @@ describe('focus.pressUntil', () => {
         root: { children: [box('a', 0, 0, { neighbors: { right: 'gone' } }), box('b', 300, 0)] },
       },
     });
-    await expect(app.focus.pressUntil(Key.RIGHT, app.getByTestId('b'))).rejects.toMatchObject({
+    await expect(
+      app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('b')),
+    ).rejects.toMatchObject({
       code: 'NO_FOCUS',
     });
   });
@@ -307,13 +309,13 @@ describe('focus.pressUntil', () => {
   it('rejects ambiguous targets, non-direction keys and bad maxPresses', async () => {
     const { app } = setup();
     await expect(
-      app.focus.pressUntil(Key.RIGHT, app.getByText(/^Trending \d$/)),
+      app.focus.pressUntilFocused(Key.RIGHT, app.getByText(/^Trending \d$/)),
     ).rejects.toMatchObject({ code: 'STRICT_MODE_VIOLATION' });
     await expect(
-      app.focus.pressUntil(Key.SELECT as DirectionKey, app.getByTestId('trending_1')),
+      app.focus.pressUntilFocused(Key.SELECT as DirectionKey, app.getByTestId('trending_1')),
     ).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
     await expect(
-      app.focus.pressUntil(Key.RIGHT, app.getByTestId('trending_1'), { maxPresses: 0 }),
+      app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('trending_1'), { maxPresses: 0 }),
     ).rejects.toMatchObject({ code: 'INVALID_ARGUMENT' });
   });
 });

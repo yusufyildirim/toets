@@ -36,8 +36,8 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
   await app.launch();
 
   const tab = app.getByTestId('menu-watchlist');
-  await app.focus.pressUntil(Key.LEFT, app.getByTestId('side-menu'));
-  await app.focus.pressUntil(Key.DOWN, tab);
+  await app.focus.pressUntilFocused(Key.LEFT, app.getByTestId('side-menu'));
+  await app.focus.pressUntilFocused(Key.DOWN, tab);
   await expect(tab).toBeFocused();
   await app.remote.press(Key.SELECT);
 
@@ -51,7 +51,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 | --------------------------- | ------------------------------------------------------------------ |
 | Start the app               | `app.launch()`, `app.launch({ state, flags, clearData })`          |
 | Find elements               | `app.getByTestId(id)`, `app.getByText(text)`, `.nth(i)`, chaining  |
-| Get somewhere               | `app.focus.pressUntil(Key.RIGHT, locator)`, or `navigateTo`        |
+| Get somewhere               | `app.focus.pressUntilFocused(Key.RIGHT, locator)`, or `navigateTo` |
 | Press keys                  | `app.remote.press(Key.X)`, `longPress`, `repeat`, `sequence`       |
 | Check focus                 | `expect(l).toBeFocused()`, `expect(container).toHaveFocusWithin()` |
 | Check content               | `toBeVisible`, `toHaveText`, `toContainText`, `toHaveCount`        |
@@ -63,7 +63,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 ## Rules
 
 - `await` every action and assertion.
-- `pressUntil(key, locator)` to get somewhere, one call per direction (`navigateTo` when the route is not worth spelling out); explicit presses when navigation itself is under test. (`concepts/focus`)
+- `pressUntilFocused(key, locator)` to get somewhere, one call per direction (`navigateTo` when the route is not worth spelling out); explicit presses when navigation itself is under test. (`concepts/focus`)
 - A JS focus engine (focus only in app state) must report focus with the SDK's `reportFocus()`, or focus assertions see nothing. (`reference/sdk/docs/focus`)
 - Negative assertions (`.not`) only after a positive assertion proved the screen is in the intended state. (`concepts/idle`)
 - Mock data the test depends on (needs `toets: { mock: true }` and app cooperation); a relative path like `/api/x` matches any origin. (`concepts/network-mocking`)

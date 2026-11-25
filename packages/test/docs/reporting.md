@@ -10,7 +10,7 @@ Parity matrix: toets-report/parity.md
 
 ## Steps and attachments
 
-- **Steps:** `launch`, `press SELECT`, `pressUntil RIGHT getByTestId('rail-0-card-2')`, `repeat RIGHT x3`, `platformOnly web`. Overridden keys read `press FAST_FORWARD (override: hold RIGHT 800ms)`.
+- **Steps:** `launch`, `press SELECT`, `pressUntilFocused RIGHT getByTestId('rail-0-card-2')`, `repeat RIGHT x3`, `platformOnly web`. Overridden keys read `press FAST_FORWARD (override: hold RIGHT 800ms)`.
 - **On failure:** `toets-failure` (the [failure dump](../../core/docs/failure-dumps.md)) and `toets-screenshot`.
 - **Always, when present:** `toets-logs` (app and driver logs) and `toets-network.har` (the test's mock server traffic as HAR 1.2, failed requests included).
 - **Optional per step:** `steps: { screenshot: true, snapshot: true }` attaches the screen after every action.

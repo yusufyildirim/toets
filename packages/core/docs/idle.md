@@ -16,7 +16,7 @@ export default defineConfig({
 
 - **Idle is an accelerator, never a gate.** Every assertion still retries until its timeout. Without the SDK, or when the app never goes idle, toets polls instead. A test never fails only because the app was busy.
 - **Busy is reported.** When an assertion fails and the app never became idle within `budgetMs`, the failure names what kept it busy, for example `app never became idle within 2000ms (busy: network GET /api/home); polled instead`.
-- **Navigation settles on idle too.** `focus.pressUntil` and `focus.navigateTo` wait for idle (or a short focus poll) between presses.
+- **Navigation settles on idle too.** `focus.pressUntilFocused` and `focus.navigateTo` wait for idle (or a short focus poll) between presses.
 
 ## TV trap: things that never stop
 

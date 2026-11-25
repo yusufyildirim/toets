@@ -86,7 +86,7 @@ test('opens details from the first rail', async ({ app }) => {
   await app.launch();
 
   const card = app.getByTestId('rail-0-card-2');
-  await app.focus.pressUntil(Key.RIGHT, card);
+  await app.focus.pressUntilFocused(Key.RIGHT, card);
   await expect(card).toBeFocused();
 
   await app.remote.press(Key.SELECT);
@@ -94,7 +94,7 @@ test('opens details from the first rail', async ({ app }) => {
 });
 ```
 
-There is no click. `pressUntil` presses `RIGHT` until the card holds focus, checking where focus landed after every press; then `SELECT` activates it. See [Focus](../concepts/focus.md).
+There is no click. `pressUntilFocused` presses `RIGHT` until the card holds focus, checking where focus landed after every press; then `SELECT` activates it. See [Focus](../concepts/focus.md).
 
 ## 5. Run
 

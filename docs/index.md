@@ -25,7 +25,7 @@ import { test, expect, Key } from '@toets/test';
 test('opens details from the first rail', async ({ app }) => {
   await app.launch();
   const card = app.getByTestId('rail-0-card-2');
-  await app.focus.pressUntil(Key.RIGHT, card);
+  await app.focus.pressUntilFocused(Key.RIGHT, card);
   await expect(card).toBeFocused();
   await app.remote.press(Key.SELECT);
   await expect(app.getByTestId('details-screen')).toBeVisible();

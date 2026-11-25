@@ -82,7 +82,7 @@ export type {
   Platform,
   PlatformEvent,
   PlatformInfo,
-  PressUntilOptions,
+  PressUntilFocusedOptions,
   RecordedRequest,
   Remote,
   RequestFilter,

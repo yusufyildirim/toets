@@ -15,7 +15,7 @@ export type ActionKind =
   | 'repeat'
   | 'sequence'
   | 'navigate'
-  | 'pressUntil'
+  | 'pressUntilFocused'
   | 'waitForFocusChange'
   | 'emit'
   | 'platformOnly';
@@ -46,8 +46,8 @@ export interface Timeouts {
   /** How long `launch()` waits for the SDK handshake. Default 15000. */
   readonly sdkConnectMs: number;
   /**
-   * How long `pressUntil` and `navigateTo` wait for focus to move after a press. Default 1000.
-   * `pressUntil` reports a press that did not move focus in this time as stuck.
+   * How long `pressUntilFocused` and `navigateTo` wait for focus to move after a press. Default 1000.
+   * `pressUntilFocused` reports a press that did not move focus in this time as stuck.
    */
   readonly navigationSettleMs: number;
 }

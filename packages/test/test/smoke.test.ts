@@ -148,7 +148,7 @@ describe('@toets/test end to end', () => {
     );
     const titles = stepTitles(web?.result.steps);
     expect(titles).toContain('launch');
-    expect(titles).toContain("pressUntil RIGHT getByTestId('card_2')");
+    expect(titles).toContain("pressUntilFocused RIGHT getByTestId('card_2')");
     expect(titles).toContain('press SELECT');
     expect(web?.result.attachments.some((a) => a.name === 'step-snapshot')).toBe(true);
   });

@@ -56,7 +56,7 @@ export interface NavigateOptions {
   readonly maxPresses?: number;
 }
 
-export interface PressUntilOptions {
+export interface PressUntilFocusedOptions {
   /** Give up after this many presses. Default 50. */
   readonly maxPresses?: number;
 }
@@ -74,13 +74,17 @@ export interface Focus {
    *
    * @returns The number of presses (0 when `target` already holds focus).
    * @example
-   * await app.focus.pressUntil(Key.RIGHT, app.getByTestId('rail-0-card-3'));
+   * await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('rail-0-card-3'));
    */
-  pressUntil(key: DirectionKey, target: Locator, opts?: PressUntilOptions): Promise<number>;
+  pressUntilFocused(
+    key: DirectionKey,
+    target: Locator,
+    opts?: PressUntilFocusedOptions,
+  ): Promise<number>;
   /**
    * Moves focus to `target` with real D-pad presses when the way there is not one direction.
    * Each press is aimed by element geometry and checked by reading focus, like
-   * {@link Focus.pressUntil}; presses that do not move focus are learned and detoured around.
+   * {@link Focus.pressUntilFocused}; presses that do not move focus are learned and detoured around.
    * `target` must be on screen. Throws `FOCUS_UNREACHABLE` when no option is left.
    *
    * @returns The directions pressed.

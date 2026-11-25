@@ -3,8 +3,8 @@
 Moving focus with real D-pad presses, without hardcoding `DOWN, DOWN, RIGHT`, which breaks whenever the layout changes. toets never models the app's focus graph; the focused element is the only focus input it reads. Every press is checked by reading focus again.
 
 ```ts nocheck
-await app.focus.pressUntil(Key.DOWN, app.getByTestId('rail-popular'));
-await app.focus.pressUntil(Key.RIGHT, app.getByTestId('card-7'));
+await app.focus.pressUntilFocused(Key.DOWN, app.getByTestId('rail-popular'));
+await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('card-7'));
 await app.remote.press(Key.SELECT);
 
 await app.focus.navigateTo(app.getByTestId('menu-watchlist'));
@@ -12,7 +12,7 @@ await app.focus.navigateTo(app.getByTestId('menu-watchlist'));
 await app.focus.waitForChange(() => app.remote.press(Key.BACK));
 ```
 
-## `pressUntil(key, target, { maxPresses })`
+## `pressUntilFocused(key, target, { maxPresses })`
 
 Presses one direction key (`UP`, `DOWN`, `LEFT`, `RIGHT`) until `target` or an element inside it holds focus, and returns the number of presses (0 when it already does).
 
@@ -39,7 +39,7 @@ For targets that are not one direction away. Returns the directions pressed.
 2. Press, then read focus. Every observed move is learned, including presses that did not move focus. A direction is never tried twice from the same element; known moves lead back to elements with untried directions.
 3. Stop when the target holds focus, or fail with `FOCUS_UNREACHABLE` when no direction is left or after `maxPresses` (default 50), with the path tried.
 
-The target must be on screen, since its bounds aim the presses. For items that appear only as focus comes near, use `pressUntil`.
+The target must be on screen, since its bounds aim the presses. For items that appear only as focus comes near, use `pressUntilFocused`.
 
 ## Principles
 
@@ -49,4 +49,4 @@ The target must be on screen, since its bounds aim the presses. For items that a
 
 ## TV trap: focus memory and traps
 
-TV focus engines remember the last focused child of a row and may jump there instead of the nearest item. Modals trap focus. Both look like "geometry lies". `pressUntil` does not care where a press should go, only where it went; `navigateTo` copes by learning the real moves. A stuck or unreachable error usually means a real focus trap in the app.
+TV focus engines remember the last focused child of a row and may jump there instead of the nearest item. Modals trap focus. Both look like "geometry lies". `pressUntilFocused` does not care where a press should go, only where it went; `navigateTo` copes by learning the real moves. A stuck or unreachable error usually means a real focus trap in the app.

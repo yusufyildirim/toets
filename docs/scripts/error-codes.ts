@@ -48,10 +48,10 @@ const MEANINGS: Readonly<Record<string, string>> = {
   WEB_INVALID_CONFIG:
     'The web app config or `webDriver()` options are malformed (`url`, `keys`, ...).',
   FOCUS_UNREACHABLE:
-    '`pressUntil` or `navigateTo` gave up: `maxPresses` presses, or no direction left to try.',
+    '`pressUntilFocused` or `navigateTo` gave up: `maxPresses` presses, or no direction left to try.',
   NO_FOCUS: 'Nothing holds focus, before moving focus or after a press.',
-  FOCUS_STUCK: '`pressUntil`: a press did not move focus within `navigationSettleMs`.',
-  FOCUS_LOOP: '`pressUntil`: focus came back to an element it already left (a wrap-around).',
+  FOCUS_STUCK: '`pressUntilFocused`: a press did not move focus within `navigationSettleMs`.',
+  FOCUS_LOOP: '`pressUntilFocused`: focus came back to an element it already left (a wrap-around).',
   TVOS_DEVICE_TYPE_MISSING:
     'The requested Apple TV device type is not available for the tvOS runtime.',
 };

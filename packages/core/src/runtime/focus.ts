@@ -1,4 +1,4 @@
-import type { Focus, Locator, NavigateOptions, PressUntilOptions } from '../api.js';
+import type { Focus, Locator, NavigateOptions, PressUntilFocusedOptions } from '../api.js';
 import { ToetsError, packageDocsLink } from '../errors.js';
 import { DIRECTION_KEY, type Direction, type DirectionKey } from '../keys.js';
 import type { ElementRef, ElementSnapshot, Rect } from '../snapshot.js';
@@ -164,18 +164,22 @@ export class FocusImpl implements Focus {
     return createLocator(this.ctx, [{ kind: 'focused' }]);
   }
 
-  async pressUntil(key: DirectionKey, target: Locator, opts?: PressUntilOptions): Promise<number> {
+  async pressUntilFocused(
+    key: DirectionKey,
+    target: Locator,
+    opts?: PressUntilFocusedOptions,
+  ): Promise<number> {
     if (typeof key !== 'string' || !DIRECTION_KEYS.has(key)) {
       throw new ToetsError(
         'INVALID_ARGUMENT',
-        `pressUntil() presses a direction key (Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT), got ${JSON.stringify(key)}.`,
+        `pressUntilFocused() presses a direction key (Key.UP, Key.DOWN, Key.LEFT, Key.RIGHT), got ${JSON.stringify(key)}.`,
         { docs: packageDocsLink('core', 'focus-navigation') },
       );
     }
-    const goal = this.goal(target, 'pressUntil');
+    const goal = this.goal(target, 'pressUntilFocused');
     const maxPresses = this.maxPresses(opts?.maxPresses);
     return this.ctx.step(
-      { kind: 'pressUntil', title: `pressUntil ${key} ${goal.description}` },
+      { kind: 'pressUntilFocused', title: `pressUntilFocused ${key} ${goal.description}` },
       async () => {
         let focused = await this.waitForFocus();
         const path = [focused];
@@ -319,7 +323,7 @@ export class FocusImpl implements Focus {
     } catch (e) {
       if (!(e instanceof ToetsError) || e.code !== 'ELEMENT_NOT_FOUND') throw e;
       throw new ToetsError('ELEMENT_NOT_FOUND', e.message, {
-        hint: 'navigateTo aims at the target on screen. For an item that appears only as focus comes near (virtualized lists), press toward it with app.focus.pressUntil(key, target).',
+        hint: 'navigateTo aims at the target on screen. For an item that appears only as focus comes near (virtualized lists), press toward it with app.focus.pressUntilFocused(key, target).',
         docs: packageDocsLink('core', 'focus-navigation'),
         cause: e,
       });
@@ -364,7 +368,7 @@ export class FocusImpl implements Focus {
       'FOCUS_UNREACHABLE',
       `Could not move focus to ${goal.description}: ${reason}. Focus is on ${describeElement(focused)}. Path: ${path.length ? path.join(', ') : '(none)'}.`,
       {
-        hint: 'The target may be disabled, hidden, behind a focus trap, or not reachable with the D-pad from here. Inspect app.snapshot(), or press toward it with app.focus.pressUntil(key, target) for clear stuck and loop errors.',
+        hint: 'The target may be disabled, hidden, behind a focus trap, or not reachable with the D-pad from here. Inspect app.snapshot(), or press toward it with app.focus.pressUntilFocused(key, target) for clear stuck and loop errors.',
         docs: packageDocsLink('core', 'focus-navigation'),
       },
     );

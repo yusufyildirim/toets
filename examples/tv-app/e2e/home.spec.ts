@@ -42,22 +42,22 @@ test.describe('rails', () => {
     await expect(home.card('trending-2')).toBeFocused();
   });
 
-  test('pressUntil walks down to a rail, then along it', async ({ app }) => {
+  test('pressUntilFocused walks down to a rail, then along it', async ({ app }) => {
     const home = new HomePage(app);
     await home.open();
 
-    expect(await app.focus.pressUntil(Key.DOWN, home.rail('family'))).toBe(3);
-    expect(await app.focus.pressUntil(Key.RIGHT, home.card('family-3'))).toBe(2);
+    expect(await app.focus.pressUntilFocused(Key.DOWN, home.rail('family'))).toBe(3);
+    expect(await app.focus.pressUntilFocused(Key.RIGHT, home.card('family-3'))).toBe(2);
     await expect(home.card('family-3')).toBeFocused();
     await expect(home.heroTitle).toHaveText('Moon Bakery');
   });
 
-  test('pressUntil fails fast when focus cannot move that way', async ({ app }) => {
+  test('pressUntilFocused fails fast when focus cannot move that way', async ({ app }) => {
     const home = new HomePage(app);
     await home.open();
 
     // Up from the first rail goes nowhere: the first press that leaves focus in place fails.
-    await expect(app.focus.pressUntil(Key.UP, home.menu.settings)).rejects.toMatchObject({
+    await expect(app.focus.pressUntilFocused(Key.UP, home.menu.settings)).rejects.toMatchObject({
       code: 'FOCUS_STUCK',
     });
     await expect(home.card('trending-1')).toBeFocused();

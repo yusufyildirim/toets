@@ -49,7 +49,7 @@ export function registerAppTools(server: McpServer, { session }: ToolContext): v
             sdkLine(runtime),
             focusLine(await runtime.target.focused()),
             `Code: ${launchCode(opts)}`,
-            'Next: `snapshot` to see the screen, then `press_until` / `navigate_to` / `press` to move focus.',
+            'Next: `snapshot` to see the screen, then `press_until_focused` / `navigate_to` / `press` to move focus.',
           );
         }),
       ),

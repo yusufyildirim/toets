@@ -14,8 +14,8 @@ test('saves a title to the watchlist', async ({ app }) => {
 
   const rail = app.getByTestId('rail-popular');
   const card = rail.getByTestId('card').nth(2);
-  await app.focus.pressUntil(Key.DOWN, rail);
-  await app.focus.pressUntil(Key.RIGHT, card);
+  await app.focus.pressUntilFocused(Key.DOWN, rail);
+  await app.focus.pressUntilFocused(Key.RIGHT, card);
   await app.remote.press(Key.SELECT);
 
   await expect(app.getByText('Added to watchlist')).toBeVisible();

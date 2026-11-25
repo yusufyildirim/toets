@@ -2,7 +2,7 @@
 
 Where web or mobile intuition is wrong on tvOS.
 
-- **No click, no tap.** There is no pointer. Move focus with the D-pad, act with `SELECT`. `focus.pressUntil` presses a direction until the target holds focus.
+- **No click, no tap.** There is no pointer. Move focus with the D-pad, act with `SELECT`. `focus.pressUntilFocused` presses a direction until the target holds focus.
 - **testId is `accessibilityIdentifier`.** Set it with `.accessibilityIdentifier("x")` (SwiftUI), `accessibilityIdentifier` (UIKit) or `testID` (React Native). XCUITest's `name` falls back to the label; toets deliberately ignores that fallback.
 - **SwiftUI identifiers leak into children.** An identifier on a stack is applied to every child. Add `.accessibilityElement(children: .contain)` to the container first.
 - **Text belongs to the deepest element.** `getByText('Play')` can resolve to the `StaticText` inside a button, which is never focused. Assert focus on a testId, not on text.

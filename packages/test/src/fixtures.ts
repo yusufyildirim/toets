@@ -121,7 +121,7 @@ async function attachNetwork(runtime: AppRuntime, testInfo: TestInfo): Promise<v
  * ```ts
  * test('opens details', async ({ app }) => {
  *   await app.launch();
- *   await app.focus.pressUntil(Key.RIGHT, app.getByTestId('card_1'));
+ *   await app.focus.pressUntilFocused(Key.RIGHT, app.getByTestId('card_1'));
  *   await app.remote.press(Key.SELECT);
  *   await expect(app.getByTestId('details')).toBeVisible();
  * });
