@@ -70,11 +70,11 @@ A key types its text. When `keys` is set, it replaces the default; list the one-
 
 **System text fields.** Focus moves to the field with real D-pad presses, then the driver replaces its text the way the platform's own text entry does. `fill` closes a system keyboard it opened, and checks the value afterwards.
 
-| Platform   | `fill`                                     | `type`         | `erase`          | `submit`            |
-| ---------- | ------------------------------------------ | -------------- | ---------------- | ------------------- |
-| web        | select all, CDP `Input.insertText`         | `insertText`   | `delete` command | `Enter`             |
-| Android TV | UiAutomator2 clear + set text (unicode)    | `mobile: type` | `KEYCODE_DEL`    | IME action (`done`) |
-| tvOS       | XCUITest clear + `typeText`, `Menu` closes | `typeText`     | `typeText('\b')` | `typeText('\n')`    |
+| Platform   | `fill`                                                     | `type`         | `erase`          | `submit`            |
+| ---------- | ---------------------------------------------------------- | -------------- | ---------------- | ------------------- |
+| web        | select all, CDP `Input.insertText`                         | `insertText`   | `delete` command | `Enter`             |
+| Android TV | UiAutomator2 clear + set text (unicode)                    | `mobile: type` | `KEYCODE_DEL`    | IME action (`done`) |
+| tvOS       | `SELECT` opens, XCUITest clear + `typeText`, `Menu` closes | `typeText`     | `typeText('\b')` | `typeText('\n')`    |
 
 `expect(app.keyboard).toBeOpen()` passes while a declared keyboard's `root` is visible, or while the system keyboard is open: on Android TV the IME is shown, on tvOS the keyboard screen is up, and on web (no on-screen keyboard) a text field holds focus.
 

@@ -251,12 +251,12 @@ describe('web driver on the fixture app', () => {
 
     const field = await one(driver, testId('search-input'));
     expect(await driver.text.isOpen()).toBe(false);
-    await expectToetsError(driver.text.insert('x'), 'WEB_NO_TEXT_FIELD');
+    await expectToetsError(driver.text.insert('x', null), 'WEB_NO_TEXT_FIELD');
     await page.focus('[data-testid="search-input"]');
     expect(await driver.text.isOpen()).toBe(true);
     await driver.text.replace(field, 'ma');
-    await driver.text.insert('trix ü');
-    await driver.text.deleteBackward(2);
+    await driver.text.insert('trix ü', null);
+    await driver.text.deleteBackward(2, null);
     expect((await one(driver, testId('search-input'))).value).toBe('matrix');
     await driver.text.replace(field, '');
     expect((await one(driver, testId('search-input'))).value).toBe('');

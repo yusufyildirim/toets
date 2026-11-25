@@ -179,9 +179,9 @@ describe('AndroidTvDriver', () => {
     const field = { testId: 'search' } as ElementSnapshot;
     await driver.text.replace(field, 'ma ü');
     await driver.text.replace(field, '');
-    await driver.text.insert('x');
-    await driver.text.deleteBackward(2);
-    await driver.text.submit();
+    await driver.text.insert('x', null);
+    await driver.text.deleteBackward(2, null);
+    await driver.text.submit(null);
     await driver.text.close();
     expect(t.session.executed).toEqual([
       ['findElement', ['-android uiautomator', 'new UiSelector().focused(true)']],

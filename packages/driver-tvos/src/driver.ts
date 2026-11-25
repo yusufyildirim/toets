@@ -250,9 +250,9 @@ export class TvosDriver implements Driver {
 
   /**
    * System text entry through WebDriverAgent, which types the way the fullscreen keyboard does:
-   * element values are typed on the keyboard (opening it with SELECT when needed), `\b`
-   * deletes, `\n` is the keyboard's action key (Done, Search). `close` presses Menu, which
-   * dismisses the keyboard and keeps the text.
+   * text is typed on the keyboard, opened with SELECT on the focused field first (XCUITest types
+   * nothing while it is closed), `\b` deletes, `\n` is the keyboard's action key (Done,
+   * Search). `close` presses Menu, which dismisses the keyboard and keeps the text.
    */
   readonly text: DriverTextInput = {
     isOpen: async () => {
@@ -264,30 +264,99 @@ export class TvosDriver implements Driver {
     },
     replace: async (field, text) => {
       const { session } = this.require();
+      await this.openKeyboard();
       const id = await this.textFieldId(field);
       await this.call('clear', () => session.elementClear(id));
       if (text !== '') await this.call('type', () => session.elementSendKeys(id, text));
     },
-    insert: async (text) => {
+    insert: async (text, field) => {
       if (text === '') return;
-      const { session } = this.require();
-      const id = await this.textFieldId(null);
-      await this.call('type', () => session.elementSendKeys(id, text));
+      const id = await this.keepText(field);
+      await this.call('type', () => this.require().session.elementSendKeys(id, text));
     },
-    deleteBackward: async (count) => {
-      const { session } = this.require();
-      const id = await this.textFieldId(null);
-      await this.call('delete', () => session.elementSendKeys(id, '\b'.repeat(count)));
+    deleteBackward: async (count, field) => {
+      const id = await this.keepText(field);
+      const keys = '\b'.repeat(count);
+      await this.call('delete', () => this.require().session.elementSendKeys(id, keys));
     },
-    submit: async () => {
-      const { session } = this.require();
-      const id = await this.textFieldId(null);
-      await this.call('submit', () => session.elementSendKeys(id, '\n'));
+    submit: async (field) => {
+      const id = await this.keepText(field);
+      await this.call('submit', () => this.require().session.elementSendKeys(id, '\n'));
     },
     close: async () => {
       if (await this.text.isOpen()) await this.mobile('pressButton', { name: 'menu' });
     },
   };
+
+  /**
+   * Opens the fullscreen keyboard on the focused field with SELECT, like a user. An email field
+   * may first show tvOS's list of previously used emails, whose last entry is "Enter New...":
+   * that is picked the way a user does, DOWN to the end of the list, then SELECT.
+   */
+  private async openKeyboard(): Promise<boolean> {
+    if (await this.text.isOpen()) return false;
+    await this.press('SELECT');
+    let picked = false;
+    const deadline = performance.now() + KEYBOARD_OPEN_MS;
+    while (performance.now() < deadline) {
+      if (await this.text.isOpen()) return picked;
+      if (!picked && (await this.activeElement()).type === 'XCUIElementTypeCell') {
+        await this.pickLastCell();
+        picked = true;
+        continue;
+      }
+      await new Promise((r) => setTimeout(r, 100));
+    }
+    throw tvosError(
+      TvosErrorCode.NO_TEXT_FIELD,
+      `SELECT on the text field did not open the keyboard within ${KEYBOARD_OPEN_MS}ms.`,
+      {
+        hint: 'Check that the focused text field is enabled and opens the keyboard on SELECT.',
+        docs: DOCS.capabilities,
+      },
+    );
+  }
+
+  /**
+   * Opens the keyboard on the focused field, keeping its text: "Enter New..." in the
+   * previously-used-emails list opens the keyboard empty, so the text is typed back first.
+   * `field` is the core's view of the field (XCUITest reports a React Native field's placeholder
+   * as its value). Returns the id of the field to type into.
+   */
+  private async keepText(field: ElementSnapshot | null): Promise<string> {
+    const before = field?.editable && !field.secure ? (field.value ?? '') : '';
+    const picked = await this.openKeyboard();
+    const id = await this.textFieldId(field);
+    if (picked && before) {
+      await this.call('type', () => this.require().session.elementSendKeys(id, before));
+    }
+    return id;
+  }
+
+  /** DOWN until focus stops moving (the end of the list), then SELECT. */
+  private async pickLastCell(): Promise<void> {
+    let at = (await this.activeElement()).id;
+    for (let i = 0; i < MAX_PICKER_ENTRIES; i++) {
+      await this.press('DOWN');
+      await new Promise((r) => setTimeout(r, 300));
+      const now = (await this.activeElement()).id;
+      if (now === at) break;
+      at = now;
+    }
+    await this.press('SELECT');
+  }
+
+  /** The focused element's id and type, `{}` when there is none. */
+  private async activeElement(): Promise<{ id?: string; type?: string | null }> {
+    const { session } = this.require();
+    try {
+      const id = elementId(await session.getActiveElement());
+      if (!id) return {};
+      return { id, type: await session.getElementAttribute(id, 'type') };
+    } catch {
+      return {};
+    }
+  }
 
   /** The last text field typed into: the fullscreen keyboard takes focus from the field. */
   private lastField: string | undefined;
@@ -458,6 +527,10 @@ export class TvosDriver implements Driver {
 }
 
 const TEXT_FIELD_TYPES = ['TextField', 'SecureTextField', 'SearchField', 'TextView'] as const;
+/** How long SELECT on a text field may take to open the fullscreen keyboard. */
+const KEYBOARD_OPEN_MS = 5000;
+/** At most this many entries are walked in tvOS's previously-used-emails list. */
+const MAX_PICKER_ENTRIES = 20;
 
 function elementId(ref: Record<string, string>): string | undefined {
   return ref['element-6066-11e4-a52e-4f735466cecf'] ?? ref.ELEMENT;

@@ -90,18 +90,18 @@ test('signs in with the system keyboard', requires('text.input'), async ({ app }
   await expect(signIn.status).toHaveText('Signed in as ada@example.com');
 });
 
-test('the keyboard action key submits a system field', requires('text.input'), async ({ app }) => {
+test('the keyboard action key signs in', requires('text.input'), async ({ app }) => {
   const home = new HomePage(app);
   const signIn = new SignInPage(app);
   await home.open();
   await home.menu.open('signin');
   await signIn.waitUntilLoaded();
 
+  await signIn.password.fill('tv-pass-1');
   await signIn.email.fill('ada@example.co');
-  await app.keyboard.type('m');
-  await expect(signIn.email).toHaveValue('ada@example.com');
-  await signIn.password.fill('tv-pass-12');
+  await app.keyboard.type('mm');
   await app.keyboard.erase(1);
+  await expect(signIn.email).toHaveValue('ada@example.com');
   await app.keyboard.submit();
   await expect(signIn.status).toHaveText('Signed in as ada@example.com');
 });

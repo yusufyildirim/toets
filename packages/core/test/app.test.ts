@@ -1,6 +1,7 @@
 import { PNG } from 'pngjs';
 import { describe, expect, it } from 'vitest';
 import { formatFailureDump, Key, screenshotPng, type ActionInfo } from '../src/index.js';
+import type { ProtocolNode } from '@toets/protocol';
 import { FakeMockServer } from '../src/testing/index.js';
 import { setup } from './fixtures.js';
 
@@ -105,6 +106,21 @@ describe('SDK composition', () => {
     expect(await app.getByTestId('menu_settings').text()).toBe('Settings');
     expect(logs.some((l) => l.includes('SDK tree.get failed'))).toBe(true);
     expect((await runtime.takeLogs()).some((l) => l.source === 'driver')).toBe(true);
+  });
+
+  it("takes the driver's focus when the SDK sees none (native views without focus events)", async () => {
+    const { app, driver } = setup({ sdk: true });
+    await app.launch();
+    const focused = await app.focus.current().testId();
+    const tree = driver.protocolTree.bind(driver);
+    const unfocus = (n: ProtocolNode): ProtocolNode => ({
+      ...n,
+      focused: false,
+      children: n.children.map(unfocus),
+    });
+    driver.protocolTree = () => unfocus(tree());
+    expect(await app.focus.current().testId()).toBe(focused);
+    expect(await app.getByTestId(focused!).snapshot()).toContain('[focused');
   });
 
   it('waits for idle before each assertion check', async () => {

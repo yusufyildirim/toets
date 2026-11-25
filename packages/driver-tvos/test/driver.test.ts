@@ -45,9 +45,28 @@ class FakeSession implements TvosSession {
   deleted = 0;
   screenshotPng = solidPng(3840, 2160);
   failNext: Error | undefined;
+  /** The fullscreen keyboard: SELECT opens it, Menu closes it. */
+  keyboardOpen = false;
+  /** tvOS's previously-used-emails list SELECT shows first, ending in "Enter New...". */
+  picker: string[] | null = null;
+  private pickerAt: number | null = null;
 
   async execute(script: string, ...args: unknown[]): Promise<unknown> {
     this.executed.push({ script, args: args[0] });
+    if (script === 'mobile: pressButton') {
+      const name = (args[0] as { name?: string } | undefined)?.name;
+      const picker = this.picker;
+      if (name === 'select' && picker && this.pickerAt === null) this.pickerAt = 0;
+      else if (name === 'select' && picker && this.pickerAt === picker.length - 1) {
+        this.pickerAt = null;
+        this.picker = null;
+        this.keyboardOpen = true;
+      } else if (name === 'select') this.keyboardOpen = true;
+      if (name === 'down' && picker && this.pickerAt !== null) {
+        this.pickerAt = Math.min(this.pickerAt + 1, picker.length - 1);
+      }
+      if (name === 'menu') this.keyboardOpen = false;
+    }
     if (this.failNext) {
       const err = this.failNext;
       this.failNext = undefined;
@@ -63,13 +82,24 @@ class FakeSession implements TvosSession {
   }
   async findElements(using: string, value: string): Promise<Record<string, string>[]> {
     this.executed.push({ script: 'findElements', args: [using, value] });
-    return using === 'class name' ? [] : [{ 'element-6066-11e4-a52e-4f735466cecf': 'field-1' }];
+    if (using === 'class name') {
+      return this.keyboardOpen ? [{ 'element-6066-11e4-a52e-4f735466cecf': 'keyboard-1' }] : [];
+    }
+    return [{ 'element-6066-11e4-a52e-4f735466cecf': 'field-1' }];
   }
   async elementClear(id: string): Promise<void> {
     this.executed.push({ script: 'elementClear', args: id });
   }
   async elementSendKeys(id: string, text: string): Promise<void> {
     this.executed.push({ script: 'elementSendKeys', args: [id, text] });
+  }
+  async getActiveElement(): Promise<Record<string, string>> {
+    const id = this.pickerAt === null ? 'field-1' : `cell-${this.pickerAt}`;
+    return { 'element-6066-11e4-a52e-4f735466cecf': id };
+  }
+  async getElementAttribute(id: string, name: string): Promise<string | null> {
+    if (name !== 'type') return null;
+    return id.startsWith('cell-') ? 'XCUIElementTypeCell' : 'XCUIElementTypeTextField';
   }
   scripts(): string[] {
     return this.executed.map((e) => e.script);
@@ -275,25 +305,71 @@ describe('TvosDriver', () => {
     await expect(driver.press(Key.RED)).rejects.toMatchObject({ code: 'TVOS_KEY_UNSUPPORTED' });
   });
 
-  it('types into the text field through XCUITest', async () => {
+  it('opens the keyboard with SELECT and types into the text field through XCUITest', async () => {
     const driver = await started();
     session.executed.length = 0;
     const field = { testId: 'email' } as ElementSnapshot;
+    const keyboard = ['findElements', ['class name', 'XCUIElementTypeKeyboard']];
     await driver.text.replace(field, 'a@b.co');
-    await driver.text.deleteBackward(2);
-    await driver.text.submit();
+    await driver.text.deleteBackward(2, null);
+    await driver.text.submit(null);
     expect(session.executed.map((e) => [e.script, e.args])).toEqual([
+      keyboard,
+      ['mobile: pressButton', { name: 'select' }],
+      keyboard,
       ['findElements', ['accessibility id', 'email']],
       ['elementClear', 'field-1'],
       ['elementSendKeys', ['field-1', 'a@b.co']],
+      keyboard,
       ['findElements', ['-ios predicate string', expect.stringContaining('hasFocus == 1')]],
       ['elementSendKeys', ['field-1', '\b\b']],
+      keyboard,
       ['findElements', ['-ios predicate string', expect.stringContaining('hasFocus == 1')]],
       ['elementSendKeys', ['field-1', '\n']],
     ]);
     session.executed.length = 0;
+    await driver.text.close();
+    expect(session.executed.map((e) => [e.script, e.args])).toEqual([
+      keyboard,
+      ['mobile: pressButton', { name: 'menu' }],
+    ]);
+    session.executed.length = 0;
     await driver.text.close(); // no keyboard open: nothing to dismiss
     expect(session.scripts()).toEqual(['findElements']);
+  });
+
+  it('picks "Enter New..." in the previously used emails list before typing', async () => {
+    const driver = await started();
+    session.picker = ['ada@example.com', 'bob@example.com', 'Enter New...'];
+    session.executed.length = 0;
+    await driver.text.replace({ testId: 'email' } as ElementSnapshot, 'c@d.co');
+    const buttons = session.executed
+      .filter((e) => e.script === 'mobile: pressButton')
+      .map((e) => (e.args as { name: string }).name);
+    expect(buttons).toEqual(['select', 'down', 'down', 'down', 'select']);
+    expect(session.executed.at(-1)).toEqual({
+      script: 'elementSendKeys',
+      args: ['field-1', 'c@d.co'],
+    });
+  });
+
+  it('types the text back when "Enter New..." opened the keyboard empty', async () => {
+    const driver = await started();
+    session.picker = ['ada@example.co', 'Enter New...'];
+    const field = { editable: true, secure: false, value: 'ada@example.co' } as ElementSnapshot;
+    session.executed.length = 0;
+    await driver.text.insert('m', field);
+    expect(
+      session.executed.filter((e) => e.script === 'elementSendKeys').map((e) => e.args),
+    ).toEqual([
+      ['field-1', 'ada@example.co'],
+      ['field-1', 'm'],
+    ]);
+    session.executed.length = 0;
+    await driver.text.insert('!', field); // keyboard still open: no list, nothing typed back
+    expect(
+      session.executed.filter((e) => e.script === 'elementSendKeys').map((e) => e.args),
+    ).toEqual([['field-1', '!']]);
   });
 
   it("presses immediately: waiting for focus after a transition is the test's job", async () => {

@@ -1,4 +1,4 @@
-import { useRef, useState, type ComponentRef } from 'react';
+import { useState } from 'react';
 import { StyleSheet, Text, TextInput, View } from 'react-native';
 
 import { Button } from '../components/Button';
@@ -11,14 +11,13 @@ const PASSWORD = 'tv-pass-1';
 
 /**
  * Sign-in with the platform's native text inputs (system keyboard): email, then password, then
- * the sign-in button. The keyboard's action key on the email field moves to the password; on the
- * password it signs in.
+ * the sign-in button. The keyboard's action key (Go) on either field signs in. (Moving focus to
+ * the password from JS would not move tvOS focus, so the email's action key does not do that.)
  */
 export function SignInScreen({ visible }: { visible: boolean }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [status, setStatus] = useState('');
-  const passwordRef = useRef<ComponentRef<typeof TextInput>>(null);
 
   const signIn = () =>
     setStatus(password === PASSWORD ? `Signed in as ${email}` : 'Wrong email or password');
@@ -38,11 +37,10 @@ export function SignInScreen({ visible }: { visible: boolean }) {
             autoCapitalize="none"
             autoCorrect={false}
             keyboardType="email-address"
-            returnKeyType="next"
-            onSubmitEditing={() => passwordRef.current?.focus()}
+            returnKeyType="go"
+            onSubmitEditing={signIn}
           />
           <TextInput
-            ref={passwordRef}
             testID="signin_password"
             style={styles.input}
             value={password}

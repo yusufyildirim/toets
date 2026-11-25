@@ -1,4 +1,4 @@
-import type { Domain, HostToAppMethod, MediaInfo, SdkSession } from '@toets/protocol';
+import type { Domain, HostToAppMethod, MediaInfo, ProtocolNode, SdkSession } from '@toets/protocol';
 import type { Capability } from '../capabilities.js';
 import { fromProtocolError } from '../errors.js';
 import type { Driver } from '../driver.js';
@@ -105,8 +105,30 @@ export class Target {
   private sdkTree(): Promise<UITree | undefined> {
     return this.viaSdk('tree.get', async (s) => {
       const { root, viewport } = await s.request('tree.get', {});
-      return protocolToTree(root, viewport);
+      return protocolToTree(await this.withNativeFocus(root), viewport);
     });
+  }
+
+  /**
+   * The SDK learns focus from the framework's focus events, and some native views take focus
+   * without one (a react-native-tvos `TextInput` on tvOS). When the SDK reports nothing focused,
+   * the driver's focused element counts, matched into the SDK tree by its unique test ID.
+   */
+  private async withNativeFocus(root: ProtocolNode): Promise<ProtocolNode> {
+    const nodes = [...protocolNodes(root)];
+    if (nodes.some((n) => n.focused)) return root;
+    let testId: string | null | undefined;
+    try {
+      testId = (await this.driver.focused())?.testId;
+    } catch {
+      return root;
+    }
+    const matches = testId ? nodes.filter((n) => n.testId === testId) : [];
+    if (matches.length !== 1) return root;
+    const focused = matches[0];
+    const mark = (n: ProtocolNode): ProtocolNode =>
+      n === focused ? { ...n, focused: true } : { ...n, children: n.children.map(mark) };
+    return mark(root);
   }
 
   async tree(): Promise<UITree> {
@@ -149,4 +171,9 @@ export class Target {
       return { supported: false };
     }
   }
+}
+
+function* protocolNodes(node: ProtocolNode): Generator<ProtocolNode> {
+  yield node;
+  for (const child of node.children) yield* protocolNodes(child);
 }

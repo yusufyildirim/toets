@@ -539,6 +539,8 @@ export class TextEntry {
 
   private async fillSystem(locator: LocatorImpl, text: string, mask: boolean): Promise<number> {
     const input = this.requireSystem('fill() on a system text field');
+    // A system keyboard open on another field covers the app: close it first, as a user does.
+    if ((await input.isOpen()) && !(await locator.resolveOne()).focused) await input.close();
     const path = await this.focus.navigateTo(locator as unknown as Locator);
     const field = await locator.resolveOne();
     const wasOpen = await input.isOpen();
@@ -641,8 +643,23 @@ export class TextEntry {
 
   // ----- app.keyboard
 
-  /** The keyboard `app.keyboard` acts on right now. */
+  /**
+   * The keyboard `app.keyboard` acts on, waiting up to `actionMs` for one like other actions
+   * wait for their element (focus returning to a field after its system keyboard closed).
+   */
   async resolve(action: string): Promise<Resolved> {
+    const found = await this.ctx.retry(async () => {
+      try {
+        return { ok: true, value: await this.resolveNow(action) };
+      } catch (e) {
+        if (e instanceof ToetsError && e.code === 'NO_KEYBOARD') return { ok: false, value: null };
+        throw e;
+      }
+    }, this.ctx.timeouts.actionMs);
+    return found.ok && found.value ? found.value : this.resolveNow(action);
+  }
+
+  private async resolveNow(action: string): Promise<Resolved> {
     const tree = await this.ctx.target.tree();
     const focused = focusedIn(tree);
     const views = this.keyboards.flatMap((def) => {
@@ -741,7 +758,7 @@ export class TextEntry {
       { kind: 'type', title: `type ${display(text, mask)} (system)` },
       async () => {
         const before = target.field?.editable ? target.field : null;
-        await input.insert(text);
+        await input.insert(text, before);
         if (before) await this.verifySystemLength(before, length(text), 'type', text, mask);
       },
     );
@@ -799,7 +816,7 @@ export class TextEntry {
     const input = this.requireSystem('app.keyboard.erase() on a system text field');
     await this.ctx.step({ kind: 'erase', title: `erase ${count} (system)` }, async () => {
       const before = target.field?.editable ? target.field : null;
-      await input.deleteBackward(count);
+      await input.deleteBackward(count, before);
       if (before) await this.verifySystemLength(before, -count, 'erase', '', before.secure);
     });
     return { via: 'system', presses: 0, masked: false };
@@ -825,7 +842,8 @@ export class TextEntry {
       return result;
     }
     const input = this.requireSystem('app.keyboard.submit() on a system text field');
-    await this.ctx.step({ kind: 'submit', title: 'submit (system)' }, () => input.submit());
+    const field = target.field?.editable ? target.field : null;
+    await this.ctx.step({ kind: 'submit', title: 'submit (system)' }, () => input.submit(field));
     return { via: 'system', presses: 0, masked: false };
   }
 

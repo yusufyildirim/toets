@@ -92,12 +92,16 @@ export interface DriverTextInput {
    * clears it). Never submits. May open the system keyboard.
    */
   replace(field: ElementSnapshot, text: string): Promise<void>;
-  /** Inserts `text` at the caret of active text entry. May open the system keyboard. */
-  insert(text: string): Promise<void>;
-  /** Deletes `count` characters before the caret of active text entry. */
-  deleteBackward(count: number): Promise<void>;
+  /**
+   * Inserts `text` at the caret of active text entry. May open the system keyboard. `field` is
+   * the focused editable element as the core sees it (its `value` included), or `null` when the
+   * core sees none (a system keyboard holds focus).
+   */
+  insert(text: string, field: ElementSnapshot | null): Promise<void>;
+  /** Deletes `count` characters before the caret of active text entry. `field` as in `insert`. */
+  deleteBackward(count: number, field: ElementSnapshot | null): Promise<void>;
   /** Triggers the keyboard's action key (Search, Done, Go) of active text entry. */
-  submit(): Promise<void>;
+  submit(field: ElementSnapshot | null): Promise<void>;
   /** Closes the system keyboard if one is on screen, keeping the text. */
   close(): Promise<void>;
 }
