@@ -1,6 +1,6 @@
 {
   "name": "@toets/core",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Platform-neutral core of toets, cross-platform E2E testing for TV apps: driver contract, locators, matchers, focus, remote keys, capabilities.",
   "keywords": [
     "toets",

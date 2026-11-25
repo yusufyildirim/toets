@@ -1,5 +1,17 @@
 # @toets/sdk
 
+## 0.3.0
+
+### Minor Changes
+
+- d1ed8c3: Text input. `locator.fill(text)` and `app.keyboard` (`type`, `erase`, `submit`) enter text like a user: system text fields through the platform's text entry (new `text.input` capability: CDP `insertText` on web, UiAutomator2 on Android TV, XCUITest on tvOS), app-drawn keyboards declared with `defineKeyboard()` in the new `keyboards` option, typed key by key with the remote. New matchers `toHaveValue` and `expect(app.keyboard).toBeOpen()`; `{ mask: true }` hides secrets in reports. Snapshots show `editable`, `secure` and `value` and collapse declared keyboards to one line; failure dumps name the open keyboard. Protocol 1.1: nodes carry `editable`, `value` and `secure` (masked). MCP: `fill`, `type`, `erase` and `submit` tools. New error codes `NO_KEYBOARD`, `AMBIGUOUS_KEYBOARD`, `CHAR_NOT_ON_KEYBOARD`, `TEXT_NOT_ENTERED`, `KEYBOARD_ACTION_MISSING`, `NOT_EDITABLE`, `SECURE_FIELD`, `DUPLICATE_KEYBOARD`. With the SDK on, a native element holding focus without a framework focus event (a react-native-tvos `TextInput` on tvOS) counts as focused. Android TV sends D-pad keys and `SELECT` from the D-pad input source, like a remote, so focus leaves a focused `EditText`. Fixes the W3C element key the Android TV and tvOS drivers read.
+
+### Patch Changes
+
+- 41303e3: `@toets/sdk-react-native` builds when the bundler fails on missing imports (webpack's `strictExportPresence`, set by Create React App), supports react-native-web 0.18 and later with React 18 and later, and makes `react-native` an optional peer dependency for web-only apps. Docs: aliasing the packages on bundlers without `exports` support (webpack 4).
+- Updated dependencies [d1ed8c3]
+  - @toets/protocol@0.3.0
+
 ## 0.2.0
 
 ### Minor Changes

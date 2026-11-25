@@ -1,5 +1,12 @@
 # @toets/eslint-plugin
 
+## 0.3.0
+
+### Patch Changes
+
+- Updated dependencies [d1ed8c3]
+  - @toets/core@0.3.0
+
 ## 0.2.0
 
 ### Patch Changes
