@@ -1,0 +1,27 @@
+name: Feature request
+description: A new capability, matcher, action or platform.
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: What you are trying to test and why it is hard today.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal
+      description: The API or behavior you have in mind. Check it against the locked decisions in VISION.md.
+  - type: dropdown
+    id: platform
+    attributes:
+      label: Platform
+      multiple: true
+      options:
+        - all
+        - web
+        - Android TV / Google TV
+        - Fire TV
+        - tvOS

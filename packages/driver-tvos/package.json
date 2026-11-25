@@ -1,12 +1,16 @@
 {
   "name": "@toets/driver-tvos",
   "version": "0.1.0",
-  "description": "toets driver for tvOS simulators, built on Appium XCUITest.",
+  "description": "toets driver for Apple TV (tvOS) simulators: E2E testing for TV apps, built on Appium XCUITest.",
   "keywords": [
     "toets",
     "tv",
+    "smart-tv",
+    "tv-app",
     "e2e",
+    "end-to-end",
     "testing",
+    "test-automation",
     "tvos",
     "apple-tv",
     "appium",

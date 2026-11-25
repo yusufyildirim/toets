@@ -1,15 +1,20 @@
 {
   "name": "@toets/sdk",
   "version": "0.1.0",
-  "description": "toets in-app SDK core (framework neutral) and web adapter.",
+  "description": "toets in-app SDK for TV app E2E testing: framework-neutral runtime, web adapter and a no-op for production builds.",
   "keywords": [
     "toets",
     "tv",
+    "smart-tv",
+    "tv-app",
     "e2e",
+    "end-to-end",
     "testing",
+    "test-automation",
     "sdk",
     "instrumentation",
-    "web"
+    "web",
+    "focus"
   ],
   "license": "MIT",
   "author": "Yusuf YILDIRIM",
