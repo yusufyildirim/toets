@@ -8,7 +8,7 @@
     "type": "git",
     "url": "git+https://github.com/yusufyildirim/toets.git"
   },
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@12.23.0",
   "engines": {
     "node": ">=24"
   },
@@ -37,7 +37,7 @@
     "tsdown": "^0.23.0",
     "typedoc": "^0.28.20",
     "typescript": "~6.0.3",
-    "typescript-eslint": "^8.40.0",
-    "vitest": "^5.0.0"
+    "typescript-eslint": "^8.74.0",
+    "vitest": "^5.1.1"
   }
 }

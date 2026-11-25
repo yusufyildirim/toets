@@ -87,8 +87,8 @@ jobs:
           publish-plan-artifact-id: ${{ needs.select-mode.outputs.publish-plan-artifact-id }}
 
   # Publishes the packed tarballs and pushes a git tag per package. Authenticates with npm trusted
-  # publishing (OIDC), no token. Needs npm CLI 11.5.1+ (bundled with the Node in .tool-versions)
-  # and a GitHub-hosted runner.
+  # publishing (OIDC), no token: `pnpm publish` (pnpm 11+, no npm CLI) does the OIDC exchange and
+  # adds provenance. Needs a GitHub-hosted runner.
   publish:
     name: Publish
     needs: pack

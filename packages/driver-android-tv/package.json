@@ -61,7 +61,7 @@
   "dependencies": {
     "@toets/core": "workspace:^",
     "@toets/protocol": "workspace:^",
-    "appium": "4.0.0",
+    "appium": "4.0.1",
     "appium-uiautomator2-driver": "9.3.0",
     "fast-xml-parser": "^5.12.1",
     "pngjs": "^7.0.0",

@@ -55,7 +55,7 @@
   "dependencies": {
     "@toets/core": "workspace:^",
     "@toets/protocol": "workspace:^",
-    "appium": "4.0.0",
+    "appium": "4.0.1",
     "appium-xcuitest-driver": "13.6.1",
     "pngjs": "7.0.0",
     "webdriverio": "10.2.0"
