@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it } from 'vitest';
 import WebSocket from 'ws';
-import { CloseCode, RpcError, RpcErrorCode, type ProtocolNode } from '../src/index.js';
+import {
+  CloseCode,
+  PROTOCOL_VERSION,
+  RpcError,
+  RpcErrorCode,
+  type ProtocolNode,
+} from '../src/index.js';
 import { createSdkHost, type SdkHost, type SdkHostEvent } from '../src/server/index.js';
 import { connectFakeApp, sleep } from './helpers.js';
 
@@ -37,7 +43,7 @@ describe('SdkHost', () => {
     const app = await connectFakeApp(host.url, { token });
     const result = (await app.hello()) as { protocol: string; sessionId: string };
     const session = await waiting;
-    expect(result.protocol).toBe('1.0.0');
+    expect(result.protocol).toBe(PROTOCOL_VERSION);
     expect(result.sessionId).toBe(session.id);
     expect(session.hello.sdk).toBe('fake-sdk@0.0.0');
     expect([...session.domains]).toEqual(['tree', 'sync', 'logs']);
@@ -95,7 +101,7 @@ describe('SdkHost', () => {
     const app = await connectFakeApp(host.url, { token });
     const error = (await app.hello({ protocol: '2.0.0' }).catch((e: unknown) => e)) as RpcError;
     expect(error.code).toBe(RpcErrorCode.IncompatibleProtocol);
-    expect(error.data).toEqual({ protocol: '1.0.0' });
+    expect(error.data).toEqual({ protocol: PROTOCOL_VERSION });
     expect((await app.closed).code).toBe(CloseCode.IncompatibleProtocol);
   });
 

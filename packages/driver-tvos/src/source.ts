@@ -13,6 +13,8 @@ export interface WdaSourceNode {
   readonly name?: string | null;
   readonly label?: string | null;
   readonly value?: string | number | null;
+  /** Placeholder of a text field; XCUITest reports it as the `value` of an empty field. */
+  readonly placeholderValue?: string | null;
   readonly rect?: {
     readonly x: number;
     readonly y: number;
@@ -35,7 +37,6 @@ export interface WdaSourceNode {
 export const SOURCE_EXCLUDED_ATTRIBUTES = [
   'frame',
   'nativeFrame',
-  'placeholderValue',
   'minValue',
   'maxValue',
   'customActions',
@@ -76,6 +77,14 @@ const TEXT_VALUE_TYPES: ReadonlySet<string> = new Set([
 
 const BUSY_TYPES: ReadonlySet<string> = new Set(['ActivityIndicator']);
 
+/** System text fields: tvOS enters their text with its fullscreen keyboard. */
+const EDITABLE_TYPES: ReadonlySet<string> = new Set([
+  'TextField',
+  'SecureTextField',
+  'SearchField',
+  'TextView',
+]);
+
 /**
  * Maps one page source fetch to a toets {@link UITree}.
  *
@@ -86,6 +95,9 @@ const BUSY_TYPES: ReadonlySet<string> = new Set(['ActivityIndicator']);
  *   by their frame.
  * - `focused` marks only the deepest element reporting `hasFocus`; ancestors get `focusWithin`.
  * - `selected` comes from the `Selected` trait; `busy` from a visible activity indicator.
+ * - `editable`: enabled text fields. `value` is their text, `''` when XCUITest reports the
+ *   placeholder as the value (it does for empty fields); secure fields are masked. Their `text`
+ *   is the value.
  * - Refs are tree paths plus type and identifier: stable while the screen structure is.
  */
 export function parseSource(source: WdaSourceNode): UITree {
@@ -119,6 +131,10 @@ function toNode(
   const focused = path === focusedPath;
   const traits = parseTraits(n.traits);
   const label = str(n.label);
+  const enabled = n.isEnabled === undefined || bool(n.isEnabled);
+  const editable = EDITABLE_TYPES.has(n.type) && enabled;
+  const secure = editable && n.type === 'SecureTextField';
+  const value = editable ? fieldValue(n, secure) : null;
   // The application's label is its display name, not on-screen text.
   const ownText =
     n.type === 'Application'
@@ -126,8 +142,9 @@ function toNode(
       : (label ?? (TEXT_VALUE_TYPES.has(n.type) ? str(n.value) : null));
   // An accessible element speaks for its subtree, and so does a text element: tvOS nests an
   // accessible copy of the same text inside it. Containers join their own and children's text.
-  const text =
-    ownText !== null && (accessible || n.type === 'StaticText')
+  const text = editable
+    ? normalize(value ?? '')
+    : ownText !== null && (accessible || n.type === 'StaticText')
       ? normalize(ownText)
       : normalize(
           [ownText, ...children.map((c) => c.text).filter((t) => t !== normalize(ownText ?? ''))]
@@ -151,11 +168,22 @@ function toNode(
       (n.type === 'Other' && accessible),
     focused,
     focusWithin: focused || children.some((c) => c.focusWithin),
-    enabled: n.isEnabled === undefined || bool(n.isEnabled),
+    enabled,
     selected: traits.has('Selected'),
     busy: (visible && BUSY_TYPES.has(n.type)) || children.some((c) => c.busy),
+    editable,
+    value,
+    secure,
     children,
   };
+}
+
+/** A text field's text: never the placeholder, one `•` per character when secure. */
+function fieldValue(n: WdaSourceNode, secure: boolean): string {
+  const raw = n.value === null || n.value === undefined ? '' : String(n.value);
+  const placeholder = n.placeholderValue ?? null;
+  const value = placeholder !== null && placeholder !== '' && raw === placeholder ? '' : raw;
+  return secure ? '\u2022'.repeat([...value].length) : value;
 }
 
 /** Path of the deepest node with `hasFocus`, or `null`. Later siblings win on ties. */

@@ -1,4 +1,4 @@
-# toets SDK protocol, version 1.0
+# toets SDK protocol, version 1.1
 
 Normative description of the wire protocol between the toets test host and an in-app SDK. Types live in `src/messages.ts`; this page defines behavior. "MUST", "SHOULD" and "MAY" are used as in RFC 2119.
 
@@ -49,8 +49,8 @@ Security: an SDK MUST stay inert (install no hooks, open no connection) without 
 ## Handshake
 
 ```json nocheck
-→ {"jsonrpc":"2.0","id":1,"method":"toets.hello","params":{"protocol":"1.0.0","token":"9f2c...","sdk":"@toets/sdk@0.1.0","framework":"web","domains":["tree","focus","sync","media","state","logs"]}}
-← {"jsonrpc":"2.0","id":1,"result":{"protocol":"1.0.0","sessionId":"5b0e..."}}
+→ {"jsonrpc":"2.0","id":1,"method":"toets.hello","params":{"protocol":"1.1.0","token":"9f2c...","sdk":"@toets/sdk@0.1.0","framework":"web","domains":["tree","focus","sync","media","state","logs"]}}
+← {"jsonrpc":"2.0","id":1,"result":{"protocol":"1.1.0","sessionId":"5b0e..."}}
 ```
 
 The host validates, in order: message shape (first frame is a `toets.hello` request, else close 4000), params (else InvalidParams + close 4000), token (else Unauthorized + close 4001), protocol (else IncompatibleProtocol with `data.protocol` = host version + close 4002). On rejection the host answers the hello with the error, then closes. The app has 10 s (host default) to send the hello.
@@ -64,6 +64,10 @@ Tokens are one-time: a used, unknown or expired token is rejected. A reloaded ap
 - Majors MUST match; otherwise the handshake fails with IncompatibleProtocol.
 - A minor adds methods, notifications, fields or domains. The host never calls a method newer than the SDK's announced minor (`METHOD_SINCE`) and treats every field added after 1.0 as optional.
 - Both sides MUST ignore unknown fields, unknown notifications and unknown domains.
+
+| Version | Adds                                                                                |
+| ------- | ----------------------------------------------------------------------------------- |
+| 1.1     | Text field state on `ProtocolNode`: `editable`, `value`, `secure` (see `tree.get`). |
 
 ### Domains
 
@@ -89,6 +93,7 @@ The UI tree (`ProtocolNode`), or the subtree at `rootId` (NotFound when it no lo
 - `text` is the node's own text, not its descendants'. `testId`, `label`, `role` are omitted when empty.
 - `visible` is false when the node or an ancestor is not rendered (`display: none`, opacity 0, hidden) or has an empty box. It does not mean "inside the viewport"; `bounds` say where it is.
 - At most one node has `focused: true`.
+- Text fields (1.1): `editable: true` marks a system text field, one the platform enters text into (a DOM `input`, `textarea` or `contenteditable`, a React Native `TextInput`). `value` is its current text, `''` when empty, never the placeholder; a placeholder is not `text` either. `secure: true` marks a password field: SDKs MUST mask its `value` (one `•` per character) and never send the real text. `value` and `secure` appear only on editable nodes; absent `editable` and `secure` mean `false`. App-drawn fields (a `Text` showing what an on-screen keyboard typed) are not editable.
 - SDKs SHOULD collapse purely structural wrappers so trees stay small.
 
 ### `focus.get` `{} → { node }`

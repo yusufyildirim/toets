@@ -30,6 +30,7 @@ export default defineConfig({
 - **One flat options object per project.** `platforms.androidTV({ ... })` takes Playwright project fields (`name`, `retries`, `use`, ...), toets's keys (`driver`, `app`, `model`, `osVersion`, `devices`, `toets`) and the driver's options (e.g. `remote: 'fire-tv'`), typed by the driver package. A custom driver passes its type: `platforms.web<MyOptions>({ driver: './my-driver.ts', ... })`.
 - **Every config type is exported** from `@toets/test`, driver option types included (`WebDriverOptions`, `AndroidTvDriverOptions`, `TvosAppConfig`, ...), so a config can be factored into typed pieces without importing driver packages.
 - **`model` and `osVersion`** tell the device provider what to boot or lease, e.g. `model: 'tv_1080p', osVersion: '34'`.
+- **`keyboards`** declares the app-drawn keyboards ([text input](../../core/docs/text-input.md)): top level, per project (`platforms.web({ keyboards })`) or per test (`test.use({ keyboards })`). Each level replaces the one above, never merges. Keep the definitions in a file that imports only `defineKeyboard`: the config loads it.
 - **Relative app paths** (`apk`, `app`) resolve against the config file's directory.
 - **Options merge** from the top-level `toets` into each project's `toets`. The `app` entry for the platform merges with the project's `app`.
 - **Snapshot baselines are per project, not per host.** toets projects default `snapshotPathTemplate` to Playwright's default without the host OS suffix; a top-level or project `snapshotPathTemplate` wins.

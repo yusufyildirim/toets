@@ -9,6 +9,7 @@ When a test fails, toets writes a `toets-failure.md` dump and a `toets-screensho
 - capabilities: key.back, key.color, key.media.toggle
 - sdk: off (black-box)
 - focused: card_1 "Movie 1"
+- keyboard: none
 - last keys: RIGHT, RIGHT, SELECT
 
 ## Screen
@@ -24,6 +25,7 @@ It also lists busy resources (when idle sync is on), recent app logs and recorde
 
 ## Principles
 
+- **Keyboard state.** The `keyboard` line names the open keyboard: a declared one with its layer (`search (layer: digits)`), `system`, or `none`. A test stuck behind an open keyboard shows here first ([text input](./text-input.md)).
 - **Text first.** The screen is a [text snapshot](./text-snapshots.md), readable in CI logs and by AI agents. The screenshot is attached separately.
 - **Never masks the real error.** Collecting the dump never throws; missing parts are left out.
 - **Logs and network traffic** are attached for every test (`toets-logs`, `toets-network.har`), not only failures.

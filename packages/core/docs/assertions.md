@@ -8,12 +8,14 @@ await expect(app.getByTestId('details-title')).toHaveText('The Matrix');
 await expect(app.getByTestId('play')).toBeFocused({ timeout: 10_000 });
 ```
 
-| Subject       | Matchers                                                                                                                                                                     |
-| ------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Locator       | `toBeVisible`, `toBeInViewport`, `toBeFocused`, `toHaveFocusWithin`, `toBeEnabled`, `toBeDisabled`, `toBeSelected`, `toBeBusy`, `toHaveText`, `toContainText`, `toHaveCount` |
-| App, Locator  | `toMatchTextSnapshot`, `toMatchScreenshot`                                                                                                                                   |
-| `app.media`   | `toBePlaying`, `toBePaused`, `toHaveMediaState`, `toHavePosition` (needs `media.state`)                                                                                      |
-| `app.network` | `toHaveRequested(filter, { times? })` (needs `network.mock`)                                                                                                                 |
+| Subject        | Matchers                                                                                                                                                                     |
+| -------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Locator        | `toBeVisible`, `toBeInViewport`, `toBeFocused`, `toHaveFocusWithin`, `toBeEnabled`, `toBeDisabled`, `toBeSelected`, `toBeBusy`, `toHaveText`, `toContainText`, `toHaveCount` |
+| App, Locator   | `toMatchTextSnapshot`, `toMatchScreenshot`                                                                                                                                   |
+| `app.media`    | `toBePlaying`, `toBePaused`, `toHaveMediaState`, `toHavePosition` (needs `media.state`)                                                                                      |
+| `app.network`  | `toHaveRequested(filter, { times? })` (needs `network.mock`)                                                                                                                 |
+| Locator        | `toHaveValue(text \| RegExp)`: system text fields ([text input](./text-input.md))                                                                                            |
+| `app.keyboard` | `toBeOpen()`: a keyboard is open ([text input](./text-input.md))                                                                                                             |
 
 ## Principles
 

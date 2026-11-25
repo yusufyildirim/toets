@@ -6,7 +6,7 @@ import {
   type Project,
   type ReporterDescription,
 } from '@playwright/test';
-import type { AppTargetConfig, Platform, Timeouts } from '@toets/core';
+import type { AppTargetConfig, KeyboardDefinition, Platform, Timeouts } from '@toets/core';
 import type { MockServerConfig } from '@toets/core';
 import {
   mergeRuntimeConfig,
@@ -142,6 +142,8 @@ export interface ToetsProjectKeys<App> {
   readonly devices?: DeviceSelection;
   /** Overrides the top-level `toets` options for this project. */
   readonly toets?: ToetsOptions;
+  /** App-drawn keyboards for this project; replaces the top-level `keyboards`. */
+  readonly keyboards?: readonly KeyboardDefinition[];
   readonly use?: Project['use'];
 }
 
@@ -171,11 +173,12 @@ const OWN_KEYS = new Set<string>([
   'osVersion',
   'devices',
   'toets',
+  'keyboards',
   'use',
 ]);
 
 function platformProject(platform: Platform, opts: PlatformProjectOptions = {}): Project {
-  const { driver, app, model, osVersion, devices, toets, use } = opts;
+  const { driver, app, model, osVersion, devices, toets, keyboards, use } = opts;
   const project: Record<string, unknown> = {};
   const driverOptions: Record<string, unknown> = {};
   for (const [key, value] of Object.entries(opts)) {
@@ -194,7 +197,11 @@ function platformProject(platform: Platform, opts: PlatformProjectOptions = {}):
     devices,
     options: toets ?? {},
   };
-  return { name: platform, ...project, use: { ...use, toets: config } };
+  return {
+    name: platform,
+    ...project,
+    use: { ...use, ...(keyboards === undefined ? {} : { keyboards }), toets: config },
+  };
 }
 
 /**
@@ -221,6 +228,12 @@ export interface ToetsConfig extends PlaywrightTestConfig {
   readonly app?: AppTargets;
   /** Runtime options for every project. */
   readonly toets?: ToetsOptions;
+  /**
+   * App-drawn keyboards (`defineKeyboard`) for every project: the `keyboards` fixture option.
+   * A project's `keyboards` or a file's `test.use({ keyboards })` replaces it. Keep the
+   * definitions in a module without fixture imports, so the config can load it.
+   */
+  readonly keyboards?: readonly KeyboardDefinition[];
   /** Parity matrix reporter, added after the configured reporters. `false` disables it. */
   readonly parityReport?: false | ParityReporterOptions;
 }
@@ -263,7 +276,7 @@ function withParityReporter(
  * OS suffix, so baselines match across machines; a top-level or project value wins.
  */
 export function defineConfig(config: ToetsConfig): PlaywrightTestConfig {
-  const { app, toets, parityReport, projects, reporter, ...playwright } = config;
+  const { app, toets, keyboards, parityReport, projects, reporter, ...playwright } = config;
   const merged = projects?.map((project) => {
     const target = (project.use as { toets?: ToetsProjectConfig } | undefined)?.toets;
     if (!target) return project;
@@ -281,6 +294,10 @@ export function defineConfig(config: ToetsConfig): PlaywrightTestConfig {
   });
   return playwrightDefineConfig({
     ...playwright,
+    // The `keyboards` fixture option: projects and `test.use` replace it.
+    ...(keyboards === undefined
+      ? {}
+      : { use: { ...playwright.use, keyboards } as NonNullable<PlaywrightTestConfig['use']> }),
     ...(merged ? { projects: merged } : {}),
     ...(parityReport === false
       ? reporter === undefined

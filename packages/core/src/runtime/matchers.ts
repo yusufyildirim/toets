@@ -5,7 +5,7 @@
  * the positive condition held, and the runner inverts it for `.not`.
  */
 import type { MediaInfo, MediaState } from '@toets/protocol';
-import type { App, Locator, Media, Network, RecordedRequest } from '../api.js';
+import type { App, Keyboard, Locator, Media, Network, RecordedRequest } from '../api.js';
 import { ToetsError, packageDocsLink } from '../errors.js';
 import type { RequestFilter } from '../mock.js';
 import type { ElementSnapshot } from '../snapshot.js';
@@ -13,6 +13,7 @@ import { appRuntime } from './app.js';
 import type { RuntimeContext } from './context.js';
 import { lineDiff } from './diff.js';
 import { MediaImpl, NetworkImpl } from './domains.js';
+import { keyboardImpl } from './keyboard.js';
 import { describeElement, locatorImpl, strictModeError, type LocatorImpl } from './locator.js';
 import { describeIdle } from './retry.js';
 import { normalizeTextSnapshot } from './text-snapshot.js';
@@ -268,6 +269,59 @@ export const locatorMatchers = {
   }),
   toHaveText: textMatcher('toHaveText'),
   toContainText: textMatcher('toContainText'),
+  /**
+   * The value of a system text field (`editable`), exactly or matching a RegExp. Other elements
+   * throw `NOT_EDITABLE` (assert their text with `toHaveText`); password fields throw
+   * `SECURE_FIELD`, since their value is masked.
+   */
+  async toHaveValue(
+    ctx: MatchContext,
+    subject: Locator,
+    expected: string | RegExp,
+  ): Promise<MatchResult> {
+    const locator = asLocator('toHaveValue', subject);
+    if (typeof expected !== 'string' && !(expected instanceof RegExp)) {
+      throw new ToetsError('INVALID_ARGUMENT', 'toHaveValue() expects a string or RegExp.', {
+        docs: packageDocsLink('core', 'assertions'),
+      });
+    }
+    const docs = packageDocsLink('core', 'text-input');
+    return runMatcher(ctx, {
+      name: 'toHaveValue',
+      runtime: locator.ctx,
+      subject: 'locator',
+      args: displayValue(expected),
+      header: [`${pad('Locator')}${locator.description}`],
+      expected: `value ${displayValue(expected)}`,
+      evaluate: async () => {
+        const el = await single(locator);
+        if (!el) return { pass: null, received: 'element not found' };
+        if (!el.editable) {
+          throw new ToetsError(
+            'NOT_EDITABLE',
+            `toHaveValue(): ${locator.description} (${describeElement(el)}) is not a system text field, so it has no value.`,
+            {
+              hint: 'App-drawn fields show their text: assert it with toHaveText() or toContainText().',
+              docs,
+            },
+          );
+        }
+        if (el.secure) {
+          throw new ToetsError(
+            'SECURE_FIELD',
+            `toHaveValue(): ${locator.description} is a password field; its value is masked and cannot be compared.`,
+            {
+              hint: 'Assert the outcome instead (signed in, an error message), or the length with toHaveText(/^•{8}$/).',
+              docs,
+            },
+          );
+        }
+        const value = el.value ?? '';
+        const pass = expected instanceof RegExp ? testRegExp(expected, value) : value === expected;
+        return { pass, received: `value ${JSON.stringify(value)}`, actual: value };
+      },
+    });
+  },
   async toHaveCount(ctx: MatchContext, subject: Locator, count: number): Promise<MatchResult> {
     const locator = asLocator('toHaveCount', subject);
     if (!Number.isInteger(count) || count < 0) {
@@ -345,6 +399,31 @@ export async function toMatchTextSnapshot(
     },
   });
 }
+
+/** Assertions on `app.keyboard`. */
+export const keyboardMatchers = {
+  /** A system keyboard or text entry is active, or a declared app keyboard is on screen. */
+  async toBeOpen(ctx: MatchContext, keyboard: Keyboard): Promise<MatchResult> {
+    const impl = keyboardImpl(keyboard);
+    if (!impl) throw invalidSubject('toBeOpen', 'app.keyboard', keyboard);
+    return runMatcher(ctx, {
+      name: 'toBeOpen',
+      runtime: impl.ctx,
+      subject: 'app.keyboard',
+      header: [],
+      expected: 'an open keyboard',
+      evaluate: async () => {
+        const open = await impl.entry.openKeyboard();
+        return {
+          pass: open !== null,
+          received: open === null ? 'no keyboard open' : `open: ${open}`,
+          actual: open,
+        };
+      },
+      explain: async () => [`${pad('Focused')}${describeElement(await impl.ctx.target.focused())}`],
+    });
+  },
+};
 
 function asMedia(name: string, subject: unknown): RuntimeContext {
   if (!(subject instanceof MediaImpl)) throw invalidSubject(name, 'app.media', subject);

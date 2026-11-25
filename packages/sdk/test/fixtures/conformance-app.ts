@@ -5,7 +5,7 @@
 import { CONFORMANCE_FIXTURE } from '@toets/protocol';
 import { markBusy, onState, reportFocus, startToets } from '../../src/web/index.js';
 
-const { testIds, states, text } = CONFORMANCE_FIXTURE;
+const { testIds, states, text, fieldValue, secretValue } = CONFORMANCE_FIXTURE;
 
 document.body.innerHTML = `
   <style>
@@ -18,6 +18,8 @@ document.body.innerHTML = `
     <button class="card" data-testid="${testIds.a}">A</button>
     <button class="card" data-testid="${testIds.b}">B</button>
     <p data-testid="${testIds.text}">${text}</p>
+    <input data-testid="${testIds.field}" value="${fieldValue}" placeholder="Name" />
+    <input data-testid="${testIds.secret}" type="password" value="${secretValue}" />
     <div class="spinner" data-testid="spinner"></div>
   </main>`;
 

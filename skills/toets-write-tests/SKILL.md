@@ -55,6 +55,8 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 | Press keys                  | `app.remote.press(Key.X)`, `longPress`, `repeat`, `sequence`       |
 | Check focus                 | `expect(l).toBeFocused()`, `expect(container).toHaveFocusWithin()` |
 | Check content               | `toBeVisible`, `toHaveText`, `toContainText`, `toHaveCount`        |
+| Enter text                  | `locator.fill(text)`, `app.keyboard.type / erase / submit()`       |
+| Check a text field          | `toHaveValue` (system fields), `expect(app.keyboard).toBeOpen()`   |
 | Check playback              | `expect(app.media).toBePlaying()`, `toBePaused()`                  |
 | Mock data (`toets.mock` on) | `app.network.use(http.get(...))` before `launch()`                 |
 | Needs a capability          | `test(name, requires('key.color'), fn)`                            |
@@ -69,6 +71,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 - Mock data the test depends on (needs `toets: { mock: true }` and app cooperation); a relative path like `/api/x` matches any origin. (`concepts/network-mocking`)
 - Page objects take `app`, expose locators and intent-level actions, and do not assert except to wait until loaded. (`concepts/page-objects`)
 - App-specific setup (splash, sign-in) lives in a fixture in the project. (`guides/writing-tests`)
+- Enter text with `fill` and `app.keyboard`, never by pressing keys one by one. An app-drawn keyboard (OSK, PIN pad) must be declared with `defineKeyboard()` in the `keyboards` option, in a file that imports only `defineKeyboard`; pass `{ mask: true }` for PINs and passwords. (`concepts/text-input`)
 - Serial flows only for journeys that can not be set up directly; prefer named states. (`guides/serial-flows`)
 - No `sleep`, no `waitForTimeout`, no raw keycodes, no `if (platform)`, no `platformOnly` unless a maintainer asks for it.
 - Keep text snapshot assertions to a region, with mocked data. (`concepts/text-snapshots`)

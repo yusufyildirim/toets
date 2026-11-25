@@ -19,7 +19,9 @@ export type AndroidTvErrorCode =
   | 'ANDROID_SYSTEM_IMAGE_MISSING'
   | 'ANDROID_AVD_FAILED'
   | 'ANDROID_EMULATOR_FAILED'
-  | 'ANDROID_RECORDING_FAILED';
+  | 'ANDROID_RECORDING_FAILED'
+  /** System text entry found no focused field (`fill`, `app.keyboard` on a system field). */
+  | 'ANDROID_NO_TEXT_FIELD';
 
 /**
  * Docs pages of this package. Slug `driver-android-tv/<page>` is shipped as

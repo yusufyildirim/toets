@@ -8,6 +8,7 @@ import {
   type Driver,
   type DriverCreateContext,
   type DriverLaunchOptions,
+  type DriverTextInput,
   type ElementRef,
   type ElementSnapshot,
   type Key,
@@ -247,6 +248,76 @@ export class TvosDriver implements Driver {
     return this.require().recorder.stop();
   }
 
+  /**
+   * System text entry through WebDriverAgent, which types the way the fullscreen keyboard does:
+   * element values are typed on the keyboard (opening it with SELECT when needed), `\b`
+   * deletes, `\n` is the keyboard's action key (Done, Search). `close` presses Menu, which
+   * dismisses the keyboard and keeps the text.
+   */
+  readonly text: DriverTextInput = {
+    isOpen: async () => {
+      const { session } = this.require();
+      const found = await this.call('keyboard check', () =>
+        session.findElements('class name', 'XCUIElementTypeKeyboard'),
+      );
+      return found.length > 0;
+    },
+    replace: async (field, text) => {
+      const { session } = this.require();
+      const id = await this.textFieldId(field);
+      await this.call('clear', () => session.elementClear(id));
+      if (text !== '') await this.call('type', () => session.elementSendKeys(id, text));
+    },
+    insert: async (text) => {
+      if (text === '') return;
+      const { session } = this.require();
+      const id = await this.textFieldId(null);
+      await this.call('type', () => session.elementSendKeys(id, text));
+    },
+    deleteBackward: async (count) => {
+      const { session } = this.require();
+      const id = await this.textFieldId(null);
+      await this.call('delete', () => session.elementSendKeys(id, '\b'.repeat(count)));
+    },
+    submit: async () => {
+      const { session } = this.require();
+      const id = await this.textFieldId(null);
+      await this.call('submit', () => session.elementSendKeys(id, '\n'));
+    },
+    close: async () => {
+      if (await this.text.isOpen()) await this.mobile('pressButton', { name: 'menu' });
+    },
+  };
+
+  /** The last text field typed into: the fullscreen keyboard takes focus from the field. */
+  private lastField: string | undefined;
+
+  /**
+   * The text field to type into: `field` by accessibility identifier, else the focused text
+   * field, else the last one typed into while the keyboard is still open.
+   */
+  private async textFieldId(field: ElementSnapshot | null): Promise<string> {
+    const { session } = this.require();
+    const types = [...TEXT_FIELD_TYPES].map((t) => `'XCUIElementType${t}'`).join(', ');
+    const lookups: [string, string][] = [
+      ...(field?.testId ? ([['accessibility id', field.testId]] as [string, string][]) : []),
+      ['-ios predicate string', `type IN {${types}} AND hasFocus == 1`],
+    ];
+    for (const [using, value] of lookups) {
+      const found = await session.findElements(using, value).catch(() => []);
+      const id = found.map(elementId).find((e) => e !== undefined);
+      if (id) {
+        this.lastField = id;
+        return id;
+      }
+    }
+    if (this.lastField && field === null && (await this.text.isOpen())) return this.lastField;
+    throw tvosError(TvosErrorCode.NO_TEXT_FIELD, 'No focused text field to enter text into.', {
+      hint: 'Move focus to the text field first (fill() does).',
+      docs: DOCS.capabilities,
+    });
+  }
+
   /** The WebdriverIO `Browser` of the Appium session, for `app.platformOnly('tvos', ...)`. */
   escapeHatch(): unknown {
     return this.require().session;
@@ -384,6 +455,12 @@ export class TvosDriver implements Driver {
     }
     return name;
   }
+}
+
+const TEXT_FIELD_TYPES = ['TextField', 'SecureTextField', 'SearchField', 'TextView'] as const;
+
+function elementId(ref: Record<string, string>): string | undefined {
+  return ref['element-6066-11e4-a52e-4f735466cecf'] ?? ref.ELEMENT;
 }
 
 /** Appium capabilities for one tvOS simulator session. `extra` is merged last. */

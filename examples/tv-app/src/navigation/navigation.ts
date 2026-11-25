@@ -1,6 +1,6 @@
 /** Pure navigation state: a tab (side menu destination) plus a stack of full-screen routes. */
 
-export type Tab = 'home' | 'settings';
+export type Tab = 'home' | 'search' | 'signin' | 'settings';
 
 export type Route =
   | { readonly name: 'details'; readonly itemId: string }

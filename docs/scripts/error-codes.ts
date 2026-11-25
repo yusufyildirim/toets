@@ -29,6 +29,20 @@ const ELLIPSIS = '…';
  * message describes the code. Prefer a doc comment on a `*ErrorCode` type in the source.
  */
 const MEANINGS: Readonly<Record<string, string>> = {
+  AMBIGUOUS_KEYBOARD:
+    '`app.keyboard` found several declared keyboards on screen and none holds focus.',
+  CHAR_NOT_ON_KEYBOARD:
+    'An app keyboard has no key for a character on any layer its declared toggles reach.',
+  DUPLICATE_KEYBOARD: 'Two keyboards in the `keyboards` option share a name.',
+  KEYBOARD_ACTION_MISSING:
+    'A text action needs a key (`backspace`, `clear`, `submit`) the keyboard does not declare or show.',
+  NO_KEYBOARD:
+    'No keyboard for the field: it is no system text field and no declared keyboard lists it, or the declared keyboard did not open.',
+  NOT_EDITABLE: '`toHaveValue` on an element that is not a system text field.',
+  SECURE_FIELD: '`toHaveValue` on a secure (password) field, whose value is masked.',
+  TEXT_NOT_ENTERED: 'After typing, the field does not show exactly the text.',
+  WEB_NO_TEXT_FIELD: 'System text entry on web found no text field holding focus in the page.',
+  TVOS_NO_TEXT_FIELD: 'System text entry on tvOS found no focused text field.',
   CAPABILITY_MISSING:
     'The action or assertion needs a capability this target does not have (driver, SDK domain or mock server).',
   INVALID_ARGUMENT:

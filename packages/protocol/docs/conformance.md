@@ -33,6 +33,7 @@ With `fixture: true` (`--fixture`) the suite also checks behavior. The app must 
 
 - `conformance-a` and `conformance-b`: focusable, visible.
 - `conformance-text`: not focusable, own text `Conformance`.
+- Protocol 1.1 SDKs: `conformance-field`, a text field holding `Typed`, and `conformance-secret`, a password field holding `pass` (reported masked as `••••`).
 - An `onState` handler for `conformance:focus-a` / `conformance:focus-b` (move focus there), `conformance:log` (log `flags.marker` at info level through the normal console), `conformance:busy` (`markBusy` for `flags.ms` ms), `conformance:fail` (throw).
 
 Reference fixtures: `packages/sdk/test/fixtures/conformance-app.ts` (web) and `packages/sdk-react-native/test/conformance.test.ts` (React Native).

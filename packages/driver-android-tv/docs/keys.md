@@ -1,6 +1,6 @@
 # Android TV key mapping
 
-Every toets key is a real Android `KeyEvent` injected into the system input pipeline, so the app's native focus engine handles it exactly like a remote button.
+Every toets key is a real Android `KeyEvent` injected into the system input pipeline, so the app's native focus engine handles it exactly like a remote button. D-pad keys and `SELECT` come from the D-pad input source (`SOURCE_DPAD`), like a remote's: a focused `EditText` takes keyboard-source arrows as caret moves and never lets focus leave, while D-pad arrows move focus out of it.
 
 | Key                           | Android keycode                                      | Capability           |
 | ----------------------------- | ---------------------------------------------------- | -------------------- |

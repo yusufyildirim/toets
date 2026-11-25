@@ -11,6 +11,7 @@ import {
   packageDocsLink,
   ToetsError,
   isLocator,
+  keyboardMatchers as km,
   locatorMatchers as lm,
   mediaMatchers as mm,
   networkMatchers as nm,
@@ -18,6 +19,7 @@ import {
   screenshotPng,
   toMatchTextSnapshot as matchInline,
   type App,
+  type Keyboard,
   type Locator,
   type MatchContext,
   type MatchResult,
@@ -218,6 +220,19 @@ export const toetsMatchers = {
   },
   toHaveCount(this: ExpectMatcherState, locator: Locator, count: number, opts?: TimeoutOption) {
     return lm.toHaveCount(ctx(this, opts), locator, count);
+  },
+  /** Value of a system text field. Others: `NOT_EDITABLE`; password fields: `SECURE_FIELD`. */
+  toHaveValue(
+    this: ExpectMatcherState,
+    locator: Locator,
+    expected: string | RegExp,
+    opts?: TimeoutOption,
+  ) {
+    return lm.toHaveValue(ctx(this, opts), locator, expected);
+  },
+  /** `app.keyboard`: system text entry is active, or a declared keyboard is on screen. */
+  toBeOpen(this: ExpectMatcherState, keyboard: Keyboard, opts?: TimeoutOption) {
+    return km.toBeOpen(ctx(this, opts), keyboard);
   },
   toMatchTextSnapshot,
   toMatchScreenshot,

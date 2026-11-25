@@ -3,6 +3,7 @@
  * their toets settings in `use.toets`. Reading them means the MCP server drives exactly what the
  * test suite runs (driver, app, devices, SDK, mocking, key overrides), with no second config.
  */
+import type { KeyboardDefinition } from '@toets/core';
 import type { RuntimeConfig } from '@toets/core/runner';
 import type { McpConfig, McpTargetConfig } from './config.js';
 
@@ -20,11 +21,12 @@ interface ProjectToets {
 interface TestProject {
   readonly name?: string;
   readonly expect?: { readonly timeout?: number };
-  readonly use?: { readonly toets?: unknown };
+  readonly use?: { readonly toets?: unknown; readonly keyboards?: unknown };
 }
 
 interface TestConfig {
   readonly expect?: { readonly timeout?: number };
+  readonly use?: { readonly keyboards?: unknown };
   readonly projects?: readonly TestProject[];
 }
 
@@ -67,6 +69,9 @@ export function fromTestConfig(config: TestConfig): McpConfig | null {
     let name = base;
     for (let i = 2; name in targets; i++) name = `${base}-${i}`;
     const expectTimeoutMs = project.expect?.timeout ?? config.expect?.timeout;
+    // The `keyboards` fixture option: the project's replaces the config's.
+    const keyboards = (project.use?.keyboards ?? config.use?.keyboards) as
+      readonly KeyboardDefinition[] | undefined;
     targets[name] = {
       driver: toets.driver,
       ...(toets.platform === undefined ? {} : { platform: toets.platform }),
@@ -77,6 +82,7 @@ export function fromTestConfig(config: TestConfig): McpConfig | null {
       ...(toets.devices === undefined ? {} : { devices: toets.devices }),
       toets: runtimeOptions(toets.options),
       ...(expectTimeoutMs === undefined ? {} : { expectTimeoutMs }),
+      ...(keyboards === undefined ? {} : { keyboards }),
     };
   }
   return Object.keys(targets).length ? { targets } : null;

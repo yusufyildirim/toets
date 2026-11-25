@@ -245,6 +245,34 @@ describe('parseSource', () => {
     expect(findNode(again, 'nope' as ElementRef)).toBeNull();
   });
 
+  it('reports text fields with their value, placeholders as empty, secure fields masked', () => {
+    const field = (id: string, extra: Partial<WdaSourceNode>): WdaSourceNode => ({
+      type: 'TextField',
+      rawIdentifier: id,
+      rect: rect(0, 0, 400, 60),
+      isVisible: '1',
+      isEnabled: '1',
+      ...extra,
+    });
+    const t = parseSource({
+      type: 'Application',
+      rect: rect(0, 0, 1920, 1080),
+      children: [
+        field('email', { value: 'Email', placeholderValue: 'Email' }),
+        field('email2', { value: 'a@b.co', placeholderValue: 'Email' }),
+        field('pass', { type: 'SecureTextField', value: '••••' }),
+        field('off', { value: 'x', isEnabled: '0' }),
+        { type: 'StaticText', rawIdentifier: 'label', label: 'Hi', rect: rect(0, 0, 10, 10) },
+      ],
+    });
+    const byId = (id: string) => t.root.children.find((n) => n.testId === id);
+    expect(byId('email')).toMatchObject({ editable: true, value: '', secure: false, text: null });
+    expect(byId('email2')).toMatchObject({ editable: true, value: 'a@b.co', text: 'a@b.co' });
+    expect(byId('pass')).toMatchObject({ editable: true, value: '••••', secure: true });
+    expect(byId('off')).toMatchObject({ editable: false, value: null });
+    expect(byId('label')).toMatchObject({ editable: false, value: null, secure: false });
+  });
+
   it('returns a null focus when nothing is focused', () => {
     expect(
       focusedIn(parseSource({ type: 'Application', rect: rect(0, 0, 1920, 1080) })),

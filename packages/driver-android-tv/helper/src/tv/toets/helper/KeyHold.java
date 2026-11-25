@@ -17,7 +17,9 @@ import java.lang.reflect.Method;
  * may inject input events).
  *
  * Usage: CLASSPATH=toets-key-hold.jar app_process / tv.toets.helper.KeyHold <keycode> <holdMs>
- * Prints `repeats=<n>` on success.
+ * [source]. `source` is the `InputDevice.SOURCE_*` the key comes from (default
+ * `SOURCE_KEYBOARD`; D-pad keys come from `SOURCE_DPAD`, like a remote's). Prints `repeats=<n>`
+ * on success.
  */
 public final class KeyHold {
     private static final int INJECT_WAIT_FOR_RESULT = 1;
@@ -26,12 +28,13 @@ public final class KeyHold {
     private KeyHold() {}
 
     public static void main(String[] args) throws Exception {
-        if (args.length != 2) {
-            System.err.println("usage: KeyHold <keycode> <holdMs>");
+        if (args.length != 2 && args.length != 3) {
+            System.err.println("usage: KeyHold <keycode> <holdMs> [source]");
             System.exit(2);
         }
         int keyCode = Integer.parseInt(args[0]);
         long holdMs = Long.parseLong(args[1]);
+        int source = args.length == 3 ? Integer.parseInt(args[2]) : InputDevice.SOURCE_KEYBOARD;
 
         Object inputManager = inputManager();
         Method inject =
@@ -50,7 +53,7 @@ public final class KeyHold {
                         KeyCharacterMap.VIRTUAL_KEYBOARD,
                         0,
                         0,
-                        InputDevice.SOURCE_KEYBOARD);
+                        source);
         inject(inject, inputManager, event);
 
         int repeats = 0;

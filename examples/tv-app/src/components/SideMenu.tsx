@@ -9,6 +9,8 @@ import { SIDE_MENU_WIDTH, colors, px } from '../theme';
 
 const ITEMS: readonly { tab: Tab; label: string }[] = [
   { tab: 'home', label: 'Home' },
+  { tab: 'search', label: 'Search' },
+  { tab: 'signin', label: 'Sign in' },
   { tab: 'settings', label: 'Settings' },
 ];
 

@@ -1,7 +1,7 @@
 import { mkdtemp, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import type { DeviceLease, DriverCreateContext, ElementRef } from '@toets/core';
+import type { DeviceLease, DriverCreateContext, ElementRef, ElementSnapshot } from '@toets/core';
 import { KEY_CAPABILITY, Key } from '@toets/core';
 import { encodeLaunchPayloadParam } from '@toets/protocol';
 import { PNG } from 'pngjs';
@@ -60,6 +60,16 @@ class FakeSession implements TvosSession {
   }
   async deleteSession(): Promise<void> {
     this.deleted++;
+  }
+  async findElements(using: string, value: string): Promise<Record<string, string>[]> {
+    this.executed.push({ script: 'findElements', args: [using, value] });
+    return using === 'class name' ? [] : [{ 'element-6066-11e4-a52e-4f735466cecf': 'field-1' }];
+  }
+  async elementClear(id: string): Promise<void> {
+    this.executed.push({ script: 'elementClear', args: id });
+  }
+  async elementSendKeys(id: string, text: string): Promise<void> {
+    this.executed.push({ script: 'elementSendKeys', args: [id, text] });
   }
   scripts(): string[] {
     return this.executed.map((e) => e.script);
@@ -263,6 +273,27 @@ describe('TvosDriver', () => {
       { name: 'home' },
     ]);
     await expect(driver.press(Key.RED)).rejects.toMatchObject({ code: 'TVOS_KEY_UNSUPPORTED' });
+  });
+
+  it('types into the text field through XCUITest', async () => {
+    const driver = await started();
+    session.executed.length = 0;
+    const field = { testId: 'email' } as ElementSnapshot;
+    await driver.text.replace(field, 'a@b.co');
+    await driver.text.deleteBackward(2);
+    await driver.text.submit();
+    expect(session.executed.map((e) => [e.script, e.args])).toEqual([
+      ['findElements', ['accessibility id', 'email']],
+      ['elementClear', 'field-1'],
+      ['elementSendKeys', ['field-1', 'a@b.co']],
+      ['findElements', ['-ios predicate string', expect.stringContaining('hasFocus == 1')]],
+      ['elementSendKeys', ['field-1', '\b\b']],
+      ['findElements', ['-ios predicate string', expect.stringContaining('hasFocus == 1')]],
+      ['elementSendKeys', ['field-1', '\n']],
+    ]);
+    session.executed.length = 0;
+    await driver.text.close(); // no keyboard open: nothing to dismiss
+    expect(session.scripts()).toEqual(['findElements']);
   });
 
   it("presses immediately: waiting for focus after a transition is the test's job", async () => {

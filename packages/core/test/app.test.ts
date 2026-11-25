@@ -226,6 +226,7 @@ describe('isolation and failure dumps', () => {
         '- capabilities: key.longpress, network.mock',
         '- sdk: off (black-box)',
         '- focused: b "B"',
+        '- keyboard: none',
         '- last keys: RIGHT, FAST_FORWARD (override: hold RIGHT 800ms)',
         '',
         '## Screen',

@@ -25,6 +25,7 @@ A target's capabilities are the union of its **driver's** (what the platform and
 | `key.*`              | the remote has the key, see [Remote and keys](./remote-and-keys.md)                                                            |
 | `key.longpress`      | keys can be held                                                                                                               |
 | `tree.hierarchy`     | the tree nests like the app's views (a whole-screen [text snapshot](./text-snapshots.md) has the same shape everywhere)        |
+| `text.input`         | system text fields take text: `fill` and `app.keyboard` on them, see [Text input](./text-input.md)                             |
 | `sync.idle`          | the app reports when it is idle, see [Idle](./idle.md)                                                                         |
 | `media.state`        | player state can be read: `expect(app.media)`                                                                                  |
 | `app.state`          | `app.launch({ state })` can start in a named state                                                                             |

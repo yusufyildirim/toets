@@ -9,6 +9,7 @@ import {
   type ActionHooks,
   type App,
   type AppRuntime,
+  type KeyboardDefinition,
   type LogEntry,
 } from '@toets/core';
 import type { ToetsOptions, ToetsProjectConfig } from './config.js';
@@ -25,6 +26,12 @@ export interface ToetsWorkerHandle {
 export interface ToetsTestFixtures {
   /** The app under test on this project's platform. Serial blocks share one instance. */
   app: App;
+  /**
+   * App-drawn keyboards (`defineKeyboard`) that `fill` and `app.keyboard` type on. Set in
+   * `defineConfig({ keyboards })`, per project (`platforms.web({ keyboards })`) or per file
+   * (`test.use({ keyboards })`); each level replaces the one above.
+   */
+  keyboards: readonly KeyboardDefinition[] | undefined;
   /** @internal Skips tests whose `requires()` capabilities the platform lacks. */
   _toetsRequires: void;
 }
@@ -54,7 +61,7 @@ function stepHooks(runtime: AppRuntime, testInfo: TestInfo, options: ToetsOption
     step: (info, run) =>
       base.step(
         info.title,
-        async () => {
+        async (step) => {
           if (info.override && !overrides.has(info.override.key)) {
             overrides.add(info.override.key);
             testInfo.annotations.push({
@@ -63,6 +70,8 @@ function stepHooks(runtime: AppRuntime, testInfo: TestInfo, options: ToetsOption
             });
           }
           const result = await withExplainedErrors(run);
+          const summary = info.summary?.();
+          if (summary) step.annotations.push({ type: 'toets', description: summary });
           if (options.steps?.screenshot) {
             const png = screenshotPng(await runtime.app.screenshot());
             await testInfo.attach('step-screenshot', {
@@ -129,6 +138,7 @@ async function attachNetwork(runtime: AppRuntime, testInfo: TestInfo): Promise<v
  */
 export const test = base.extend<ToetsTestFixtures, ToetsWorkerFixtures>({
   toets: [undefined, { option: true, scope: 'worker' }],
+  keyboards: [undefined, { option: true }],
 
   _toetsWorker: [
     async ({ toets }, use, workerInfo) => {
@@ -180,7 +190,7 @@ export const test = base.extend<ToetsTestFixtures, ToetsWorkerFixtures>({
   ],
 
   app: [
-    async ({ _toetsWorker }, use, testInfo) => {
+    async ({ _toetsWorker, keyboards }, use, testInfo) => {
       const worker = await _toetsWorker.get();
       const runtime = worker.runtime;
       const options = worker.config.options;
@@ -202,11 +212,13 @@ export const test = base.extend<ToetsTestFixtures, ToetsWorkerFixtures>({
         !!driver.stopRecording;
       if (video) await driver.startRecording?.();
 
+      runtime.setKeyboards(keyboards);
       runtime.setHooks(stepHooks(runtime, testInfo, options));
       try {
         await use(runtime.app);
       } finally {
         runtime.setHooks(undefined);
+        runtime.setKeyboards(undefined);
       }
 
       const failed = testInfo.status !== testInfo.expectedStatus;

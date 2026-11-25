@@ -29,7 +29,7 @@ The web driver passes the payload as `?__toets=<base64url>` (also read inside ha
 
 ## What it maps
 
-- **tree:** the DOM from `document.body`. An element becomes a node when it carries meaning (test id, focusable, own text, label, role, state, media, form control); structural wrappers are collapsed. Test ids come from `data-testid` (react-native-web renders `testID` there). Open shadow roots are traversed.
+- **tree:** the DOM from `document.body`. An element becomes a node when it carries meaning (test id, focusable, own text, label, role, state, media, form control); structural wrappers are collapsed. Test ids come from `data-testid` (react-native-web renders `testID` there). Open shadow roots are traversed. Text fields (text-like `<input>`, `<textarea>`, `contenteditable`, not read-only) are `editable` with their `value`; password inputs are `secure`, with the value masked (one `•` per character) in the page.
 - **focus:** `document.activeElement` and `focusin`/`focusout`; what the app reports with `reportFocus()` once it reports ([focus.md](./focus.md)).
 - **sync:** fetch, XHR, short timers, and CSS animations/transitions via `document.getAnimations()` (event fallback on older engines). Infinite animations are ignored.
 - **media:** every `<video>`/`<audio>`; id = test id, else element id.

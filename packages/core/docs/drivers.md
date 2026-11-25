@@ -22,6 +22,7 @@ export default module;
 - **Stable refs.** `ElementSnapshot.ref` must be the same for one element across `query`, `focused` and `tree`, and stay stable while the element is attached. Focus navigation and `focus.current()` compare refs.
 - **One coordinate space.** Bounds and `UITree.viewport` share the tree's coordinate space (points, dp or CSS pixels), with the viewport origin at 0,0. The viewport screenshot may be in device pixels; core scales by image width over viewport width when it crops elements and masks.
 - **Launch passes the payload** (`sdkUrl`, `token`, `mockUrl`, `state`, `flags`) to the app in the platform's way (URL parameter, intent extra, launch arguments), always encoded with `encodeLaunchPayloadParam` from `@toets/protocol` (base64url JSON).
+- **Text entry.** A driver that declares `text.input` provides `text` (`DriverTextInput`): replace, insert, delete backward, submit and close, through the platform's own text entry, into the focused field. The core moves focus there with real presses, verifies the result and closes a keyboard `fill` opened. Report fields as `editable` with their `value`, masked (one `•` per character) and `secure` for passwords. Never inject text through the SDK.
 - **Devices:** use `DeviceAcquireOptions.parallelIndex` to pick an exclusive device per worker slot.
 - **Errors** are `ToetsError` with a `hint` and a `docs` slug.
 

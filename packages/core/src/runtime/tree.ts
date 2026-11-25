@@ -48,6 +48,16 @@ export function matchText(
   return exact ? normalized === wanted : normalized.toLowerCase().includes(wanted.toLowerCase());
 }
 
+/** One `•` per character: how secure values appear everywhere. */
+export function maskText(text: string): string {
+  return '\u2022'.repeat([...text].length);
+}
+
+/** Whether `text` is non-empty and only mask characters (`•`, `●`, `*`). */
+export function isMasked(text: string): boolean {
+  return /^[\u2022\u25CF*]+$/.test(text);
+}
+
 /** Drops `children` from a tree node. */
 export function toSnapshot(node: UINode): ElementSnapshot {
   const { children: _children, ...snapshot } = node;
@@ -139,7 +149,10 @@ export function protocolToTree(root: ProtocolNode, reported?: Viewport): UITree 
     const visible =
       parentVisible && node.visible && (node.bounds.width > 0 || node.bounds.height > 0);
     const children = node.children.map((c) => convert(c, visible));
-    const ownText = visible ? normalizeText(node.text) : null;
+    const editable = node.editable === true;
+    const value = editable ? (node.value ?? '') : null;
+    // An editable element shows its value (masked when secure), never its placeholder.
+    const ownText = visible ? normalizeText(editable ? value : node.text) : null;
     const text = normalizeText(
       [ownText, ...children.map((c) => (c.visible ? c.text : null))].filter(Boolean).join(' '),
     );
@@ -157,6 +170,9 @@ export function protocolToTree(root: ProtocolNode, reported?: Viewport): UITree 
       enabled: node.enabled,
       selected: node.selected,
       busy: node.busy || children.some((c) => c.busy),
+      editable,
+      value,
+      secure: editable && node.secure === true,
       children,
     };
   };

@@ -1,8 +1,22 @@
 export { AppRuntime, appRuntime } from './app.js';
 export type { CapturedScreen, KeyLogEntry, RuntimeContext } from './context.js';
 export { formatFailureDump, type FailureDump } from './failure-dump.js';
-export { describeElement, isLocator, resolveLocator } from './locator.js';
 export {
+  defineKeyboard,
+  keyboardImpl,
+  targetChain,
+  type KeyboardImpl,
+  type TextEntryResult,
+} from './keyboard.js';
+export {
+  describeChain,
+  describeElement,
+  isLocator,
+  locatorImpl,
+  resolveLocator,
+} from './locator.js';
+export {
+  keyboardMatchers,
   locatorMatchers,
   mediaMatchers,
   networkMatchers,
@@ -31,11 +45,17 @@ export {
   type Target,
   type TargetOptions,
 } from './target.js';
-export { normalizeTextSnapshot, renderTextSnapshot } from './text-snapshot.js';
+export {
+  normalizeTextSnapshot,
+  renderTextSnapshot,
+  type TextSnapshotOptions,
+} from './text-snapshot.js';
 export {
   evaluateChain,
   findNode,
   focusedIn,
+  isMasked,
+  maskText,
   matchText,
   normalizeText,
   protocolToTree,

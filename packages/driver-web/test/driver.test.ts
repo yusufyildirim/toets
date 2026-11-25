@@ -102,6 +102,7 @@ describe('web driver on the fixture app', () => {
         'logs',
         'platform.events',
         'screenshot.element',
+        'text.input',
         'tree.hierarchy',
         'video',
       ].sort(),
@@ -225,6 +226,40 @@ describe('web driver on the fixture app', () => {
     expect((await driver.focused())?.testId).toBe('play-button');
     await driver.press(Key.SELECT);
     expect(await text(driver, 'last-action')).toBe('play clicked');
+  });
+
+  it('reports text fields and enters text into the focused one', async () => {
+    const page = driver.escapeHatch();
+    await page.evaluate(() => {
+      const pw = document.createElement('input');
+      pw.type = 'password';
+      pw.value = 'secret';
+      pw.dataset.testid = 'password';
+      document.querySelector('[data-testid="controls"]')?.append(pw);
+    });
+    expect(await one(driver, testId('search-input'))).toMatchObject({
+      editable: true,
+      value: 'query   text',
+      secure: false,
+    });
+    expect(await one(driver, testId('password'))).toMatchObject({
+      editable: true,
+      value: '••••••',
+      secure: true,
+    });
+    expect(await one(driver, testId('play-button'))).toMatchObject({ editable: false });
+
+    const field = await one(driver, testId('search-input'));
+    expect(await driver.text.isOpen()).toBe(false);
+    await expectToetsError(driver.text.insert('x'), 'WEB_NO_TEXT_FIELD');
+    await page.focus('[data-testid="search-input"]');
+    expect(await driver.text.isOpen()).toBe(true);
+    await driver.text.replace(field, 'ma');
+    await driver.text.insert('trix ü');
+    await driver.text.deleteBackward(2);
+    expect((await one(driver, testId('search-input'))).value).toBe('matrix');
+    await driver.text.replace(field, '');
+    expect((await one(driver, testId('search-input'))).value).toBe('');
   });
 
   it('reads labels, form values and open shadow DOM', async () => {

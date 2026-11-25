@@ -10,7 +10,9 @@ import { useBackKey } from './remote/useBackKey';
 import { DetailsScreen } from './screens/DetailsScreen';
 import { HomeScreen } from './screens/HomeScreen';
 import { PlayerScreen } from './screens/PlayerScreen';
+import { SearchScreen } from './screens/SearchScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
+import { SignInScreen } from './screens/SignInScreen';
 import { SettingsProvider, useSettings } from './settings/SettingsContext';
 import { colors } from './theme';
 
@@ -47,6 +49,8 @@ function Navigator() {
         <SideMenu visible={atRoot} />
         <View style={styles.tabContent}>
           <HomeScreen visible={atRoot && tab === 'home'} />
+          <SearchScreen visible={atRoot && tab === 'search'} />
+          <SignInScreen visible={atRoot && tab === 'signin'} />
           <SettingsScreen visible={atRoot && tab === 'settings'} />
         </View>
       </View>

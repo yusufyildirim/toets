@@ -21,6 +21,8 @@ export interface FailureDump {
       };
   /** `card_a "Alpha"`, `nothing`, or `unavailable: <reason>`. */
   readonly focused: string;
+  /** The open keyboard: `search (layer: lower)`, `system`, `none`, or `unavailable: <reason>`. */
+  readonly keyboard: string;
   /** Text snapshot of the screen, or `unavailable: <reason>`. */
   readonly screen: string;
   /** What kept the app busy at dump time (SDK idle sync), if known. */
@@ -56,6 +58,7 @@ export function formatFailureDump(dump: FailureDump): string {
     }`,
   );
   out.push(`- focused: ${dump.focused}`);
+  out.push(`- keyboard: ${dump.keyboard}`);
   if (dump.busy) out.push(`- busy: ${dump.busy}`);
   out.push(`- last keys: ${dump.lastKeys.map(describeKey).join(', ') || '(none)'}`);
   out.push('', '## Screen', '', '```yaml', dump.screen, '```');

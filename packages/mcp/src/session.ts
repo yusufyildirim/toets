@@ -128,6 +128,12 @@ export class Session {
       log: this.opts.log,
       createMockServer: mockServerFactory,
     });
+    try {
+      target.runtime.setKeyboards(spec.keyboards ?? config.keyboards);
+    } catch (e) {
+      await target.stop(this.opts.log).catch(() => {});
+      throw e;
+    }
     this.opts.log(`toets mcp: target "${wanted}" (${target.driver.platform}) ready`);
     this.active = {
       name: wanted,

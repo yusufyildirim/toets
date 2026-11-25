@@ -2,6 +2,8 @@ import type { LaunchPayload, SdkHost, SdkSession } from '@toets/protocol';
 import type {
   App,
   Focus,
+  Keyboard,
+  KeyboardDefinition,
   LaunchOptions,
   Locator,
   Media,
@@ -24,6 +26,7 @@ import type { CapturedScreen, KeyLogEntry, RuntimeContext } from './context.js';
 import { MediaImpl, NetworkImpl, PlatformInfoImpl } from './domains.js';
 import type { FailureDump } from './failure-dump.js';
 import { FocusImpl } from './focus.js';
+import { checkKeyboards, KeyboardImpl, TextEntry } from './keyboard.js';
 import { createLocator, describeElement, locatorImpl } from './locator.js';
 import {
   DEFAULT_IDLE,
@@ -70,6 +73,7 @@ export class AppRuntime implements RuntimeContext {
   readonly keyOverrides: KeyOverrides;
 
   private currentHooks: ActionHooks;
+  private currentKeyboards: readonly KeyboardDefinition[];
   private readonly sink: ((message: string) => void) | undefined;
   private keys: KeyLogEntry[] = [];
   private logBuffer: LogEntry[] = [];
@@ -91,6 +95,7 @@ export class AppRuntime implements RuntimeContext {
     this.remote = { ...DEFAULT_REMOTE, ...opts.remote };
     this.keyOverrides = opts.keyOverrides ?? {};
     this.currentHooks = opts.hooks ?? DIRECT_HOOKS;
+    this.currentKeyboards = checkKeyboards(opts.keyboards);
     this.app = new AppImpl(this);
   }
 
@@ -100,6 +105,22 @@ export class AppRuntime implements RuntimeContext {
 
   get hooks(): ActionHooks {
     return this.currentHooks;
+  }
+
+  get keyboards(): readonly KeyboardDefinition[] {
+    return this.currentKeyboards;
+  }
+
+  /**
+   * Replaces the declared app keyboards (a runner sets them per test). Validates them:
+   * `INVALID_ARGUMENT`, `DUPLICATE_KEYBOARD`.
+   */
+  setKeyboards(keyboards: readonly KeyboardDefinition[] | undefined): void {
+    this.currentKeyboards = checkKeyboards(keyboards);
+  }
+
+  get textEntry(): TextEntry {
+    return (this.app as AppImpl).textEntry;
   }
 
   /** Replaces the action hooks (a runner sets per-test hooks). */
@@ -300,7 +321,8 @@ export class AppRuntime implements RuntimeContext {
   }
 
   async snapshot(): Promise<string> {
-    return renderTextSnapshot(await this.target.tree());
+    const tree = await this.target.tree();
+    return renderTextSnapshot(tree, undefined, { collapsed: this.textEntry.collapsed(tree) });
   }
 
   async platformOnly(platform: Platform, fn: (handle: unknown) => Promise<void>): Promise<void> {
@@ -361,11 +383,12 @@ export class AppRuntime implements RuntimeContext {
     const unavailable = (e: unknown) =>
       `unavailable: ${e instanceof Error ? e.message : String(e)}`;
     const session = this.target.sdk;
-    const [focused, screen, screenshot, idle] = await Promise.all([
+    const [focused, screen, screenshot, idle, keyboard] = await Promise.all([
       this.target.focused().then(describeElement, unavailable),
       this.snapshot().catch(unavailable),
       this.driver.screenshot().catch(() => null),
       this.target.waitForIdle(250).catch(() => ({ supported: false }) as const),
+      this.textEntry.openKeyboard().then((k) => k ?? 'none', unavailable),
     ]);
     await this.drainLogs();
     let requests: FailureDump['requests'] = [];
@@ -386,6 +409,7 @@ export class AppRuntime implements RuntimeContext {
           }
         : { connected: false, enabled: !!this.sdkHost },
       focused,
+      keyboard,
       screen,
       busy:
         idle.supported && !idle.idle
@@ -417,11 +441,16 @@ class AppImpl implements App {
   readonly focus: Focus;
   readonly media: Media;
   readonly network: Network;
+  readonly keyboard: Keyboard;
+  readonly textEntry: TextEntry;
 
   constructor(readonly runtime: AppRuntime) {
     const remote = new RemoteImpl(runtime);
     this.remote = remote;
-    this.focus = new FocusImpl(runtime, remote);
+    const focus = new FocusImpl(runtime, remote);
+    this.focus = focus;
+    this.textEntry = new TextEntry(runtime, remote, focus);
+    this.keyboard = new KeyboardImpl(this.textEntry);
     this.media = new MediaImpl(runtime);
     this.network = new NetworkImpl(runtime);
     this.platform = new PlatformInfoImpl(runtime);

@@ -11,6 +11,7 @@ import {
   type Driver,
   type DriverCreateContext,
   type DriverLaunchOptions,
+  type DriverTextInput,
   type ElementSnapshot,
   type Key,
   type LogEntry,
@@ -64,6 +65,7 @@ const BASE_CAPABILITIES: readonly Capability[] = [
   'logs',
   'video',
   'platform.events',
+  'text.input',
 ];
 
 /**
@@ -74,6 +76,42 @@ const BASE_CAPABILITIES: readonly Capability[] = [
 export class WebDriver implements Driver {
   readonly platform = 'web' as const;
   readonly capabilities: ReadonlySet<Capability>;
+  /**
+   * System text entry the way IMEs and TV remote apps enter text: CDP `Input.insertText`
+   * (`beforeinput`/`input` events, no key events), deletion with the editing command `delete`.
+   * Apps often map Backspace and Enter keys to remote buttons, so text never goes through key
+   * events, except `submit` (Enter, the keyboard's action key). There is no on-screen keyboard:
+   * text entry is active while a text field holds focus, and `close` has nothing to do.
+   */
+  readonly text: DriverTextInput = {
+    isOpen: async () => {
+      const { page } = this.#require();
+      return page.evaluate(activeFieldState).then((s) => s !== null);
+    },
+    replace: async (_field, text) => {
+      const { page, cdp } = this.#require();
+      await this.#requireField('replace');
+      await page.evaluate(selectFieldText);
+      if (text === '') await page.evaluate(deleteBackward, 1);
+      else await cdp.send('Input.insertText', { text });
+    },
+    insert: async (text) => {
+      const { cdp } = this.#require();
+      await this.#requireField('insert');
+      if (text !== '') await cdp.send('Input.insertText', { text });
+    },
+    deleteBackward: async (count) => {
+      const { page } = this.#require();
+      await this.#requireField('deleteBackward');
+      await page.evaluate(deleteBackward, count);
+    },
+    submit: async () => {
+      const { page } = this.#require();
+      await this.#requireField('submit');
+      await page.keyboard.press('Enter');
+    },
+    close: async () => {},
+  };
 
   readonly #opts: ResolvedWebOptions;
   readonly #agentConfig: AgentConfig;
@@ -328,6 +366,19 @@ export class WebDriver implements Driver {
     return path;
   }
 
+  async #requireField(action: string): Promise<void> {
+    const { page } = this.#require();
+    if ((await page.evaluate(activeFieldState)) !== null) return;
+    throw new ToetsError(
+      'WEB_NO_TEXT_FIELD',
+      `Text ${action}: no text field holds focus in the page.`,
+      {
+        hint: 'Move focus to an input, textarea or contenteditable element first (fill() does).',
+        docs: packageDocsLink('core', 'text-input'),
+      },
+    );
+  }
+
   /** The Playwright `Page` the driver controls (for `app.platformOnly('web', page => ...)`). */
   escapeHatch(): Page {
     return this.#require().page;
@@ -468,6 +519,28 @@ export class WebDriver implements Driver {
  */
 export function createWebDriver(options: WebDriverOptions, ctx: WebDriverContext = {}): WebDriver {
   return new WebDriver(resolveOptions(options, ctx.app), ctx);
+}
+
+/** In page: the focused text field's kind (through open shadow roots), or `null`. */
+function activeFieldState(): 'input' | 'editable' | null {
+  let el: Element | null = document.activeElement;
+  while (el && el.shadowRoot && el.shadowRoot.activeElement) el = el.shadowRoot.activeElement;
+  if (el instanceof HTMLInputElement) {
+    const types = ['text', 'search', 'email', 'url', 'tel', 'password', 'number'];
+    return !el.readOnly && !el.disabled && types.indexOf(el.type) >= 0 ? 'input' : null;
+  }
+  if (el instanceof HTMLTextAreaElement) return !el.readOnly && !el.disabled ? 'input' : null;
+  return el instanceof HTMLElement && el.isContentEditable ? 'editable' : null;
+}
+
+/** In page: selects all text of the focused field, so the next insertion replaces it. */
+function selectFieldText(): void {
+  document.execCommand('selectAll');
+}
+
+/** In page: deletes `count` characters before the caret (or the selection) of the focused field. */
+function deleteBackward(count: number): void {
+  for (let i = 0; i < count; i++) document.execCommand('delete');
 }
 
 type LifecycleState = 'hidden' | 'visible';

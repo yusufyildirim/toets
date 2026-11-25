@@ -1,6 +1,7 @@
 /**
  * The TV app the docs examples describe, as a FakeDriver: a side menu, a hero with play and like
- * buttons, rails of cards, details, a guide, a watchlist and a first-run flow. It talks to the
+ * buttons, rails of cards, details, a guide, a watchlist, a first-run flow, a search screen with
+ * an app-drawn keyboard and a sign-in screen with system text fields. It talks to the
  * toets mock server like a real app (launch payload `mockUrl` plus the original origin header),
  * so network examples run against real MSW handlers.
  *
@@ -23,6 +24,7 @@ export const DEMO_CAPABILITIES: readonly Capability[] = [
   'key.color',
   'key.longpress',
   'platform.events',
+  'text.input',
 ];
 
 export interface RailData {
@@ -33,7 +35,8 @@ export interface RailData {
 /** Per worker process: the config's SDK host factory and the driver find each other here. */
 export const registry: { app?: DemoTvApp; host?: FakeSdkHost } = {};
 
-type Screen = 'terms' | 'profiles' | 'home' | 'details' | 'guide' | 'watchlist';
+type Screen =
+  'terms' | 'profiles' | 'home' | 'details' | 'guide' | 'watchlist' | 'search' | 'sign-in';
 
 interface State {
   screen: Screen;
@@ -44,11 +47,31 @@ interface State {
   toast: string | null;
   detailsTitle: string;
   continueWatching: boolean;
+  query: string;
+  keyboardOpen: boolean;
+  keyboardLayer: 'letters' | 'digits';
+  submittedQuery: string | null;
+  email: string;
+  password: string;
+  signedInAs: string | null;
 }
+
+/** Rows of the search screen's on-screen keyboard, per layer. */
+const KEYBOARD_ROWS = {
+  letters: ['abcdefg', 'hijklmn', 'opqrstu', 'vwxyz'],
+  digits: ['1234567', '890'],
+} as const;
+const KEY = { width: 48, height: 40, gap: 8 };
 
 const VIEWPORT = { width: 960, height: 540 };
 const CARD = { width: 120, height: 68, gap: 16 };
-const MENU_ITEMS = ['home', 'watchlist'] as const;
+const MENU_ITEMS = ['home', 'watchlist', 'search', 'sign-in'] as const;
+const MENU_LABELS: Record<(typeof MENU_ITEMS)[number], string> = {
+  home: 'Home',
+  watchlist: 'Watchlist',
+  search: 'Search',
+  'sign-in': 'Sign in',
+};
 
 const node = (testId: string, spec: Omit<FakeNodeSpec, 'testId'> = {}): FakeNodeSpec => ({
   id: testId,
@@ -78,8 +101,18 @@ export class DemoTvApp extends FakeDriver {
       toast: null,
       detailsTitle: '',
       continueWatching: false,
+      query: '',
+      keyboardOpen: false,
+      keyboardLayer: 'letters',
+      submittedQuery: null,
+      email: '',
+      password: '',
+      signedInAs: null,
     };
   }
+
+  /** Focus to move to after this press, overriding "keep focus where it is". */
+  private nextFocus: string | null = null;
 
   override async launch(opts: DriverLaunchOptions): Promise<void> {
     await super.launch(opts);
@@ -98,8 +131,28 @@ export class DemoTvApp extends FakeDriver {
   override async press(key: Key, opts?: PressOptions): Promise<void> {
     await super.press(key, opts);
     const focused = this.focusedNodeId();
+    this.keepFieldValues();
     await this.handle(key, focused);
+    this.render(this.nextFocus ?? focused, this.nextFocus !== null);
+    this.nextFocus = null;
+  }
+
+  /** System text entry edits the fields' values in the driver; the app state follows them. */
+  private keepFieldValues(): void {
+    if (this.state.screen !== 'sign-in') return;
+    this.state.email = this.valueOf('email');
+    this.state.password = this.valueOf('password');
+  }
+
+  /** The system keyboard's action key on the password field signs in. */
+  override onSubmit = (focused: string | null): void => {
+    this.keepFieldValues();
+    if (focused === 'password') this.signIn();
     this.render(focused);
+  };
+
+  private signIn(): void {
+    this.state.signedInAs = this.state.email || null;
   }
 
   /** The focused node's id (popular cards share a test ID, so the test ID is not enough). */
@@ -113,7 +166,10 @@ export class DemoTvApp extends FakeDriver {
     const s = this.state;
     s.toast = null;
     if (key === 'BACK') {
-      s.screen = 'home';
+      if (s.keyboardOpen) {
+        s.keyboardOpen = false;
+        this.nextFocus = 'search-input';
+      } else s.screen = 'home';
       return;
     }
     if (key === 'RED' || key === 'GREEN') {
@@ -137,6 +193,13 @@ export class DemoTvApp extends FakeDriver {
       s.watchlist = await this.api<unknown[]>('GET', '/api/watchlist', []);
       s.screen = 'watchlist';
     } else if (focused === 'menu-home') s.screen = 'home';
+    else if (focused === 'menu-search') s.screen = 'search';
+    else if (focused === 'menu-sign-in') s.screen = 'sign-in';
+    else if (focused === 'sign-in-button') this.signIn();
+    else if (focused === 'search-input') {
+      s.keyboardOpen = true;
+      this.nextFocus = 'osk-key-a';
+    } else if (focused.startsWith('osk-')) this.pressKeyboardKey(focused);
     else if (focused === 'play-button') {
       const session = registry.host?.session;
       if (session) {
@@ -150,6 +213,21 @@ export class DemoTvApp extends FakeDriver {
     } else if (focused.startsWith('popular-')) {
       s.watchlistCount++;
       s.toast = 'Added to watchlist';
+    }
+  }
+
+  private pressKeyboardKey(id: string): void {
+    const s = this.state;
+    if (id.startsWith('osk-key-')) s.query += id.slice('osk-key-'.length);
+    else if (id === 'osk-space') s.query += ' ';
+    else if (id === 'osk-del') s.query = [...s.query].slice(0, -1).join('');
+    else if (id === 'osk-clear') s.query = '';
+    else if (id === 'osk-layer')
+      s.keyboardLayer = s.keyboardLayer === 'letters' ? 'digits' : 'letters';
+    else if (id === 'osk-search') {
+      s.submittedQuery = s.query;
+      s.keyboardOpen = false;
+      this.nextFocus = 'search-input';
     }
   }
 
@@ -173,7 +251,7 @@ export class DemoTvApp extends FakeDriver {
   }
 
   /** Rebuilds the screen from the state, keeping focus where it is when it still exists. */
-  private render(focused: string | null = null): void {
+  private render(focused: string | null = null, force = false): void {
     const { screen } = this.state;
     const built =
       screen === 'terms'
@@ -202,11 +280,15 @@ export class DemoTvApp extends FakeDriver {
               ? { root: node('guide', { text: 'Guide', bounds: { x: 0, y: 0, ...VIEWPORT } }) }
               : screen === 'watchlist'
                 ? { root: this.watchlistScreen() }
-                : { root: this.homeScreen(focused) };
+                : screen === 'search'
+                  ? { root: this.searchScreen() }
+                  : screen === 'sign-in'
+                    ? { root: this.signInScreen() }
+                    : { root: this.homeScreen(focused) };
     const initial = this.initialFocus(screen);
     this.setScreen({ ...built, viewport: VIEWPORT, initialFocus: initial });
     // Same screen: keep focus (the menu opens and closes around it). New screen: initial focus.
-    if (focused && screen === this.lastScreen && this.has(focused)) this.focus(focused);
+    if (focused && (screen === this.lastScreen || force) && this.has(focused)) this.focus(focused);
     this.lastScreen = screen;
   }
 
@@ -237,6 +319,10 @@ export class DemoTvApp extends FakeDriver {
         return 'menu-watchlist';
       case 'guide':
         return 'guide';
+      case 'search':
+        return 'search-input';
+      case 'sign-in':
+        return 'email';
       default:
         return this.state.continueWatching
           ? 'rail-continue-watching-card-0'
@@ -252,7 +338,7 @@ export class DemoTvApp extends FakeDriver {
       bounds: { x: 0, y: 0, width: 200, height: VIEWPORT.height },
       children: MENU_ITEMS.map((item, i) =>
         node(`menu-${item}`, {
-          text: item === 'home' ? 'Home' : 'Watchlist',
+          text: MENU_LABELS[item],
           focusable: true,
           bounds: { x: 20, y: 100 + i * 60, width: 160, height: 40 },
           neighbors: { left: null },
@@ -316,6 +402,90 @@ export class DemoTvApp extends FakeDriver {
           ...(i === 0 ? { neighbors: { left: 'menu-home' } } : {}),
         };
       }),
+    });
+  }
+
+  /** A query field and, once SELECT opens it, the app's own keyboard (two layers). */
+  private searchScreen(): FakeNodeSpec {
+    const s = this.state;
+    const rows = KEYBOARD_ROWS[s.keyboardLayer];
+    const keyNode = (id: string, text: string, x: number, y: number, width = KEY.width) =>
+      node(id, { text, focusable: true, bounds: { x, y, width, height: KEY.height } });
+    const bottomY = 120 + rows.length * (KEY.height + KEY.gap);
+    const wide = KEY.width * 2 + KEY.gap;
+    const bottom: [string, string][] = [
+      ['osk-layer', s.keyboardLayer === 'letters' ? '123' : 'abc'],
+      ['osk-space', 'space'],
+      ['osk-del', 'del'],
+      ['osk-clear', 'clear'],
+      ['osk-search', 'Search'],
+    ];
+    return node('search-screen', {
+      children: [
+        node('search-input', {
+          focusable: true,
+          bounds: { x: 240, y: 40, width: 480, height: 48 },
+          ...(s.query ? { text: s.query } : {}),
+        }),
+        ...(s.keyboardOpen
+          ? [
+              node('osk', {
+                bounds: { x: 240, y: 120, width: 520, height: bottomY + KEY.height - 120 },
+                children: [
+                  ...rows.flatMap((row, r) =>
+                    [...row].map((c, i) =>
+                      keyNode(
+                        `osk-key-${c}`,
+                        c,
+                        240 + i * (KEY.width + KEY.gap),
+                        120 + r * (KEY.height + KEY.gap),
+                      ),
+                    ),
+                  ),
+                  ...bottom.map(([id, text], i) =>
+                    keyNode(id, text, 240 + i * (wide + KEY.gap), bottomY, wide),
+                  ),
+                ],
+              }),
+            ]
+          : []),
+        ...(s.submittedQuery === null
+          ? []
+          : [
+              node('search-results', {
+                text: `Results for "${s.submittedQuery}"`,
+                bounds: { x: 240, y: 460, width: 480, height: 30 },
+              }),
+            ]),
+      ],
+    });
+  }
+
+  /** System text fields: the platform's keyboard enters their text. */
+  private signInScreen(): FakeNodeSpec {
+    const s = this.state;
+    const field = (id: string, value: string, y: number, secure = false): FakeNodeSpec =>
+      node(id, {
+        focusable: true,
+        editable: true,
+        value,
+        ...(secure ? { secure: true } : {}),
+        bounds: { x: 240, y, width: 400, height: 48 },
+      });
+    return node('sign-in-screen', {
+      children: [
+        field('email', s.email, 80),
+        field('password', s.password, 150, true),
+        button('sign-in-button', 'Sign in', 240, 220),
+        ...(s.signedInAs
+          ? [
+              node('sign-in-status', {
+                text: `Signed in as ${s.signedInAs}`,
+                bounds: { x: 240, y: 300, width: 400, height: 30 },
+              }),
+            ]
+          : []),
+      ],
     });
   }
 

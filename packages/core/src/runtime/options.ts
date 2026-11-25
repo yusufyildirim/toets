@@ -1,4 +1,5 @@
 import type { SdkHost } from '@toets/protocol';
+import type { KeyboardDefinition } from '../api.js';
 import type { Driver } from '../driver.js';
 import type { Key, KeyOverride } from '../keys.js';
 import type { MockServerLike } from '../mock.js';
@@ -18,7 +19,12 @@ export type ActionKind =
   | 'pressUntilFocused'
   | 'waitForFocusChange'
   | 'emit'
-  | 'platformOnly';
+  | 'platformOnly'
+  | 'fill'
+  | 'type'
+  | 'erase'
+  | 'submit'
+  | 'key';
 
 export interface ActionInfo {
   readonly kind: ActionKind;
@@ -26,6 +32,11 @@ export interface ActionInfo {
   readonly title: string;
   /** Set when a key override changed how a key is performed. */
   readonly override?: { readonly key: Key; readonly performedAs: string };
+  /**
+   * What the action did, known once it finished (`9 presses`). Runners show it next to the
+   * title (Playwright step annotation); titles are fixed when a step starts.
+   */
+  readonly summary?: () => string;
 }
 
 /**
@@ -77,6 +88,8 @@ export interface AppRuntimeOptions {
   readonly idle?: Partial<IdleOptions> | undefined;
   readonly remote?: Partial<RemoteOptions> | undefined;
   readonly hooks?: ActionHooks | undefined;
+  /** Declared app keyboards (`defineKeyboard`). */
+  readonly keyboards?: readonly KeyboardDefinition[] | undefined;
   /** Debug log sink. Messages are also kept for failure dumps. */
   readonly log?: ((message: string) => void) | undefined;
 }

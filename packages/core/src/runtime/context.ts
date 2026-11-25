@@ -1,4 +1,4 @@
-import type { PlatformEvent, ScreenshotOptions } from '../api.js';
+import type { KeyboardDefinition, PlatformEvent, ScreenshotOptions } from '../api.js';
 import type { Capability } from '../capabilities.js';
 import type { Key } from '../keys.js';
 import type { MockServerLike } from '../mock.js';
@@ -10,6 +10,7 @@ import type {
   RemoteOptions,
   Timeouts,
 } from './options.js';
+import type { TextEntry } from './keyboard.js';
 import type { RetryResult } from './retry.js';
 import type { Target } from './target.js';
 
@@ -36,6 +37,14 @@ export interface RuntimeContext {
   readonly remote: RemoteOptions;
   readonly keyOverrides: KeyOverrides;
   readonly hooks: ActionHooks;
+  /** Declared app keyboards (the `keyboards` option). */
+  readonly keyboards: readonly KeyboardDefinition[];
+  /**
+   * Text entry: `fill`, `app.keyboard`.
+   *
+   * @internal
+   */
+  readonly textEntry: TextEntry;
   step<T>(info: ActionInfo, run: () => Promise<T>): Promise<T>;
   retry<T>(
     evaluate: () => Promise<{ readonly ok: boolean; readonly value: T }>,

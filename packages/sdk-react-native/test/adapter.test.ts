@@ -241,10 +241,16 @@ describe('tree', () => {
       text: 'tv shows',
       label: 'Search',
       focusable: true,
+      editable: true,
+      value: 'tv shows',
     });
+    expect(byTestId(root, 'search').secure).toBeUndefined();
     const password = byTestId(root, 'password');
     expect(password.text).toBeUndefined();
     expect(password).toMatchObject({ focusable: false, enabled: false });
+    // Disabled fields take no text.
+    expect(password.editable).toBeUndefined();
+    expect(password.value).toBeUndefined();
     expect(flatten(root).some((n) => n.testId === 'offscreen')).toBe(false);
     // Structural wrappers are collapsed.
     const ids = flatten(root).map((n) => n.testId ?? n.text ?? n.id);

@@ -5,6 +5,7 @@
  */
 import {
   ToetsError,
+  keyboardMatchers,
   locatorMatchers,
   mediaMatchers,
   networkMatchers,
@@ -30,7 +31,7 @@ const STATE_MATCHERS = [
   'toBeSelected',
   'toBeBusy',
 ] as const;
-const TEXT_MATCHERS = ['toHaveText', 'toContainText'] as const;
+const TEXT_MATCHERS = ['toHaveText', 'toContainText', 'toHaveValue'] as const;
 const MEDIA_MATCHERS = ['toBePlaying', 'toBePaused', 'toHaveMediaState', 'toHavePosition'] as const;
 
 /** Every matcher `assert` offers: all toets matchers except the screenshot baseline one. */
@@ -39,6 +40,7 @@ export const MATCHERS = [
   ...TEXT_MATCHERS,
   'toHaveCount',
   'toMatchTextSnapshot',
+  'toBeOpen',
   ...MEDIA_MATCHERS,
   'toHaveRequested',
 ] as const;
@@ -47,7 +49,10 @@ export type MatcherName = (typeof MATCHERS)[number];
 export interface Assertion {
   readonly matcher: MatcherName;
   readonly target?: Target | undefined;
-  /** Text (`toHaveText`, `toContainText`), YAML (`toMatchTextSnapshot`) or a media state. */
+  /**
+   * Text (`toHaveText`, `toContainText`), value (`toHaveValue`), YAML (`toMatchTextSnapshot`) or
+   * a media state.
+   */
   readonly expected?: string | undefined;
   readonly count?: number | undefined;
   readonly seconds?: number | undefined;
@@ -207,7 +212,9 @@ export async function runAssertion(
       ? 'app.media'
       : a.matcher === 'toHaveRequested'
         ? 'app.network'
-        : 'app';
+        : a.matcher === 'toBeOpen'
+          ? 'app.keyboard'
+          : 'app';
   const code = assertionCode(a, subject);
 
   const run = (): Promise<MatchResult> => {
@@ -219,6 +226,8 @@ export async function runAssertion(
         return locatorMatchers.toHaveCount(ctx, locator!, a.count ?? 0);
       case 'toMatchTextSnapshot':
         return toMatchTextSnapshot(ctx, locator ?? app, a.expected ?? '');
+      case 'toBeOpen':
+        return keyboardMatchers.toBeOpen(ctx, app.keyboard);
       case 'toBePlaying':
         return mediaMatchers.toBePlaying(ctx, app.media);
       case 'toBePaused':

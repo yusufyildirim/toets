@@ -7,6 +7,7 @@ import { registerAppTools } from './tools/app.js';
 import { registerDocsTools } from './tools/docs.js';
 import { registerInputTools } from './tools/input.js';
 import { registerInspectTools } from './tools/inspect.js';
+import { registerTextTools } from './tools/text.js';
 import type { ToolContext } from './tools/shared.js';
 
 /** Sent to the client on connect; agents read it before using any tool. */
@@ -72,6 +73,7 @@ export function createToetsMcp(options: ToetsMcpOptions = {}): ToetsMcp {
       );
       registerAppTools(server, ctx);
       registerInputTools(server, ctx);
+      registerTextTools(server, ctx);
       registerInspectTools(server, ctx);
       registerDocsTools(server, ctx);
       return server;

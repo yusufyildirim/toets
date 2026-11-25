@@ -41,6 +41,21 @@ export const ANDROID_KEYCODES: Readonly<Record<Key, number>> = {
   DIGIT_9: 16, // KEYCODE_9
 };
 
+/** `InputDevice.SOURCE_DPAD`. */
+const SOURCE_DPAD = 0x201;
+
+/**
+ * The `InputDevice` source a key arrives from, like a remote's: D-pad and center from
+ * `SOURCE_DPAD`, the rest the default (`SOURCE_KEYBOARD`). The source matters: a focused
+ * `EditText` takes keyboard arrows as caret moves and never lets focus leave, while D-pad arrows
+ * move focus out of it.
+ */
+export function keySource(key: Key): number | undefined {
+  return key === 'UP' || key === 'DOWN' || key === 'LEFT' || key === 'RIGHT' || key === 'SELECT'
+    ? SOURCE_DPAD
+    : undefined;
+}
+
 /**
  * Which physical remote the tests should be honest about.
  * - `android-tv`: the full Android TV key set (Google TV / operator remotes have media, color,
