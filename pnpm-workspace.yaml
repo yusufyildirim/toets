@@ -2,3 +2,16 @@ packages:
   - packages/*
   - examples/*
   - docs
+
+# Dependency capabilities (pnpm 12). Unlisted build scripts fail the install (`strictDepBuilds`).
+permissions:
+  # Driver downloads (webdriverio) and vite 5's binary check (vitepress); none are needed.
+  edgedriver:
+    build: false
+  esbuild:
+    build: false
+  geckodriver:
+    build: false
+  # Agent skills shipped by dependencies stay unlinked; the repo ships its own in `skills/`.
+  tsdown:
+    skills: false
