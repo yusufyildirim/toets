@@ -5,6 +5,7 @@ import {
   type Capability,
   type Driver,
   type DriverCreateContext,
+  type DriverDeepLinks,
   type DriverLaunchOptions,
   type DriverTextInput,
   type ElementRef,
@@ -27,6 +28,7 @@ import {
   type StartAppiumOptions,
 } from './appium.js';
 import { nodeCommandRunner, type CommandRunner } from './command.js';
+import { intentArgs, translateAndroidDeepLink, type AndroidIntent } from './deep-link.js';
 import { DOCS, androidError } from './errors.js';
 import { KeyHolder } from './key-hold.js';
 import { ANDROID_KEYCODES, REMOTE_PROFILE_CAPABILITIES, keySource, keySupported } from './keys.js';
@@ -122,6 +124,8 @@ export class AndroidTvDriver implements Driver {
       'video',
       'platform.events',
       'text.input',
+      'deeplink.launch',
+      'deeplink.open',
       ...(options.logcat === false ? [] : (['logs'] as const)),
     ]);
     this.logcat =
@@ -288,10 +292,34 @@ export class AndroidTvDriver implements Driver {
       await this.adb.reverse(port);
       this.reversedPorts.add(port);
     }
-    await this.adb.startActivity(target, {
-      [LAUNCH_PARAM]: encodeLaunchPayloadParam(opts.payload),
-    });
+    const payload = encodeLaunchPayloadParam(opts.payload);
+    if (opts.deepLink) {
+      const intent = opts.deepLink.data as AndroidIntent;
+      await this.adb.startIntent(
+        [...intentArgs(intent, this.app.package), '--es', LAUNCH_PARAM, payload],
+        opts.deepLink.description,
+      );
+      return;
+    }
+    await this.adb.startActivity(target, { [LAUNCH_PARAM]: payload });
   }
+
+  /**
+   * Deep links are intents started with `am start -p <package>` (never `-n`), so the OS picks
+   * the activity from the app's intent filters. `launch` force-stops the app first (a cold
+   * start) and adds the payload extra; `open` sends the same intent to the running app, which
+   * gets it in `onNewIntent` (singleTop / singleTask) or as a new activity.
+   */
+  readonly deepLinks: Required<DriverDeepLinks> = {
+    translate: (link) => translateAndroidDeepLink(link, this.app.deepLink),
+    open: async (link) => {
+      this.requireTarget();
+      await this.adb.startIntent(
+        intentArgs(link.data as AndroidIntent, this.app.package),
+        link.description,
+      );
+    },
+  };
 
   async terminate(): Promise<void> {
     await this.adb.forceStop(this.app.package);

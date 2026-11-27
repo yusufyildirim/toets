@@ -91,3 +91,27 @@ function splitOnce(value: string, separator: string): [string, string] {
   const i = value.indexOf(separator);
   return i < 0 ? [value, ''] : [value.slice(0, i), value.slice(i + 1)];
 }
+
+/** URL scheme of the app's own links: `toetstv://details/<id>`, `toetstv://player/<id>`. */
+export const LINK_SCHEME = 'toetstv';
+
+/**
+ * Navigation actions that open a deep link, `null` for a link the app does not route (it stays
+ * where it is). Native links are `toetstv://details/<id>` and `toetstv://player/<id>`; on web the
+ * page URL carries the same route as its path (`http://host/details/<id>`). Parsed by hand:
+ * React Native's `URL` does not implement `pathname`.
+ */
+export function deepLinkActions(url: string): NavigationAction[] | null {
+  const match = /^([a-z][a-z0-9+.-]*):\/\/([^/?#]*)([^?#]*)/i.exec(url);
+  if (!match) return null;
+  const [, scheme = '', host = '', path = ''] = match;
+  const route =
+    scheme.toLowerCase() === LINK_SCHEME
+      ? `${host}${path}`
+      : /^https?$/i.test(scheme)
+        ? path.replace(/^\//, '')
+        : null;
+  const [name, itemId, ...rest] = (route ?? '').split('/').filter(Boolean);
+  if (!itemId || rest.length > 0 || (name !== 'details' && name !== 'player')) return null;
+  return launchStateActions(`${name}:${decodeURIComponent(itemId)}`);
+}

@@ -1,7 +1,8 @@
 /**
  * The TV app the docs examples describe, as a FakeDriver: a side menu, a hero with play and like
  * buttons, rails of cards, details, a guide, a watchlist, a first-run flow, a search screen with
- * an app-drawn keyboard and a sign-in screen with system text fields. It talks to the
+ * an app-drawn keyboard and a sign-in screen with system text fields. Deep links
+ * `demotv://details/<title-slug>` open a title's details. It talks to the
  * toets mock server like a real app (launch payload `mockUrl` plus the original origin header),
  * so network examples run against real MSW handlers.
  *
@@ -25,6 +26,8 @@ export const DEMO_CAPABILITIES: readonly Capability[] = [
   'key.longpress',
   'platform.events',
   'text.input',
+  'deeplink.launch',
+  'deeplink.open',
 ];
 
 export interface RailData {
@@ -89,6 +92,20 @@ export class DemoTvApp extends FakeDriver {
 
   constructor() {
     super({ root: { id: 'root' }, viewport: VIEWPORT }, DEMO_CAPABILITIES);
+    this.onDeepLink = (link) => this.openLink(link.data as string);
+  }
+
+  /** Opens `demotv://details/<title-slug>` on the title's details; other links change nothing. */
+  private openLink(href: string): void {
+    const url = new URL(href);
+    const slug = (title: string) => title.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+    const title =
+      url.host === 'details'
+        ? this.state.rails.flatMap((r) => r.titles).find((t) => slug(t) === url.pathname.slice(1))
+        : undefined;
+    if (!title) return;
+    this.state = { ...this.state, screen: 'details', detailsTitle: title, keyboardOpen: false };
+    this.render();
   }
 
   private static initialState(): State {
@@ -126,6 +143,8 @@ export class DemoTvApp extends FakeDriver {
       favorites: await this.api<unknown[]>('GET', '/api/favorites', []),
     };
     this.render();
+    // The system starts the app for the link: it lands on the link's screen.
+    if (opts.deepLink && this.onboarded) this.openLink(opts.deepLink.data as string);
   }
 
   override async press(key: Key, opts?: PressOptions): Promise<void> {

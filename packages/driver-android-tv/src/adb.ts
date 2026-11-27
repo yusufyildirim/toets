@@ -7,6 +7,7 @@ import {
   type SpawnOptions,
   type SpawnedProcess,
 } from './command.js';
+import { ToetsError, packageDocsLink } from '@toets/core';
 import { DOCS, androidError } from './errors.js';
 
 /** An activity to start, with the intent action/category the launcher would use. */
@@ -192,6 +193,38 @@ export class Adb {
         `Launching ${target.component} failed: ${errors.length ? errors.join(' ') : out.trim()}`,
         {
           hint: 'Check `app.package` / `app.activity` and that the activity is exported.',
+          docs: DOCS.setup,
+        },
+      );
+    }
+  }
+
+  /**
+   * Starts an implicit intent (`am start -W <intentArgs>`) and waits until it is handled. The OS
+   * resolves the activity from the app's intent filters. An intent delivered to a running
+   * instance (`onNewIntent`) counts as started. `description` names the intent in errors.
+   */
+  async startIntent(intentArgs: readonly string[], description: string): Promise<void> {
+    const out = await this.shell(['am', 'start', '-W', ...intentArgs], { timeoutMs: 120_000 });
+    const lines = out.split('\n').map((l) => l.trim());
+    const pkg = intentArgs[intentArgs.indexOf('-p') + 1] ?? 'the app';
+    if (lines.some((l) => /unable to resolve Intent|No Activity found/i.test(l))) {
+      throw new ToetsError(
+        'DEEPLINK_UNHANDLED',
+        `No activity of ${pkg} handles the deep link ${description}.`,
+        {
+          hint: `Check the intent filters in the app's AndroidManifest.xml: the action, category DEFAULT (and BROWSABLE for links) and the <data> scheme, host and path must match. Translate the link with \`app.androidTV.deepLink\` when this platform's form differs.`,
+          docs: packageDocsLink('core', 'deep-links'),
+        },
+      );
+    }
+    const errors = lines.filter((l) => /^(Error|Exception)/.test(l));
+    if (errors.length > 0 || !/Status: ok|Complete|Warning: Activity not started/.test(out)) {
+      throw androidError(
+        'ANDROID_LAUNCH_FAILED',
+        `Starting the deep link ${description} failed: ${errors.length ? errors.join(' ') : out.trim()}`,
+        {
+          hint: 'Check that the activity handling the link is exported and starts without crashing (logcat).',
           docs: DOCS.setup,
         },
       );

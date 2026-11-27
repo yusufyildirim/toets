@@ -49,6 +49,7 @@ export type {
   WebKeySpec,
 } from '@toets/driver-web';
 export type {
+  AndroidDeepLink,
   AndroidTvAppConfig,
   AndroidTvDriverOptions,
   AppiumOptions as AndroidTvAppiumOptions,
@@ -70,6 +71,7 @@ export type { FailureOptions, HttpHandler, LatencySpec } from '@toets/mock';
 export type {
   App,
   Capability,
+  DeepLinkMapper,
   Direction,
   DirectionKey,
   ElementTarget as Target,

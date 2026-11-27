@@ -1,4 +1,4 @@
-import { ToetsError, packageDocsLink } from '@toets/core';
+import { ToetsError, packageDocsLink, type DeepLinkMapper } from '@toets/core';
 import type {
   Browser,
   BrowserContext,
@@ -36,6 +36,13 @@ export interface WebDriverOptions {
   readonly launchTransport?: LaunchTransport;
   /** Navigation milestone after which `launch()` returns. Default `load`. */
   readonly waitUntil?: LaunchWaitUntil;
+  /**
+   * Translates the canonical deep link of `launch({ deepLink })` into the page to load: a path
+   * relative to `url` (`details/42`) or an http(s) URL. Default: the link's host, path, query and
+   * hash as a relative path (`myapp://details/42` -> `details/42`); for an http(s) link its path,
+   * query and hash.
+   */
+  readonly deepLink?: DeepLinkMapper<string>;
   /** Key auto-repeat timing during long presses. Default `{ delayMs: 500, intervalMs: 50 }`. */
   readonly keyRepeat?: { readonly delayMs?: number; readonly intervalMs?: number };
   /** Drive this existing page (e.g. Playwright Test's `page` fixture). */
@@ -57,6 +64,7 @@ export interface ResolvedWebOptions {
   readonly keys: ResolvedKeyMap;
   readonly launchTransport: LaunchTransport;
   readonly waitUntil: LaunchWaitUntil;
+  readonly deepLink: DeepLinkMapper<string> | undefined;
   readonly keyRepeat: { readonly delayMs: number; readonly intervalMs: number };
   readonly source:
     | { readonly kind: 'page'; readonly page: Page }
@@ -152,6 +160,12 @@ export function resolveOptions(
   }
 
   const repeat = (merged.keyRepeat ?? {}) as Record<string, unknown>;
+  if (merged.deepLink !== undefined && typeof merged.deepLink !== 'function') {
+    throw invalid(
+      '`deepLink` must be a function (link: URL) => string.',
+      'Set `deepLink: (link) => `/${link.host}${link.pathname}`` in the web app config.',
+    );
+  }
 
   const sources = (['page', 'context', 'browser'] as const).filter((k) => merged[k] !== undefined);
   if (sources.length > 1) {
@@ -184,6 +198,7 @@ export function resolveOptions(
     keys: resolveKeyMap(merged.keys as WebKeyMap | undefined),
     launchTransport: oneOf(merged, 'launchTransport', ['query', 'initScript'], 'query'),
     waitUntil: oneOf(merged, 'waitUntil', ['commit', 'domcontentloaded', 'load'], 'load'),
+    deepLink: merged.deepLink as DeepLinkMapper<string> | undefined,
     keyRepeat: {
       delayMs: positive(repeat.delayMs, 'keyRepeat.delayMs', 500),
       intervalMs: positive(repeat.intervalMs, 'keyRepeat.intervalMs', 50),

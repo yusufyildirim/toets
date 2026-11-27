@@ -1,5 +1,5 @@
 import { resolve } from 'node:path';
-import type { AppTargetConfig } from '@toets/core';
+import type { AppTargetConfig, DeepLinkMapper } from '@toets/core';
 import type { TvosManagedDeviceOptions } from './devices.js';
 import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
@@ -16,6 +16,11 @@ export interface TvosAppConfig {
   readonly launchArguments?: readonly string[];
   /** Environment variables for the app process. */
   readonly launchEnvironment?: Readonly<Record<string, string>>;
+  /**
+   * Translates the canonical deep link of `launch({ deepLink })` and `openDeepLink` into the URL
+   * this app opens (a URL scheme in `CFBundleURLTypes`). Default: the link unchanged.
+   */
+  readonly deepLink?: DeepLinkMapper<string>;
 }
 
 /** Options of the tvOS platform project (`platforms.tvOS({ ... })`). All optional. */
@@ -71,7 +76,7 @@ export function resolveAppConfig(
   app: AppTargetConfig,
   configDir: string = process.cwd(),
 ): TvosAppConfig {
-  const { bundleId, app: appPath, launchArguments, launchEnvironment } = app;
+  const { bundleId, app: appPath, launchArguments, launchEnvironment, deepLink } = app;
   const fail = (what: string) =>
     tvosError(TvosErrorCode.CONFIG, `Invalid tvOS app config: ${what}.`, {
       hint: "Set `app: { tvOS: { bundleId: 'com.example.tv', app: './build/App.app' } }` in your toets config.",
@@ -93,6 +98,9 @@ export function resolveAppConfig(
   ) {
     throw fail('`launchEnvironment` must map names to strings');
   }
+  if (deepLink !== undefined && typeof deepLink !== 'function') {
+    throw fail('`deepLink` must be a function (link: URL) => string');
+  }
   return {
     bundleId,
     ...(appPath === undefined ? {} : { app: resolve(configDir, appPath) }),
@@ -100,5 +108,6 @@ export function resolveAppConfig(
     ...(launchEnvironment === undefined
       ? {}
       : { launchEnvironment: launchEnvironment as Record<string, string> }),
+    ...(deepLink === undefined ? {} : { deepLink: deepLink as DeepLinkMapper<string> }),
   };
 }

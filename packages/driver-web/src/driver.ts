@@ -10,6 +10,7 @@ import {
   type Capability,
   type Driver,
   type DriverCreateContext,
+  type DriverDeepLinks,
   type DriverLaunchOptions,
   type DriverTextInput,
   type ElementSnapshot,
@@ -40,7 +41,7 @@ import {
   type AgentSelector,
 } from './agent.js';
 import { keyCapabilities, type WebKeySpec } from './keys.js';
-import { launchUrl } from './launch.js';
+import { launchUrl, translateWebDeepLink } from './launch.js';
 import { LogBuffer, consoleLevel } from './logs.js';
 import { resolveOptions, type ResolvedWebOptions, type WebDriverOptions } from './options.js';
 
@@ -66,6 +67,7 @@ const BASE_CAPABILITIES: readonly Capability[] = [
   'video',
   'platform.events',
   'text.input',
+  'deeplink.launch',
 ];
 
 /**
@@ -159,8 +161,18 @@ export class WebDriver implements Driver {
   }
 
   /**
+   * Browsers have no OS deep links: `launch({ deepLink })` loads the link's page URL (translated
+   * by `deepLink`, resolved against `url`) instead of `url`. There is no `open`: a running page
+   * receives no links (`deeplink.open` is missing).
+   */
+  readonly deepLinks: DriverDeepLinks = {
+    translate: (link) => translateWebDeepLink(this.#opts.url, link, this.#opts.deepLink),
+  };
+
+  /**
    * Navigates to `about:blank` (terminate), optionally clears data, then loads the app URL with
-   * the payload. Returns at the configured `waitUntil` milestone; app readiness is up to the
+   * the payload, or the deep link's page URL with the payload in an init script (never in the
+   * link's URL). Returns at the configured `waitUntil` milestone; app readiness is up to the
    * user's launch fixture.
    */
   async launch(opts: DriverLaunchOptions): Promise<void> {
@@ -170,8 +182,9 @@ export class WebDriver implements Driver {
 
     await this.#initScript?.dispose();
     this.#initScript = null;
-    let target = this.#opts.url.href;
-    if (this.#opts.launchTransport === 'query') {
+    const deepLink = opts.deepLink ? (opts.deepLink.data as string) : undefined;
+    let target = deepLink ?? this.#opts.url.href;
+    if (this.#opts.launchTransport === 'query' && deepLink === undefined) {
       target = launchUrl(this.#opts.url, opts.payload);
     } else {
       this.#initScript = await page.addInitScript(
@@ -186,7 +199,7 @@ export class WebDriver implements Driver {
     } catch (error) {
       throw new ToetsError(
         'WEB_LAUNCH_FAILED',
-        `Could not load the app at ${this.#opts.url.href}: ${firstLine(error)}`,
+        `Could not load the app at ${deepLink ?? this.#opts.url.href}: ${firstLine(error)}`,
         {
           hint: 'Check that the app is served at the configured `url` (dev server running, right port) and loads without a network error.',
           docs: packageDocsLink('driver-web', 'setup'),
@@ -194,7 +207,17 @@ export class WebDriver implements Driver {
         },
       );
     }
-    if (response && /^https?:$/.test(this.#opts.url.protocol) && !response.ok()) {
+    if (response && /^https?:$/.test(new URL(target).protocol) && !response.ok()) {
+      if (deepLink !== undefined) {
+        throw new ToetsError(
+          'DEEPLINK_UNHANDLED',
+          `The deep link page ${deepLink} answered HTTP ${response.status()}.`,
+          {
+            hint: 'Serve the app on every route path (a single-page app history fallback), or translate the link to a URL the server serves with `app.web.deepLink`.',
+            docs: packageDocsLink('core', 'deep-links'),
+          },
+        );
+      }
       throw new ToetsError(
         'WEB_LAUNCH_FAILED',
         `The app URL ${this.#opts.url.href} answered HTTP ${response.status()}.`,
@@ -204,7 +227,7 @@ export class WebDriver implements Driver {
         },
       );
     }
-    this.#log(`web: launched ${this.#opts.url.href}`);
+    this.#log(`web: launched ${deepLink ?? this.#opts.url.href}`);
   }
 
   /** Unloads the app by navigating to `about:blank`. */

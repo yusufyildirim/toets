@@ -37,6 +37,7 @@ export type {
   AppiumOptions,
   VideoOptions,
 } from './options.js';
+export type { AndroidDeepLink } from './deep-link.js';
 export {
   ANDROID_KEYCODES,
   REMOTE_PROFILE_CAPABILITIES,

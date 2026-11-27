@@ -26,6 +26,8 @@ A target's capabilities are the union of its **driver's** (what the platform and
 | `key.longpress`      | keys can be held                                                                                                               |
 | `tree.hierarchy`     | the tree nests like the app's views (a whole-screen [text snapshot](./text-snapshots.md) has the same shape everywhere)        |
 | `text.input`         | system text fields take text: `fill` and `app.keyboard` on them, see [Text input](./text-input.md)                             |
+| `deeplink.launch`    | `app.launch({ deepLink })` starts the app from a link, see [Deep links](./deep-links.md)                                       |
+| `deeplink.open`      | `app.openDeepLink(url)` delivers a link to the running app                                                                     |
 | `sync.idle`          | the app reports when it is idle, see [Idle](./idle.md)                                                                         |
 | `media.state`        | player state can be read: `expect(app.media)`                                                                                  |
 | `app.state`          | `app.launch({ state })` can start in a named state                                                                             |

@@ -35,4 +35,6 @@ export const TVOS_CAPABILITIES: ReadonlySet<Capability> = new Set<Capability>([
   'logs',
   'video',
   'text.input',
+  'deeplink.launch',
+  'deeplink.open',
 ]);

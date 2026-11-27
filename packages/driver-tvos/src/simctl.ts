@@ -1,5 +1,5 @@
 import type { ChildProcess } from 'node:child_process';
-import { defaultRunner, tail, type CommandRunner } from './command.js';
+import { defaultRunner, tail, type CommandResult, type CommandRunner } from './command.js';
 import { DOCS, TvosErrorCode, tvosError } from './errors.js';
 
 export interface SimDevice {
@@ -118,6 +118,15 @@ export class Simctl {
 
   async shutdown(udid: string): Promise<void> {
     await this.exec(['shutdown', udid]);
+  }
+
+  /** Runs `simctl <subcommand>` and returns the raw result; a non-zero exit is not thrown. */
+  run(subcommand: readonly string[], timeoutMs?: number): Promise<CommandResult> {
+    return this.runner.run(
+      'xcrun',
+      this.args(subcommand),
+      timeoutMs === undefined ? {} : { timeoutMs },
+    );
   }
 
   /** Path of an installed app's bundle, or `null` when the app is not installed. */

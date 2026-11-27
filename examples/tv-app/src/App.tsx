@@ -4,8 +4,14 @@ import { LogBox, StyleSheet, View } from 'react-native';
 import { SideMenu } from './components/SideMenu';
 import { isLaunchedByToets, useLaunchState } from './toets';
 import { installSpatialNavigation } from './focus/spatialNavigation';
-import { canGoBack, launchStateActions, routeScope } from './navigation/navigation';
+import {
+  canGoBack,
+  deepLinkActions,
+  launchStateActions,
+  routeScope,
+} from './navigation/navigation';
 import { NavigationProvider, useNavigation } from './navigation/NavigationContext';
+import { useDeepLinks } from './navigation/useDeepLinks';
 import { useBackKey } from './remote/useBackKey';
 import { DetailsScreen } from './screens/DetailsScreen';
 import { HomeScreen } from './screens/HomeScreen';
@@ -41,6 +47,10 @@ function Navigator() {
   useLaunchState((state, flags) => {
     if (flags.autoplay !== undefined) setAutoplay(flags.autoplay);
     if (state !== undefined) navigation.apply(launchStateActions(state));
+  });
+  useDeepLinks((url) => {
+    const actions = deepLinkActions(url);
+    if (actions) navigation.apply(actions);
   });
 
   return (

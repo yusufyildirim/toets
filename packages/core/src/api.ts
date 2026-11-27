@@ -226,6 +226,16 @@ export interface LaunchOptions {
   readonly flags?: Readonly<Record<string, string | number | boolean>>;
   /** Clear app data before launching. Default false. */
   readonly clearData?: boolean;
+  /**
+   * Launches the app from this deep link instead of its launcher entry (`deeplink.launch`): the
+   * OS starts the app with the link, a cold start. One canonical, absolute URL for every
+   * platform, the app's own link for the content (`myapp://details/42`); each platform's app
+   * config may translate it (`deepLink` mapper). Combines with `state`, `flags` and `clearData`.
+   *
+   * @example
+   * await app.launch({ deepLink: 'myapp://details/42' });
+   */
+  readonly deepLink?: string;
 }
 
 /** The app under test on the current target. The single fixture tests receive. */
@@ -239,6 +249,17 @@ export interface App {
   readonly keyboard: Keyboard;
 
   launch(opts?: LaunchOptions): Promise<void>;
+  /**
+   * Delivers a deep link to the running app, as the OS does when the user opens a link while
+   * the app runs (`deeplink.open`). The app is not restarted: it receives the link (Android
+   * `onNewIntent`, tvOS `application(_:open:)`, React Native `Linking` `url` events). `url` is
+   * the same canonical link as in `launch({ deepLink })`, translated by the platform's
+   * `deepLink` mapper. Needs a launched app.
+   *
+   * @example
+   * await app.openDeepLink('myapp://details/42');
+   */
+  openDeepLink(url: string): Promise<void>;
   terminate(): Promise<void>;
   reset(): Promise<void>;
 

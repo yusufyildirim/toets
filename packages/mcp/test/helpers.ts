@@ -1,5 +1,10 @@
 import type { Capability, DriverModule } from '@toets/core';
-import { FakeDriver, type FakeNodeSpec, type FakeScreen } from '@toets/core/testing';
+import {
+  FakeDriver,
+  type FakeDriverOptions,
+  type FakeNodeSpec,
+  type FakeScreen,
+} from '@toets/core/testing';
 import { Client, InMemoryTransport, type CallToolResult } from '@modelcontextprotocol/client';
 import { afterEach } from 'vitest';
 import type { McpConfig, McpTargetConfig } from '../src/config.js';
@@ -87,7 +92,10 @@ afterEach(async () => {
 });
 
 /** A driver module over a fresh FakeDriver; SELECT on `card_2` opens the details screen. */
-export function fakeDriverModule(capabilities: Capability[] = ['key.back', 'key.longpress']): {
+export function fakeDriverModule(
+  capabilities: Capability[] = ['key.back', 'key.longpress'],
+  driverOptions?: FakeDriverOptions,
+): {
   module: DriverModule<never>;
   driver: () => FakeDriver;
 } {
@@ -100,7 +108,7 @@ export function fakeDriverModule(capabilities: Capability[] = ['key.back', 'key.
     module: {
       platform: 'web',
       async createDriver() {
-        instance = new FakeDriver(homeScreen, capabilities);
+        instance = new FakeDriver(homeScreen, capabilities, driverOptions);
         instance.keyHandlers.set('SELECT', (focused, d) => {
           if (focused === 'card_2') d.setScreen(detailsScreen);
         });
@@ -118,13 +126,14 @@ export const FAST_TIMEOUTS = { actionMs: 500, navigationSettleMs: 50, sdkConnect
 export async function connect(
   opts: {
     capabilities?: Capability[];
+    driverOptions?: FakeDriverOptions;
     config?: McpConfig | null;
     /** Extra fields of the default `web` target (SDK, mock, key overrides, ...). */
     target?: (driver: () => FakeDriver) => Partial<McpTargetConfig>;
   } & Omit<ToetsMcpOptions, 'config'> = {},
 ): Promise<Harness> {
-  const fake = fakeDriverModule(opts.capabilities);
-  const { target: extras, capabilities: _caps, ...rest } = opts;
+  const fake = fakeDriverModule(opts.capabilities, opts.driverOptions);
+  const { target: extras, capabilities: _caps, driverOptions: _driver, ...rest } = opts;
   const extra = extras?.(fake.driver) ?? {};
   const config: McpConfig | null =
     opts.config === undefined

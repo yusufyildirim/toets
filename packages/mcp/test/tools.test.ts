@@ -34,6 +34,7 @@ describe('toets MCP tools over FakeDriver', () => {
       'fill',
       'launch',
       'navigate_to',
+      'open_deep_link',
       'press',
       'press_until_focused',
       'query',

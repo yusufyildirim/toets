@@ -32,24 +32,61 @@ export function registerAppTools(server: McpServer, { session }: ToolContext): v
           .record(z.string(), z.union([z.string(), z.number(), z.boolean()]))
           .optional()
           .describe('App feature flags for this launch. Needs `app.state`.'),
+        deepLink: z
+          .string()
+          .min(1)
+          .optional()
+          .describe(
+            "Start the app from this deep link instead of its launcher entry (a cold start), e.g. `myapp://details/42`: the app's own canonical link, the same on every platform. The platform's `deepLink` mapper in the config translates it. Needs `deeplink.launch`.",
+          ),
       }),
       annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
     },
-    ({ target, clearData, state, flags }) =>
+    ({ target, clearData, state, flags, deepLink }) =>
       guarded(() =>
         session.exclusive(async () => {
           const opts: LaunchOptions = {
             ...(state !== undefined && { state }),
             ...(flags !== undefined && { flags }),
             ...(clearData !== undefined && { clearData }),
+            ...(deepLink !== undefined && { deepLink }),
           };
           const { name, runtime } = await session.launch(target, opts);
           return text(
             `Launched on target "${name}" (${runtime.driver.platform}).`,
+            ...(deepLink !== undefined ? [`Step: ${runtime.lastLaunchTitle ?? 'launch'}`] : []),
             sdkLine(runtime),
             focusLine(await runtime.target.focused()),
             `Code: ${launchCode(opts)}`,
             'Next: `snapshot` to see the screen, then `press_until_focused` / `navigate_to` / `press` to move focus.',
+          );
+        }),
+      ),
+  );
+
+  server.registerTool(
+    'open_deep_link',
+    {
+      title: 'Open a deep link in the running app',
+      description: [
+        'Deliver a deep link to the running app, as the OS does when a link is opened while the app runs (home screen rows, voice, search): exactly `app.openDeepLink(url)`. The app is not restarted; it routes the link itself.',
+        "`url` is the app's own canonical link (`myapp://details/42`); the platform's `deepLink` mapper translates it, and the output shows the translation. Needs `deeplink.open` (Android TV, tvOS; browsers have no OS deep links). To start the app from a link, use `launch` with `deepLink`.",
+        'Fails with DEEPLINK_UNHANDLED when no app handles the link. Assert focus right after: landing with nothing focused is the classic deep link bug.',
+      ].join(' '),
+      inputSchema: z.object({
+        url: z.string().min(1).describe('Canonical deep link, an absolute URL.'),
+      }),
+      annotations: { readOnlyHint: false, destructiveHint: false, openWorldHint: false },
+    },
+    ({ url }) =>
+      guarded(() =>
+        session.exclusive(async () => {
+          const { runtime } = session.launched();
+          await runtime.app.openDeepLink(url);
+          return text(
+            `Step: ${runtime.lastDeepLinkTitle ?? `openDeepLink ${url}`}`,
+            focusLine(await runtime.target.focused()),
+            `Code: await app.openDeepLink(${jsString(url)});`,
           );
         }),
       ),
@@ -93,6 +130,7 @@ export function registerAppTools(server: McpServer, { session }: ToolContext): v
             ...(missing.length ? [`Unsupported keys: ${missing.join(' ')}`] : []),
             ...(overrides.length ? [`Key overrides: ${overrides.join(', ')}`] : []),
             keyboardsLine(runtime),
+            deepLinksLine(runtime),
           );
         }),
       ),
@@ -109,6 +147,13 @@ function keyboardsLine(runtime: AppRuntime): string {
     ? 'system text fields: yes (text.input)'
     : 'system text fields: no';
   return `Keyboards: ${keyboards.length ? keyboards.join('; ') : 'none declared'}; ${system}`;
+}
+
+/** Whether `launch({ deepLink })` and `open_deep_link` work on this target. */
+function deepLinksLine(runtime: AppRuntime): string {
+  const has = (c: 'deeplink.launch' | 'deeplink.open') =>
+    runtime.capabilities.has(c) ? `yes (${c})` : `no (${c} missing)`;
+  return `Deep links: launch from a link ${has('deeplink.launch')}; open in the running app ${has('deeplink.open')}`;
 }
 
 function sdkLine(runtime: AppRuntime): string {
@@ -130,5 +175,6 @@ function launchCode(opts: LaunchOptions): string {
     parts.push(flags.length ? `flags: { ${flags.join(', ')} }` : 'flags: {}');
   }
   if (opts.clearData) parts.push('clearData: true');
+  if (opts.deepLink !== undefined) parts.push(`deepLink: ${jsString(opts.deepLink)}`);
   return `await app.launch(${parts.length ? `{ ${parts.join(', ')} }` : ''});`;
 }

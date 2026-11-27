@@ -21,4 +21,8 @@ const json =
 
 Existing query parameters and hash routes are preserved. Use `initScript` when the app rejects unknown query parameters or rewrites its URL before reading them.
 
+## Deep links
+
+`app.launch({ deepLink })` loads the link's page instead of `url`: the `deepLink` option's result, resolved against `url` like a link on its page. By default a link's host, path, query and hash become a path relative to `url` (`myapp://details/42` → `<url>details/42`; an http(s) link keeps its path and query). The payload then always travels as `initScript`, so the app sees the link's URL unchanged. Serve the app on every route path (SPA history fallback): a page answering an HTTP error fails with `DEEPLINK_UNHANDLED`. Browsers deliver no links to a running page, so there is no `deeplink.open`. See the [deep links reference](../../core/docs/deep-links.md).
+
 **Trap:** the payload is the only channel. Do not add app-specific query parameters in tests; put app concerns in the payload's `state` and `flags`.

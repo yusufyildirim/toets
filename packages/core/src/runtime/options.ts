@@ -10,6 +10,7 @@ export type KeyOverrides = Readonly<Partial<Record<Key, KeyOverride>>>;
 /** What kind of user-visible action a step is. */
 export type ActionKind =
   | 'launch'
+  | 'openDeepLink'
   | 'terminate'
   | 'reset'
   | 'press'

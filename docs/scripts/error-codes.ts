@@ -43,6 +43,12 @@ const MEANINGS: Readonly<Record<string, string>> = {
   TEXT_NOT_ENTERED: 'After typing, the field does not show exactly the text.',
   WEB_NO_TEXT_FIELD: 'System text entry on web found no text field holding focus in the page.',
   TVOS_NO_TEXT_FIELD: 'System text entry on tvOS found no focused text field.',
+  DEEPLINK_INVALID:
+    "A deep link is not an absolute URL, or the platform's `deepLink` mapper threw or returned something the platform can not open.",
+  DEEPLINK_UNHANDLED:
+    'No activity, registered URL scheme or served page of the app handles the translated deep link.',
+  APP_NOT_LAUNCHED:
+    '`app.openDeepLink` before `app.launch`: there is no running app to deliver the link to.',
   CAPABILITY_MISSING:
     'The action or assertion needs a capability this target does not have (driver, SDK domain or mock server).',
   INVALID_ARGUMENT:
