@@ -12,6 +12,45 @@ export interface DriverLaunchOptions {
   readonly payload: LaunchPayload;
   /** Clear app data before launching. */
   readonly clearData?: boolean;
+  /**
+   * Launch from this deep link (from {@link DriverDeepLinks.translate}) instead of the
+   * launcher entry. The payload still reaches the app, never inside the link.
+   */
+  readonly deepLink?: TranslatedDeepLink;
+}
+
+/**
+ * A canonical deep link translated into one platform's input by
+ * {@link DriverDeepLinks.translate}.
+ */
+export interface TranslatedDeepLink {
+  /**
+   * The platform input in words, for step titles, errors and failure dumps: a URL, or for
+   * Android intents without a plain VIEW URI `intent com.example.PLAY extras { id: "42" }`.
+   */
+  readonly description: string;
+  /** Driver-defined data; the core hands it back to `launch` and `open` unchanged. */
+  readonly data: unknown;
+}
+
+/**
+ * Deep links (`deeplink.launch`, `deeplink.open`). The core validates the canonical link,
+ * translates it once, reports the translation and passes it back to the driver. The app
+ * config's `deepLink` mapper is the driver's to apply.
+ */
+export interface DriverDeepLinks {
+  /**
+   * Translates the canonical link into this platform's input with the app config's `deepLink`
+   * mapper, or the platform default. Pure: no device I/O. Throws `DEEPLINK_INVALID` for a
+   * mapper result the platform can not use; anything else it throws (the mapper's own errors)
+   * the core reports as `DEEPLINK_INVALID`.
+   */
+  translate(link: URL): TranslatedDeepLink;
+  /**
+   * Delivers the link to the running app the way the OS does, without restarting it
+   * (`deeplink.open`). Throws `DEEPLINK_UNHANDLED` when no app handles it.
+   */
+  open?(link: TranslatedDeepLink): Promise<void>;
 }
 
 /**
@@ -37,7 +76,10 @@ export interface Driver {
   /** Closes the session and frees resources. Must be safe to call twice. */
   stop(): Promise<void>;
 
-  /** Terminates the app if running, then launches it with the payload. Returns once launched. */
+  /**
+   * Terminates the app if running, then launches it with the payload, from `opts.deepLink` when
+   * set (`DEEPLINK_UNHANDLED` when the platform finds no handler). Returns once launched.
+   */
   launch(opts: DriverLaunchOptions): Promise<void>;
   terminate(): Promise<void>;
   /** Restores a clean app state (clear data / storage). */
@@ -65,6 +107,12 @@ export interface Driver {
   startRecording?(): Promise<void>;
   /** Stops recording and returns the file path of the video. */
   stopRecording?(): Promise<string>;
+
+  /**
+   * Deep links. Present when the driver declares `deeplink.launch`; `open` present exactly when
+   * it declares `deeplink.open`.
+   */
+  readonly deepLinks?: DriverDeepLinks;
 
   /**
    * System text entry (`text.input`). Present exactly when the driver declares `text.input`.
@@ -105,6 +153,13 @@ export interface DriverTextInput {
   /** Closes the system keyboard if one is on screen, keeping the text. */
   close(): Promise<void>;
 }
+
+/**
+ * Translates the canonical deep link a test uses (`launch({ deepLink })`, `openDeepLink`) into
+ * one platform's input. Set as `deepLink` in a platform's app config; what `T` is depends on
+ * the platform (a URL or path string, an Android intent).
+ */
+export type DeepLinkMapper<T> = (link: URL) => T;
 
 /** Per-platform app config from the user's toets config. */
 export interface AppTargetConfig {

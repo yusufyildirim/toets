@@ -7,7 +7,13 @@ import type { ProtocolNode } from '@toets/protocol';
 import { PNG } from 'pngjs';
 import type { PlatformEvent } from '../api.js';
 import type { Capability } from '../capabilities.js';
-import type { Driver, DriverLaunchOptions, DriverTextInput } from '../driver.js';
+import type {
+  Driver,
+  DriverDeepLinks,
+  DriverLaunchOptions,
+  DriverTextInput,
+  TranslatedDeepLink,
+} from '../driver.js';
 import { DIRECTION_KEY, type Direction, type Key, type PressOptions } from '../keys.js';
 import type { Platform } from '../platform.js';
 import type { SelectorChain } from '../selectors.js';
@@ -47,6 +53,11 @@ export interface FakeScreen {
 export interface FakeDriverOptions {
   /** Platform reported by the driver. Default `web`. */
   readonly platform?: Platform;
+  /**
+   * Deep link translation (with `deeplink.launch`): the platform input for a link. Default: the
+   * link's `href`. May throw, like a user's mapper.
+   */
+  readonly deepLink?: (link: URL) => string;
 }
 
 interface FakeNode {
@@ -82,6 +93,12 @@ export class FakeDriver implements Driver {
   onSubmit: ((focusedId: string | null) => void) | null = null;
   /** Values of editable nodes by node id. */
   readonly values = new Map<string, string>();
+  /** Deep links; present when the driver declares `deeplink.launch`. */
+  readonly deepLinks?: DriverDeepLinks;
+  /** Links delivered to the running app (`deepLinks.open`), in order. */
+  readonly openedLinks: TranslatedDeepLink[] = [];
+  /** Called on every launch and opened link with the link; may change the screen or throw. */
+  onDeepLink: ((link: TranslatedDeepLink, driver: FakeDriver) => void) | null = null;
 
   private nodes = new Map<string, FakeNode>();
   private rootNode!: FakeNode;
@@ -99,6 +116,23 @@ export class FakeDriver implements Driver {
     this.capabilities = new Set(capabilities);
     this.setScreen(screen);
     if (this.capabilities.has('text.input')) this.text = this.systemText();
+    if (this.capabilities.has('deeplink.launch')) {
+      const translate = opts.deepLink ?? ((link: URL) => link.href);
+      this.deepLinks = {
+        translate: (link) => {
+          const description = translate(link);
+          return { description, data: description };
+        },
+        ...(this.capabilities.has('deeplink.open')
+          ? {
+              open: async (link: TranslatedDeepLink) => {
+                this.onDeepLink?.(link, this);
+                this.openedLinks.push(link);
+              },
+            }
+          : {}),
+      };
+    }
   }
 
   /** Value of an editable node. */
@@ -164,6 +198,7 @@ export class FakeDriver implements Driver {
     this.stopped = true;
   }
   async launch(opts: DriverLaunchOptions): Promise<void> {
+    if (opts.deepLink) this.onDeepLink?.(opts.deepLink, this);
     this.launches.push(opts);
     this.launched = true;
   }

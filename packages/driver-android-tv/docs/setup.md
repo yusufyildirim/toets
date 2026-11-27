@@ -23,11 +23,15 @@ export default defineConfig({
       package: 'com.example.tv',
       apk: './build/app-debug.apk', // optional: installed when the worker starts
       activity: '.MainActivity', // optional: default is the LEANBACK_LAUNCHER activity
+      // optional: the intent a canonical deep link opens; default: the link as a VIEW intent
+      deepLink: (link) => link.href,
     },
   },
   projects: [platforms.androidTV({ model: 'tv_1080p', osVersion: '34' })],
 });
 ```
+
+`deepLink` returns a URI or an intent `{ uri, action, categories, mimeType, extras }` (`AndroidDeepLink`); see [deep links](../../core/docs/deep-links.md) and [Fire TV](./fire-tv.md#content-intents).
 
 ## Driver options
 
@@ -55,5 +59,7 @@ val payload = intent.getStringExtra("__toets")?.let {
 }
 val mockUrl = payload?.optString("mockUrl") // e.g. http://localhost:9400
 ```
+
+A deep link launch (`app.launch({ deepLink })`) starts the link's intent instead of the activity, with the same extra. Activities that forward to another one (splash, router) must copy the extras, or the payload is lost.
 
 Payload URLs always say `localhost`: before each launch the driver runs `adb reverse` for every port in `sdkUrl` and `mockUrl`, so `localhost` on the device reaches the host. Debug builds need cleartext HTTP allowed for `localhost`.

@@ -137,6 +137,8 @@ describe('AndroidTvDriver', () => {
   it('declares honest capabilities', () => {
     expect([...driver.capabilities].sort()).toEqual(
       [
+        'deeplink.launch',
+        'deeplink.open',
         'key.back',
         'key.channel',
         'key.color',
@@ -431,5 +433,98 @@ describe('payloadPorts', () => {
     ).toEqual([9323]);
     expect(payloadPorts({ v: 1, mockUrl: 'https://localhost' })).toEqual([443]);
     expect(payloadPorts({ v: 1, mockUrl: 'http://10.0.2.2:8080' })).toEqual([]);
+  });
+});
+
+describe('AndroidTvDriver deep links', () => {
+  const amStarts = (runner: FakeRunner) => adbShell(runner).filter((l) => l.startsWith('am start'));
+
+  it('cold-starts the app from a link: force-stop, clear data, then an intent the OS resolves', async () => {
+    const t = setup();
+    await t.driver.start();
+    const link = t.driver.deepLinks.translate(new URL('myapp://details/42?a=1&b=two words'));
+    expect(link.description).toBe('myapp://details/42?a=1&b=two%20words');
+    const payload = { v: 1 as const, sdkUrl: 'ws://localhost:9323', token: 't' };
+    await t.driver.launch({ payload, clearData: true, deepLink: link });
+    const shell = adbShell(t.runner);
+    const stop = shell.lastIndexOf('am force-stop tv.toets.fixture');
+    const clear = shell.lastIndexOf('pm clear tv.toets.fixture');
+    const start = shell.findIndex((l) => l.startsWith('am start'));
+    expect(stop).toBeLessThan(clear);
+    expect(clear).toBeLessThan(start);
+    expect(t.runner.lines('run')).toContain('adb -s emulator-5554 reverse tcp:9323 tcp:9323');
+    expect(amStarts(t.runner)).toEqual([
+      `am start -W -a android.intent.action.VIEW -d 'myapp://details/42?a=1&b=two%20words' -p tv.toets.fixture --es __toets ${encodeLaunchPayloadParam(payload)}`,
+    ]);
+    expect(amStarts(t.runner)[0]).not.toContain(' -n ');
+  });
+
+  it('starts a translated Fire TV intent with typed extras', async () => {
+    const t = setup(
+      {},
+      {
+        deepLink: (link: URL) => ({
+          action: 'com.example.PLAY',
+          categories: ['com.example.CONTENT'],
+          mimeType: 'video/*',
+          extras: { contentId: link.pathname.slice(1), resume: true, episode: 3 },
+        }),
+      },
+    );
+    await t.driver.start();
+    const link = t.driver.deepLinks.translate(new URL('myapp://details/42'));
+    expect(link.description).toBe(
+      'intent com.example.PLAY categories [com.example.CONTENT] type video/* extras { contentId: "42", resume: true, episode: 3 }',
+    );
+    await t.driver.deepLinks.open(link);
+    expect(amStarts(t.runner)).toEqual([
+      "am start -W -a com.example.PLAY -c com.example.CONTENT -t 'video/*' --es contentId 42 --ez resume true --ei episode 3 -p tv.toets.fixture",
+    ]);
+    // Delivering to the running app never stops it.
+    expect(adbShell(t.runner)).not.toContain('am force-stop tv.toets.fixture');
+  });
+
+  it('counts a link delivered to the running instance as opened', async () => {
+    const t = setup();
+    t.runner.on(
+      'am start -W -a android.intent.action.VIEW',
+      'Warning: Activity not started, intent has been delivered to currently running top-most instance.\nStatus: ok\nComplete\n',
+    );
+    await t.driver.start();
+    await t.driver.deepLinks.open(t.driver.deepLinks.translate(new URL('myapp://x')));
+  });
+
+  it('fails with DEEPLINK_UNHANDLED when no activity of the app resolves the intent', async () => {
+    const t = setup();
+    t.runner.on(
+      'nosuch://x',
+      'Starting: Intent { act=android.intent.action.VIEW dat=nosuch://x/... pkg=tv.toets.fixture }\nError: Activity not started, unable to resolve Intent { act=android.intent.action.VIEW dat=nosuch://x/... flg=0x10000000 pkg=tv.toets.fixture }\n',
+    );
+    await t.driver.start();
+    const link = t.driver.deepLinks.translate(new URL('nosuch://x'));
+    for (const run of [
+      () => t.driver.deepLinks.open(link),
+      () => t.driver.launch({ payload: { v: 1 }, deepLink: link }),
+    ]) {
+      const err = (await run().catch((e: unknown) => e)) as ToetsError;
+      expect(err.code).toBe('DEEPLINK_UNHANDLED');
+      expect(err.message).toBe('No activity of tv.toets.fixture handles the deep link nosuch://x.');
+      expect(err.hint).toContain('intent filters');
+    }
+  });
+
+  it('reports other start failures as ANDROID_LAUNCH_FAILED', async () => {
+    const t = setup();
+    t.runner.on('crash://x', 'Error: Activity class does not exist.\n');
+    await t.driver.start();
+    await expect(
+      t.driver.deepLinks.open(t.driver.deepLinks.translate(new URL('crash://x'))),
+    ).rejects.toMatchObject({ code: 'ANDROID_LAUNCH_FAILED' });
+  });
+
+  it('rejects a deepLink that is not a function', () => {
+    expect(() => setup({}, { deepLink: 'https://example.com' })).toThrow(
+      /app.deepLink must be a function/,
+    );
   });
 });

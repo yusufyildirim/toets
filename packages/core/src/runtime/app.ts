@@ -16,7 +16,7 @@ import type {
   ScreenshotOptions,
 } from '../api.js';
 import type { Capability } from '../capabilities.js';
-import type { Driver } from '../driver.js';
+import type { Driver, TranslatedDeepLink } from '../driver.js';
 import { ToetsError, packageDocsLink, fromProtocolError } from '../errors.js';
 import type { Key, PressOptions } from '../keys.js';
 import type { MockServerLike } from '../mock.js';
@@ -52,6 +52,16 @@ const LOG_BUFFER_SIZE = 1000;
 const DUMP_LOGS = 50;
 const DUMP_REQUESTS = 20;
 
+const DEEP_LINK_DOCS = packageDocsLink('core', 'deep-links');
+
+/** A deep link checked and translated before its step starts; `error` is thrown inside it. */
+interface DeepLinkPlan {
+  /** `myapp://details/42 → intent com.example.PLAY extras { id: "42" }`, or the link alone. */
+  readonly text: string;
+  readonly link?: TranslatedDeepLink;
+  readonly error?: unknown;
+}
+
 const SDK_DOMAIN_OF: Partial<Record<Capability, string>> = Object.fromEntries(
   Object.entries(DOMAIN_CAPABILITIES).flatMap(([domain, caps]) => caps.map((c) => [c, domain])),
 );
@@ -78,6 +88,10 @@ export class AppRuntime implements RuntimeContext {
   private keys: KeyLogEntry[] = [];
   private logBuffer: LogEntry[] = [];
   private launched = false;
+  /** Title of the last launch, for failure dumps. */
+  private lastLaunch: string | null = null;
+  /** Title of the last `openDeepLink` since that launch, for failure dumps. */
+  private lastDeepLink: string | null = null;
   /** Set by `platform.emit('network-lost')` until restored; `isolate()` restores it. */
   private networkLost = false;
   private unsubscribeLogs: (() => void) | null = null;
@@ -152,6 +166,16 @@ export class AppRuntime implements RuntimeContext {
 
   get isLaunched(): boolean {
     return this.launched;
+  }
+
+  /** Step title of the last launch, with its deep link and translation; `null` before one. */
+  get lastLaunchTitle(): string | null {
+    return this.lastLaunch;
+  }
+
+  /** Step title of the last `openDeepLink` since the last launch, with its translation. */
+  get lastDeepLinkTitle(): string | null {
+    return this.lastDeepLink;
   }
 
   /** Runs an action as a step. SDK protocol errors escaping it surface as `ToetsError`. */
@@ -243,7 +267,14 @@ export class AppRuntime implements RuntimeContext {
     if (opts.state !== undefined) parts.push(`state=${opts.state}`);
     if (opts.flags !== undefined) parts.push(`flags=${JSON.stringify(opts.flags)}`);
     if (opts.clearData) parts.push('clearData');
-    await this.step({ kind: 'launch', title: parts.join(' ') }, async () => {
+    const deepLink =
+      opts.deepLink === undefined
+        ? undefined
+        : this.planDeepLink(opts.deepLink, 'deeplink.launch', 'launch({ deepLink })');
+    if (deepLink) parts.push(`(deepLink: ${deepLink.text})`);
+    const title = parts.join(' ');
+    await this.step({ kind: 'launch', title }, async () => {
+      if (deepLink?.error !== undefined) throw deepLink.error;
       if (wantsState && !this.sdkHost)
         this.requireCapability('app.state', 'launch({ state, flags })');
       await this.closeSession();
@@ -255,25 +286,91 @@ export class AppRuntime implements RuntimeContext {
         ...(opts.state !== undefined ? { state: opts.state } : {}),
         ...(opts.flags !== undefined ? { flags: opts.flags } : {}),
       };
-      await this.driver.launch({ payload, ...(opts.clearData ? { clearData: true } : {}) });
+      this.lastLaunch = title;
+      this.lastDeepLink = null;
+      await this.driver.launch({
+        payload,
+        ...(opts.clearData ? { clearData: true } : {}),
+        ...(deepLink?.link ? { deepLink: deepLink.link } : {}),
+      });
       this.launched = true;
       if (this.sdkHost && token) {
-        this.attach(await this.connect(this.sdkHost, token));
+        this.attach(await this.connect(this.sdkHost, token, deepLink !== undefined));
         if (wantsState) this.requireCapability('app.state', 'launch({ state, flags })');
       }
     });
   }
 
-  private async connect(host: SdkHost, token: string): Promise<SdkSession> {
+  async openDeepLink(url: string): Promise<void> {
+    const deepLink = this.planDeepLink(url, 'deeplink.open', 'app.openDeepLink()');
+    const title = `openDeepLink ${deepLink.text}`;
+    await this.step({ kind: 'openDeepLink', title }, async () => {
+      if (deepLink.error !== undefined) throw deepLink.error;
+      if (!this.launched) {
+        throw new ToetsError(
+          'APP_NOT_LAUNCHED',
+          `openDeepLink(${JSON.stringify(url)}) needs a running app, and it is not launched.`,
+          {
+            hint: 'Call app.launch() first. To start the app from the link (a cold start), use app.launch({ deepLink }).',
+            docs: DEEP_LINK_DOCS,
+          },
+        );
+      }
+      const open = this.driver.deepLinks?.open;
+      if (!open || !deepLink.link) throw contractError('deepLinks.open', 'deeplink.open');
+      this.lastDeepLink = title;
+      await open.call(this.driver.deepLinks, deepLink.link);
+    });
+  }
+
+  /**
+   * Checks the capability, parses the canonical link and translates it with the driver. Runs
+   * before the step starts so its title shows the translation; errors are returned and thrown
+   * inside the step.
+   */
+  private planDeepLink(raw: unknown, capability: Capability, feature: string): DeepLinkPlan {
+    const shown = typeof raw === 'string' ? raw : JSON.stringify(raw);
+    try {
+      this.requireCapability(capability, feature);
+      const deepLinks = this.driver.deepLinks;
+      if (!deepLinks) throw contractError('deepLinks', capability);
+      const url = parseDeepLink(raw);
+      let link: TranslatedDeepLink;
+      try {
+        link = deepLinks.translate(url);
+      } catch (cause) {
+        if (cause instanceof ToetsError) throw cause;
+        const reason = cause instanceof Error ? cause.message : String(cause);
+        throw new ToetsError(
+          'DEEPLINK_INVALID',
+          `The ${this.driver.platform} deepLink mapper threw for ${shown}: ${reason}`,
+          {
+            hint: `Fix the \`deepLink\` mapper in the ${this.driver.platform} app config of the toets config (a project's \`app\` overrides the top-level one). It receives the link as a URL.`,
+            docs: DEEP_LINK_DOCS,
+            cause,
+          },
+        );
+      }
+      const text = link.description === shown ? shown : `${shown} → ${link.description}`;
+      return { text, link };
+    } catch (error) {
+      return { text: shown, error };
+    }
+  }
+
+  private async connect(host: SdkHost, token: string, deepLink: boolean): Promise<SdkSession> {
     const timeoutMs = this.timeouts.sdkConnectMs;
     try {
       return await host.waitForSession(token, { timeoutMs });
     } catch (cause) {
+      const fromLink = deepLink
+        ? ' Launched from a deep link: whichever entry the link opens must start the SDK with the launch payload. On Android, trampoline activities (splash, router) must forward the intent extras (__toets) to the activity they start.'
+        : '';
       throw new ToetsError(
         'SDK_NOT_CONNECTED',
         `The app did not connect to the toets SDK host at ${host.url} within ${timeoutMs}ms.`,
         {
-          hint: 'Check that the app includes the toets SDK and starts it at launch, that it reads the launch payload (__toets), and that the device can reach the host (drivers set up adb reverse on Android). For black-box runs, disable toets.sdk.',
+          hint: `Check that the app includes the toets SDK and starts it at launch, that it reads the launch payload (__toets), and that the device can reach the host (drivers set up adb reverse on Android). For black-box runs, disable toets.sdk.${fromLink}`,
           docs: packageDocsLink('core', 'sdk'),
           cause,
         },
@@ -375,6 +472,8 @@ export class AppRuntime implements RuntimeContext {
     this.mock?.resetHandlers();
     this.mock?.clearRequests();
     this.keys = [];
+    this.lastLaunch = null;
+    this.lastDeepLink = null;
     await this.takeLogs();
   }
 
@@ -410,6 +509,8 @@ export class AppRuntime implements RuntimeContext {
         : { connected: false, enabled: !!this.sdkHost },
       focused,
       keyboard,
+      lastLaunch: this.lastLaunch,
+      lastDeepLink: this.lastDeepLink,
       screen,
       busy:
         idle.supported && !idle.idle
@@ -460,6 +561,10 @@ class AppImpl implements App {
     return this.runtime.launch(opts);
   }
 
+  openDeepLink(url: string): Promise<void> {
+    return this.runtime.openDeepLink(url);
+  }
+
   terminate(): Promise<void> {
     return this.runtime.terminate();
   }
@@ -506,4 +611,35 @@ function dumpRequests(all: readonly RecordedRequest[]): readonly RecordedRequest
   const recent = Math.max(0, all.length - DUMP_REQUESTS);
   const picked = all.filter((r, i) => i >= recent || r.error);
   return picked.slice(-2 * DUMP_REQUESTS);
+}
+
+/** The canonical link as a URL: `DEEPLINK_INVALID` unless it is an absolute URL string. */
+function parseDeepLink(raw: unknown): URL {
+  if (typeof raw === 'string') {
+    try {
+      return new URL(raw);
+    } catch {
+      // not absolute
+    }
+  }
+  throw new ToetsError(
+    'DEEPLINK_INVALID',
+    `Deep link ${JSON.stringify(raw)} is not an absolute URL.`,
+    {
+      hint: "Use the app's own link for the content, with its scheme (`myapp://details/42`), the same on every platform. Translate it per platform with the `deepLink` mapper in the app config.",
+      docs: DEEP_LINK_DOCS,
+    },
+  );
+}
+
+/** A driver that declares a deep link capability without implementing it. */
+function contractError(member: string, capability: Capability): ToetsError {
+  return new ToetsError(
+    'DRIVER_CONTRACT',
+    `The driver declares '${capability}' but has no \`${member}\`.`,
+    {
+      hint: 'A driver bug: implement the member or stop declaring the capability.',
+      docs: packageDocsLink('core', 'drivers'),
+    },
+  );
 }

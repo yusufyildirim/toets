@@ -30,6 +30,7 @@ export function sections(): Section[] {
         { text: 'Idle and synchronization', link: '/concepts/idle' },
         { text: 'Network mocking', link: '/concepts/network-mocking' },
         { text: 'Text input', link: '/concepts/text-input' },
+        { text: 'Deep links', link: '/concepts/deep-links' },
         { text: 'Page objects', link: '/concepts/page-objects' },
         { text: 'The in-app SDK', link: '/concepts/sdk' },
         { text: 'Text snapshots', link: '/concepts/text-snapshots' },

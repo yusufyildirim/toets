@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 
 import {
   canGoBack,
+  deepLinkActions,
   initialNavigationState,
   launchStateActions,
   MENU_SCOPE,
@@ -56,5 +57,28 @@ describe('launchStateActions', () => {
   it('rejects unknown states', () => {
     expect(() => launchStateActions('details')).toThrow(/Unknown launch state "details"/);
     expect(() => launchStateActions('nowhere:1')).toThrow(/Unknown launch state/);
+  });
+});
+
+describe('deepLinkActions', () => {
+  const details = (itemId: string) => launchStateActions(`details:${itemId}`);
+
+  it('routes app links and the same path on web', () => {
+    expect(deepLinkActions('toetstv://details/new-2')).toEqual(details('new-2'));
+    expect(deepLinkActions('toetstv://player/trending-1?t=1')).toEqual(
+      launchStateActions('player:trending-1'),
+    );
+    expect(deepLinkActions('http://localhost:8090/details/new-2?__toets=x#top')).toEqual(
+      details('new-2'),
+    );
+  });
+
+  it('ignores links it does not route', () => {
+    expect(deepLinkActions('http://localhost:8090/')).toBeNull();
+    expect(deepLinkActions('http://localhost:8090/?__toets=abc')).toBeNull();
+    expect(deepLinkActions('toetstv://details')).toBeNull();
+    expect(deepLinkActions('toetstv://settings/x')).toBeNull();
+    expect(deepLinkActions('otherapp://details/new-2')).toBeNull();
+    expect(deepLinkActions('not a url')).toBeNull();
   });
 });

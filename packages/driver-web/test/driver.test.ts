@@ -89,6 +89,7 @@ describe('web driver on the fixture app', () => {
   it('declares an honest capability set', () => {
     expect([...driver.capabilities].sort()).toEqual(
       [
+        'deeplink.launch',
         'key.back',
         'key.channel',
         'key.color',
@@ -559,6 +560,51 @@ describe('web driver configuration', () => {
     await refused.start();
     await expectToetsError(refused.launch({ payload: { v: 1 } }), 'WEB_LAUNCH_FAILED');
     await refused.stop();
+  });
+
+  it('launches from a deep link on its page URL with the payload in an init script', async () => {
+    const driver = createWebDriver({ url: server.url, browser });
+    await driver.start();
+    try {
+      expect(driver.deepLinks.open).toBeUndefined();
+      const link = driver.deepLinks.translate(new URL('myapp://index.html?route=details#top'));
+      expect(link.description).toBe(`${server.url}index.html?route=details#top`);
+      await driver.launch({ payload: { v: 1, state: 'linked' }, deepLink: link });
+      expect(driver.escapeHatch().url()).toBe(`${server.url}index.html?route=details#top`);
+      expect(await text(driver, 'payload-source')).toBe('global');
+      expect(JSON.parse((await text(driver, 'payload')) ?? '')).toEqual({ v: 1, state: 'linked' });
+      // A plain launch afterwards goes back to the app URL and the query transport.
+      await driver.launch({ payload: { v: 1 } });
+      expect(await text(driver, 'payload-source')).toBe('query');
+    } finally {
+      await driver.stop();
+    }
+  });
+
+  it('fails with DEEPLINK_UNHANDLED when the deep link page is not served', async () => {
+    const driver = createWebDriver({
+      url: server.url,
+      browser,
+      deepLink: (link) => `/watch${link.pathname}`,
+    });
+    await driver.start();
+    try {
+      const link = driver.deepLinks.translate(new URL('myapp://details/42'));
+      expect(link.description).toBe(`${server.url}watch/42`);
+      const error = await expectToetsError(
+        driver.launch({ payload: { v: 1 }, deepLink: link }),
+        'DEEPLINK_UNHANDLED',
+      );
+      expect(error.message).toBe(`The deep link page ${server.url}watch/42 answered HTTP 404.`);
+    } finally {
+      await driver.stop();
+    }
+  });
+
+  it('refuses a deepLink that is not a function', () => {
+    expect(() =>
+      createWebDriver({ url: server.url, deepLink: 'details' as unknown as () => string }),
+    ).toThrow(ToetsError);
   });
 
   it('explains a missing URL', () => {

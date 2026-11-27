@@ -2,6 +2,7 @@ import { AppRuntime, type AppRuntimeOptions, type Capability } from '../src/inde
 import {
   FakeDriver,
   FakeSdkHost,
+  type FakeDriverOptions,
   type FakeNodeSpec,
   type FakeScreen,
   type FakeSdkHostOptions,
@@ -96,9 +97,14 @@ export function setup(
     runtime?: Partial<AppRuntimeOptions>;
     /** Connect a fake SDK (backed by the same fake driver) on launch. */
     sdk?: FakeSdkHostOptions | true;
+    driver?: FakeDriverOptions;
   } = {},
 ) {
-  const driver = new FakeDriver(opts.screen ?? homeScreen(), opts.capabilities ?? ALL_KEYS);
+  const driver = new FakeDriver(
+    opts.screen ?? homeScreen(),
+    opts.capabilities ?? ALL_KEYS,
+    opts.driver,
+  );
   const host = opts.sdk ? new FakeSdkHost(driver, opts.sdk === true ? {} : opts.sdk) : undefined;
   const runtime = new AppRuntime({
     driver,

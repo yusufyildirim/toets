@@ -7,6 +7,7 @@ import {
   type Capability,
   type Driver,
   type DriverCreateContext,
+  type DriverDeepLinks,
   type DriverLaunchOptions,
   type DriverTextInput,
   type ElementRef,
@@ -15,6 +16,7 @@ import {
   type LogEntry,
   type PressOptions,
   type SelectorChain,
+  type TranslatedDeepLink,
   type UITree,
 } from '@toets/core';
 import { LAUNCH_PARAM, encodeLaunchPayloadParam } from '@toets/protocol';
@@ -25,6 +27,7 @@ import {
   type StartAppiumOptions,
 } from './appium-server.js';
 import { defaultRunner, tail, type CommandRunner } from './command.js';
+import { translateTvosDeepLink, unregisteredScheme, urlSchemes } from './deep-link.js';
 import { deviceSetFromLease, prepareSimulator, type TvosSimulator } from './devices.js';
 import { DOCS, TvosErrorCode, errorMessage, tvosError } from './errors.js';
 import { cropPng } from './image.js';
@@ -78,6 +81,9 @@ export class TvosDriver implements Driver {
   private readonly deps: TvosDriverDeps;
   private started: Started | undefined;
   private stopping: Promise<void> | undefined;
+  /** The launch payload sits in the app's user defaults (a deep link launch). */
+  private payloadInDefaults = false;
+  private urlSchemes: Promise<ReadonlySet<string>> | undefined;
 
   constructor(
     private readonly options: TvosDriverOptions,
@@ -150,24 +156,118 @@ export class TvosDriver implements Driver {
     return this.stopping;
   }
 
+  /**
+   * A deep link launch can not pass launch arguments: the system starts the app for the URL. The
+   * payload goes into the app's user defaults instead (`defaults write <bundleId> __toets`),
+   * which `NSUserDefaults` (and React Native `Settings`) read like the `-__toets` argument; it is
+   * removed on the next launch, terminate or stop. `launchArguments` and `launchEnvironment` do
+   * not apply to deep link launches.
+   */
   async launch(opts: DriverLaunchOptions): Promise<void> {
     const { bundleId, launchArguments = [], launchEnvironment = {} } = this.app;
     await this.mobile('terminateApp', { bundleId });
-    if (opts.clearData) await this.mobile('clearApp', { bundleId });
+    if (opts.clearData) {
+      await this.mobile('clearApp', { bundleId });
+      this.payloadInDefaults = false;
+    }
+    const payload = encodeLaunchPayloadParam(opts.payload);
+    if (opts.deepLink) {
+      await this.defaults(['write', bundleId, LAUNCH_PARAM, payload]);
+      this.payloadInDefaults = true;
+      await this.openUrl(opts.deepLink);
+      return;
+    }
+    await this.removePayloadDefaults();
     await this.mobile('launchApp', {
       bundleId,
-      arguments: [...launchArguments, `-${LAUNCH_PARAM}`, encodeLaunchPayloadParam(opts.payload)],
+      arguments: [...launchArguments, `-${LAUNCH_PARAM}`, payload],
       environment: launchEnvironment,
     });
   }
 
   async terminate(): Promise<void> {
     await this.mobile('terminateApp', { bundleId: this.app.bundleId });
+    await this.removePayloadDefaults();
   }
 
   /** Clears the app's data container (terminates the app first). */
   async reset(): Promise<void> {
     await this.mobile('clearApp', { bundleId: this.app.bundleId });
+    this.payloadInDefaults = false;
+  }
+
+  /**
+   * Deep links are URLs opened in the app the way the system opens them: a terminated app is
+   * launched for the URL, a running one receives it (`scene(_:openURLContexts:)`). They go
+   * through XCTest (`XCUIApplication.open`, Appium `mobile: deepLink` with the bundle ID), which
+   * opens the URL in this app; `simctl openurl` would stop at a system "Open in ...?" prompt.
+   */
+  readonly deepLinks: Required<DriverDeepLinks> = {
+    translate: (link) => translateTvosDeepLink(link, this.app.deepLink),
+    open: (link) => this.openUrl(link),
+  };
+
+  private async openUrl(link: TranslatedDeepLink): Promise<void> {
+    const { session } = this.require();
+    const url = link.data as string;
+    this.urlSchemes ??= this.readUrlSchemes();
+    const unhandled = unregisteredScheme(url, this.app.bundleId, await this.urlSchemes);
+    if (unhandled) throw unhandled;
+    try {
+      await session.execute('mobile: deepLink', { url, bundleId: this.app.bundleId });
+    } catch (cause) {
+      throw tvosError(
+        TvosErrorCode.COMMAND_FAILED,
+        `Opening ${url} failed: ${errorMessage(cause)}`,
+        {
+          hint: 'Check that the app is installed and see the Appium log for details.',
+          docs: DOCS.traps,
+          cause,
+        },
+      );
+    }
+  }
+
+  /** URL schemes the installed app registers, read once per run. */
+  private async readUrlSchemes(): Promise<ReadonlySet<string>> {
+    const { simctl, simulator } = this.require();
+    const bundle = await simctl.appBundlePath(simulator.udid, this.app.bundleId);
+    if (!bundle) return new Set();
+    const res = await this.deps.runner.run('plutil', [
+      '-extract',
+      'CFBundleURLTypes',
+      'json',
+      '-o',
+      '-',
+      join(bundle, 'Info.plist'),
+    ]);
+    // A non-zero exit means the key is missing: the app registers no schemes.
+    if (res.exitCode !== 0) return new Set();
+    let types: unknown;
+    try {
+      types = JSON.parse(res.stdout);
+    } catch {
+      return new Set();
+    }
+    return urlSchemes(types);
+  }
+
+  /** `defaults <args>` inside the simulator. */
+  private async defaults(args: readonly string[]): Promise<void> {
+    const { simctl, simulator } = this.require();
+    await simctl.exec(['spawn', simulator.udid, 'defaults', ...args], 30_000);
+  }
+
+  /** Removes a deep link launch's payload from the app's user defaults. */
+  private async removePayloadDefaults(): Promise<void> {
+    if (!this.payloadInDefaults) return;
+    this.payloadInDefaults = false;
+    const { simctl, simulator } = this.require();
+    // Fails when the key is already gone (cleared app data): nothing to remove then.
+    await simctl.run(
+      ['spawn', simulator.udid, 'defaults', 'delete', this.app.bundleId, LAUNCH_PARAM],
+      30_000,
+    );
   }
 
   async query(chain: SelectorChain): Promise<readonly ElementSnapshot[]> {
@@ -398,6 +498,19 @@ export class TvosDriver implements Driver {
     if (!started) return;
     if (started.recorder.recording) await started.recorder.stop().catch(() => {});
     started.logs?.stop();
+    if (this.payloadInDefaults) {
+      this.payloadInDefaults = false;
+      await started.simctl
+        .run([
+          'spawn',
+          started.simulator.udid,
+          'defaults',
+          'delete',
+          this.app.bundleId,
+          LAUNCH_PARAM,
+        ])
+        .catch(() => {});
+    }
     await started.session.deleteSession().catch(() => {});
     await started.appium?.stop().catch(() => {});
   }

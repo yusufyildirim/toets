@@ -29,6 +29,10 @@ export type Capability =
    * `app.keyboard` on a system field or keyboard). App-drawn keyboards need only the D-pad.
    */
   | 'text.input'
+  /** `app.launch({ deepLink })`: the app starts from a deep link instead of its launcher entry. */
+  | 'deeplink.launch'
+  /** `app.openDeepLink()`: the OS delivers a deep link to the running app. */
+  | 'deeplink.open'
   | 'sync.idle'
   | 'media.state'
   | 'app.state'

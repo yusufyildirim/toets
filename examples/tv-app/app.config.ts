@@ -1,5 +1,11 @@
 import type { ExpoConfig } from 'expo/config';
-import { withAppBuildGradle, withMainActivity, type ConfigPlugin } from 'expo/config-plugins';
+import {
+  AndroidConfig,
+  withAndroidManifest,
+  withAppBuildGradle,
+  withMainActivity,
+  type ConfigPlugin,
+} from 'expo/config-plugins';
 
 /**
  * Embeds the JS bundle in debug APKs too (React Native skips it by default), so the debug
@@ -45,11 +51,72 @@ const withToetsLaunchOptions: ConfigPlugin = (config) =>
     return mod;
   });
 
+/** Fire TV-style content intent: a custom action with a `contentId` extra and no URI. */
+const OPEN_DETAILS_ACTION = 'dev.toets.example.OPEN_DETAILS';
+
+/**
+ * Deep links beyond the `toetstv://` scheme (which `scheme` registers): Android also opens
+ * details from a Fire TV-style intent, `OPEN_DETAILS` with a `contentId` extra. `MainActivity`
+ * turns it into the app's own link (`toetstv://details/<id>`) at cold start and in
+ * `onNewIntent`, so React Native's `Linking` handles both the same way.
+ */
+const withContentIntent: ConfigPlugin = (config) => {
+  config = withAndroidManifest(config, (mod) => {
+    const activity = AndroidConfig.Manifest.getMainActivityOrThrow(mod.modResults);
+    activity['intent-filter'] = [
+      ...(activity['intent-filter'] ?? []),
+      {
+        action: [{ $: { 'android:name': OPEN_DETAILS_ACTION } }],
+        category: [{ $: { 'android:name': 'android.intent.category.DEFAULT' } }],
+      },
+    ];
+    return mod;
+  });
+  return withMainActivity(config, (mod) => {
+    const onCreate = /(\n(\s*)super\.onCreate\(null\))/;
+    const classOpen = /(class MainActivity\s*:\s*ReactActivity\(\)\s*\{)/;
+    if (
+      mod.modResults.language !== 'kt' ||
+      !onCreate.test(mod.modResults.contents) ||
+      !classOpen.test(mod.modResults.contents)
+    ) {
+      throw new Error('withContentIntent: MainActivity.onCreate not found');
+    }
+    let contents = mod.modResults.contents.replace(onCreate, '\n$2toAppLink(intent)$1').replace(
+      classOpen,
+      `$1
+  /** A Fire TV content intent (${OPEN_DETAILS_ACTION} + contentId) becomes the app's own link. */
+  private fun toAppLink(intent: Intent?) {
+    if (intent == null || intent.action != "${OPEN_DETAILS_ACTION}") return
+    val id = intent.getStringExtra("contentId") ?: return
+    intent.action = Intent.ACTION_VIEW
+    intent.data = Uri.parse("toetstv://details/" + Uri.encode(id))
+  }
+
+  override fun onNewIntent(intent: Intent) {
+    toAppLink(intent)
+    super.onNewIntent(intent)
+  }
+`,
+    );
+    for (const name of ['android.content.Intent', 'android.net.Uri']) {
+      if (!contents.includes(`import ${name}\n`)) {
+        contents = contents.replace(/^(package [^\n]+\n)/, `$1\nimport ${name}\n`);
+      }
+    }
+    mod.modResults.contents = contents;
+    return mod;
+  });
+};
+
 const config: ExpoConfig = {
   name: 'toets TV',
   slug: 'toets-tv-example',
   version: '1.0.0',
   orientation: 'landscape',
+  // Deep links: `toetstv://details/<id>` and `toetstv://player/<id>` (Android intent filter,
+  // tvOS CFBundleURLTypes). Web routes the same paths (`/details/<id>`).
+  scheme: 'toetstv',
   ios: { bundleIdentifier: 'dev.toets.example' },
   android: { package: 'dev.toets.example' },
   web: { bundler: 'metro', output: 'single', name: 'toets TV example' },
@@ -62,4 +129,4 @@ const config: ExpoConfig = {
   ],
 };
 
-export default withToetsLaunchOptions(withEmbeddedDebugBundle(config));
+export default withContentIntent(withToetsLaunchOptions(withEmbeddedDebugBundle(config)));

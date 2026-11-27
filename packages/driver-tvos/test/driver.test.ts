@@ -128,6 +128,12 @@ describe('TvosDriver', () => {
     appiumStops = 0;
     runner = new FakeRunner()
       .on('get_app_container', { stdout: '/apps/Fixture.app\n' })
+      .on('CFBundleURLTypes', {
+        stdout: JSON.stringify([
+          { CFBundleURLSchemes: ['MyApp', 'other'] },
+          { CFBundleURLName: 'x' },
+        ]),
+      })
       .on('plutil', { stdout: 'ToetsFixture\n' });
     deps = {
       runner,
@@ -272,6 +278,127 @@ describe('TvosDriver', () => {
     await driver.terminate();
     await driver.reset();
     expect(session.scripts().slice(-2)).toEqual(['mobile: terminateApp', 'mobile: clearApp']);
+  });
+
+  describe('deep links', () => {
+    const payload = { v: 1 as const, sdkUrl: 'ws://localhost:9323', token: 't' };
+    const deleteKey =
+      'xcrun simctl --set /simlock/set spawn UDID-1 defaults delete tv.toets.fixture __toets';
+
+    it('cold-launches from a link with the payload in user defaults, removed on terminate', async () => {
+      const driver = await started();
+      const link = driver.deepLinks.translate(new URL('myapp://details/42'));
+      expect(link).toEqual({ description: 'myapp://details/42', data: 'myapp://details/42' });
+      await driver.launch({ payload, clearData: true, deepLink: link });
+      expect(session.executed).toEqual([
+        { script: 'mobile: terminateApp', args: { bundleId: 'tv.toets.fixture' } },
+        { script: 'mobile: clearApp', args: { bundleId: 'tv.toets.fixture' } },
+        {
+          script: 'mobile: deepLink',
+          args: { url: 'myapp://details/42', bundleId: 'tv.toets.fixture' },
+        },
+      ]);
+      expect(runner.lines()).toContain(
+        `xcrun simctl --set /simlock/set spawn UDID-1 defaults write tv.toets.fixture __toets ${encodeLaunchPayloadParam(payload)}`,
+      );
+      expect(runner.lines()).not.toContain(deleteKey);
+      await driver.terminate();
+      expect(runner.lines()).toContain(deleteKey);
+    });
+
+    it('removes the payload before a plain launch and on stop', async () => {
+      const driver = await started();
+      const link = driver.deepLinks.translate(new URL('myapp://x'));
+      await driver.launch({ payload, deepLink: link });
+      await driver.launch({ payload });
+      expect(runner.lines().filter((l) => l === deleteKey)).toHaveLength(1);
+      expect(session.scripts().at(-1)).toBe('mobile: launchApp');
+      await driver.launch({ payload, deepLink: link });
+      await driver.stop();
+      expect(runner.lines().filter((l) => l === deleteKey)).toHaveLength(2);
+    });
+
+    it('opens a link in the running app without relaunching it', async () => {
+      const driver = await started();
+      await driver.deepLinks.open(driver.deepLinks.translate(new URL('OTHER://a?b=1')));
+      expect(session.executed).toEqual([
+        {
+          script: 'mobile: deepLink',
+          args: { url: 'other://a?b=1', bundleId: 'tv.toets.fixture' },
+        },
+      ]);
+      // The Info.plist is read once per run.
+      await driver.deepLinks.open(driver.deepLinks.translate(new URL('myapp://b')));
+      expect(runner.lines().filter((l) => l.includes('CFBundleURLTypes'))).toHaveLength(1);
+    });
+
+    it('fails with DEEPLINK_UNHANDLED for a scheme the app does not register', async () => {
+      const driver = await started();
+      const link = driver.deepLinks.translate(new URL('nosuch://x'));
+      for (const run of [
+        () => driver.deepLinks.open(link),
+        () => driver.launch({ payload, deepLink: link }),
+      ]) {
+        await expect(run()).rejects.toMatchObject({
+          code: 'DEEPLINK_UNHANDLED',
+          message:
+            'tv.toets.fixture does not handle the deep link nosuch://x: it registers no "nosuch" URL scheme (registered: myapp, other).',
+        });
+      }
+      expect(session.scripts()).not.toContain('mobile: deepLink');
+    });
+
+    it('treats an app without CFBundleURLTypes as registering no scheme', async () => {
+      runner = new FakeRunner()
+        .on('get_app_container', { stdout: '/apps/Fixture.app\n' })
+        .on('CFBundleURLTypes', { exitCode: 1, stderr: 'No value at that key path' })
+        .on('plutil', { stdout: 'ToetsFixture\n' });
+      deps.runner = runner;
+      const driver = await started();
+      await expect(
+        driver.deepLinks.open(driver.deepLinks.translate(new URL('myapp://x'))),
+      ).rejects.toMatchObject({
+        code: 'DEEPLINK_UNHANDLED',
+        message: expect.stringContaining('registered: none'),
+      });
+    });
+
+    it('reports a failing open as COMMAND_FAILED', async () => {
+      const driver = await started();
+      session.failNext = new Error('WDA down');
+      await expect(
+        driver.deepLinks.open(driver.deepLinks.translate(new URL('myapp://x'))),
+      ).rejects.toMatchObject({ code: 'TVOS_COMMAND_FAILED' });
+    });
+
+    it('maps links with app.deepLink and refuses non-URLs', async () => {
+      const c = ctx();
+      const driver = await started(
+        {},
+        {
+          ...c,
+          app: {
+            ...c.app,
+            deepLink: (link: URL) =>
+              link.host === 'bad' ? 'details/1' : `myapp://tv${link.pathname}`,
+          },
+        },
+      );
+      expect(driver.deepLinks.translate(new URL('https://example.com/watch/1'))).toEqual({
+        description: 'myapp://tv/watch/1',
+        data: 'myapp://tv/watch/1',
+      });
+      expect(() => driver.deepLinks.translate(new URL('x://bad'))).toThrow(
+        expect.objectContaining({
+          code: 'DEEPLINK_INVALID',
+          message:
+            'The tvos deepLink mapper returned "details/1" for x://bad, which is not an absolute URL.',
+        }),
+      );
+      expect(
+        () => new TvosDriver({}, { ...c, app: { ...c.app, deepLink: 'myapp://' } }, deps),
+      ).toThrow(/deepLink/);
+    });
   });
 
   it('reads query, focused and tree from one page source fetch each', async () => {

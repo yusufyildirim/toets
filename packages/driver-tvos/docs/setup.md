@@ -20,7 +20,7 @@ export default defineConfig({
 });
 ```
 
-`bundleId` is required. Omit `app` to test an app that is already installed. `launchArguments` and `launchEnvironment` pass extra arguments and environment to every launch.
+`bundleId` is required. Omit `app` to test an app that is already installed. `launchArguments` and `launchEnvironment` pass extra arguments and environment to every launch except deep link launches. `deepLink` (`(link: URL) => string`) translates a canonical deep link into the URL the app opens; default: the link.
 
 ## What happens per worker
 
@@ -30,6 +30,8 @@ export default defineConfig({
 4. An XCUITest session opens, the app is installed and its unified log is streamed.
 
 `launch` terminates the app and starts it with the launch payload (`@toets/protocol`) as launch arguments `-__toets <value>`, where the value is unpadded base64url of the JSON (`encodeLaunchPayloadParam`). The app (or the toets SDK) reads it with `UserDefaults.standard.string(forKey: "__toets")` and decodes it. Payload URLs use `localhost`: the simulator shares the host's network.
+
+A deep link launch (`app.launch({ deepLink })`) opens the URL instead, so the system starts the app for it; launch arguments can not ride along. The payload goes into the app's user defaults (`defaults write <bundleId> __toets <value>`), where the same `UserDefaults` read finds it, and is removed on the next launch, terminate or stop. See [deep links](../../core/docs/deep-links.md).
 
 ## Driver options
 

@@ -23,6 +23,10 @@ export interface FailureDump {
   readonly focused: string;
   /** The open keyboard: `search (layer: lower)`, `system`, `none`, or `unavailable: <reason>`. */
   readonly keyboard: string;
+  /** Title of the last launch (with its deep link and translation), `null` before one. */
+  readonly lastLaunch: string | null;
+  /** Title of the last `openDeepLink` since that launch, with its translation, or `null`. */
+  readonly lastDeepLink: string | null;
   /** Text snapshot of the screen, or `unavailable: <reason>`. */
   readonly screen: string;
   /** What kept the app busy at dump time (SDK idle sync), if known. */
@@ -59,6 +63,8 @@ export function formatFailureDump(dump: FailureDump): string {
   );
   out.push(`- focused: ${dump.focused}`);
   out.push(`- keyboard: ${dump.keyboard}`);
+  if (dump.lastLaunch) out.push(`- last launch: ${dump.lastLaunch}`);
+  if (dump.lastDeepLink) out.push(`- last deep link: ${dump.lastDeepLink}`);
   if (dump.busy) out.push(`- busy: ${dump.busy}`);
   out.push(`- last keys: ${dump.lastKeys.map(describeKey).join(', ') || '(none)'}`);
   out.push('', '## Screen', '', '```yaml', dump.screen, '```');

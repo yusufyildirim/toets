@@ -50,6 +50,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 | Need                        | Use                                                                |
 | --------------------------- | ------------------------------------------------------------------ |
 | Start the app               | `app.launch()`, `app.launch({ state, flags, clearData })`          |
+| Open from a deep link       | `app.launch({ deepLink: url })`, `app.openDeepLink(url)`           |
 | Find elements               | `app.getByTestId(id)`, `app.getByText(text)`, `.nth(i)`, chaining  |
 | Get somewhere               | `app.focus.pressUntilFocused(Key.RIGHT, locator)`, or `navigateTo` |
 | Press keys                  | `app.remote.press(Key.X)`, `longPress`, `repeat`, `sequence`       |
@@ -72,6 +73,7 @@ test('shows the empty state when the watchlist is empty', async ({ app }) => {
 - Page objects take `app`, expose locators and intent-level actions, and do not assert except to wait until loaded. (`concepts/page-objects`)
 - App-specific setup (splash, sign-in) lives in a fixture in the project. (`guides/writing-tests`)
 - Enter text with `fill` and `app.keyboard`, never by pressing keys one by one. An app-drawn keyboard (OSK, PIN pad) must be declared with `defineKeyboard()` in the `keyboards` option, in a file that imports only `defineKeyboard`; pass `{ mask: true }` for PINs and passwords. (`concepts/text-input`)
+- Deep links: one canonical URL in tests (`myapp://details/42`), `requires('deeplink.launch')` / `requires('deeplink.open')`, and assert focus right after landing. Platform forms (web path, Fire TV intent) go in the config's `deepLink` mappers, never in the test. (`concepts/deep-links`)
 - Serial flows only for journeys that can not be set up directly; prefer named states. (`guides/serial-flows`)
 - No `sleep`, no `waitForTimeout`, no raw keycodes, no `if (platform)`, no `platformOnly` unless a maintainer asks for it.
 - Keep text snapshot assertions to a region, with mocked data. (`concepts/text-snapshots`)

@@ -25,6 +25,7 @@ It also lists busy resources (when idle sync is on), recent app logs and recorde
 
 ## Principles
 
+- **Launch and deep link.** `last launch` and `last deep link` repeat the test's last `launch` and `openDeepLink` steps with the link's translation (`myapp://details/42 → intent com.example.PLAY ...`), so a link that landed on the wrong screen shows what the platform really opened ([deep links](./deep-links.md)).
 - **Keyboard state.** The `keyboard` line names the open keyboard: a declared one with its layer (`search (layer: digits)`), `system`, or `none`. A test stuck behind an open keyboard shows here first ([text input](./text-input.md)).
 - **Text first.** The screen is a [text snapshot](./text-snapshots.md), readable in CI logs and by AI agents. The screenshot is attached separately.
 - **Never masks the real error.** Collecting the dump never throws; missing parts are left out.

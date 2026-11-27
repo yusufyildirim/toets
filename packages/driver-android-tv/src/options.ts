@@ -1,5 +1,6 @@
 import { resolve } from 'node:path';
-import type { AppTargetConfig } from '@toets/core';
+import type { AppTargetConfig, DeepLinkMapper } from '@toets/core';
+import type { AndroidDeepLink } from './deep-link.js';
 import type { ManagedDeviceOptions } from './devices/managed.js';
 import { DOCS, androidError } from './errors.js';
 import type { RemoteProfile } from './keys.js';
@@ -20,6 +21,16 @@ export interface AndroidTvAppConfig {
   readonly activity?: string;
   /** APK installed (`adb install -r`) when the driver starts; relative to the config file. Omit when already installed. */
   readonly apk?: string;
+  /**
+   * Translates the canonical deep link of `launch({ deepLink })` and `openDeepLink` into the
+   * intent this app handles: a URI string (a VIEW intent), or an {@link AndroidDeepLink} with
+   * action, categories, MIME type and typed extras (Fire TV content intents). Default: the link
+   * unchanged, as a VIEW intent. Set it in a project's `app` for one remote profile only.
+   *
+   * @example
+   * deepLink: (link) => ({ action: 'com.example.PLAY', extras: { contentId: link.pathname.slice(1) } })
+   */
+  readonly deepLink?: DeepLinkMapper<string | AndroidDeepLink>;
 }
 
 /** Options of the Android TV driver (`platforms.androidTV({ ... })`). All optional. */
@@ -71,7 +82,7 @@ export function parseAppConfig(
   app: AppTargetConfig,
   configDir: string = process.cwd(),
 ): AndroidTvAppConfig {
-  const { package: pkg, activity, apk } = app;
+  const { package: pkg, activity, apk, deepLink } = app;
   if (typeof pkg !== 'string' || !/^[A-Za-z][\w]*(\.[A-Za-z][\w]*)+$/.test(pkg)) {
     throw androidError(
       'ANDROID_APP_CONFIG',
@@ -89,8 +100,21 @@ export function parseAppConfig(
       });
     }
   }
+  if (deepLink !== undefined && typeof deepLink !== 'function') {
+    throw androidError(
+      'ANDROID_APP_CONFIG',
+      'app.deepLink must be a function (link: URL) => ....',
+      {
+        hint: "Set `deepLink: (link) => 'https://example.com' + link.pathname`, or an intent object as its result.",
+        docs: DOCS.setup,
+      },
+    );
+  }
   return {
     package: pkg,
+    ...(deepLink === undefined
+      ? {}
+      : { deepLink: deepLink as DeepLinkMapper<string | AndroidDeepLink> }),
     ...(typeof activity === 'string' ? { activity } : {}),
     ...(typeof apk === 'string' ? { apk: resolve(configDir, apk) } : {}),
   };

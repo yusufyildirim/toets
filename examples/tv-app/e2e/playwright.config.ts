@@ -9,6 +9,7 @@ import { keyboards } from './keyboards.js';
  * - `web`, `android-tv`, `tvos`: with the in-app SDK (idle sync, media state, launch states).
  * - `*-blackbox`: the same tests without the SDK session (decision 5). Tests that need an SDK
  *   capability are skipped with the reason; everything else must pass unchanged.
+ * - `fire-tv`: the deep link tests with Fire TV's content intent (the `deepLink` translation).
  *
  * Devices: `TOETS_DEVICES=<address>` (an emulator serial like `emulator-5554`, a simulator UDID)
  * uses already running devices (a lease broker, Android Studio); without it toets boots and
@@ -16,6 +17,23 @@ import { keyboards } from './keyboards.js';
  */
 const devices: DeviceSelection = process.env.TOETS_DEVICES ? { mode: 'external' } : 'managed';
 const android = { model: 'tv_1080p', osVersion: '33', devices } as const;
+// Fire TV opens content with an intent (custom action + extras, no URI), not a link: the
+// project translates the app's canonical links into it. Runs only the deep link tests.
+const fireTv = platforms.androidTV({
+  name: 'fire-tv',
+  ...android,
+  remote: 'fire-tv',
+  testMatch: '**/deep-links.spec.ts',
+  app: {
+    deepLink: (link) =>
+      link.protocol === 'toetstv:' && link.host === 'details'
+        ? {
+            action: 'dev.toets.example.OPEN_DETAILS',
+            extras: { contentId: link.pathname.slice(1) },
+          }
+        : link.href,
+  },
+});
 // TV browsers autoplay; desktop Chromium blocks playback that no user gesture started.
 const web = { use: { launchOptions: { args: ['--autoplay-policy=no-user-gesture-required'] } } };
 
@@ -53,5 +71,6 @@ export default defineConfig({
     platforms.tvOS({ devices }),
     platforms.web({ name: 'web-blackbox', ...web, toets: { sdk: false } }),
     platforms.androidTV({ name: 'android-tv-blackbox', ...android, toets: { sdk: false } }),
+    fireTv,
   ],
 });

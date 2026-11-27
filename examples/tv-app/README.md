@@ -45,7 +45,11 @@ TOETS_DEVICES=<simulator-udid> pnpm e2e --project=tvos      # booted simulator; 
 
 The suite starts the API and serves the web build (`node server/main.ts web`); native projects need only the API, so they run without a web build.
 
-`*-blackbox` projects run the same tests without the SDK session; tests needing an SDK capability are skipped with the reason, everything else must pass unchanged. The parity matrix lands in `toets-report/parity.md`.
+`fire-tv` runs the deep link tests through the Fire TV content intent (`TOETS_DEVICES=emulator-5554 pnpm e2e --project=fire-tv`). `*-blackbox` projects run the same tests without the SDK session; tests needing an SDK capability are skipped with the reason, everything else must pass unchanged. The parity matrix lands in `toets-report/parity.md`.
+
+## Deep links
+
+`toetstv://details/<itemId>` (and `toetstv://player/<itemId>`) open a title, cold or while running ([`useDeepLinks`](./src/navigation/useDeepLinks.ts), [`deepLinkActions`](./src/navigation/navigation.ts)). The scheme is registered on every platform by [`app.config.ts`](./app.config.ts); web routes the same paths (`/details/<itemId>`). For Fire TV, `app.config.ts` also adds a content intent (`dev.toets.example.OPEN_DETAILS` with the string extra `contentId`) that `MainActivity` rewrites into the link, cold (`onCreate`) and running (`onNewIntent`). The `fire-tv` project runs [`deep-links.spec.ts`](./e2e/deep-links.spec.ts) with its `deepLink` mapper translating the canonical link into that intent.
 
 ## Media keys
 

@@ -31,6 +31,7 @@ export default defineConfig({
 - **Every config type is exported** from `@toets/test`, driver option types included (`WebDriverOptions`, `AndroidTvDriverOptions`, `TvosAppConfig`, ...), so a config can be factored into typed pieces without importing driver packages.
 - **`model` and `osVersion`** tell the device provider what to boot or lease, e.g. `model: 'tv_1080p', osVersion: '34'`.
 - **`keyboards`** declares the app-drawn keyboards ([text input](../../core/docs/text-input.md)): top level, per project (`platforms.web({ keyboards })`) or per test (`test.use({ keyboards })`). Each level replaces the one above, never merges. Keep the definitions in a file that imports only `defineKeyboard`: the config loads it.
+- **Deep links** keep one canonical URL in tests; each platform's form (a web path, a Fire TV intent) is the `deepLink` mapper in its `app` config or a project's `app` ([deep links](../../core/docs/deep-links.md)).
 - **Relative app paths** (`apk`, `app`) resolve against the config file's directory.
 - **Options merge** from the top-level `toets` into each project's `toets`. The `app` entry for the platform merges with the project's `app`.
 - **Snapshot baselines are per project, not per host.** toets projects default `snapshotPathTemplate` to Playwright's default without the host OS suffix; a top-level or project `snapshotPathTemplate` wins.
